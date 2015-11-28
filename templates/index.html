@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+
+{% block scripts %}
+{% endblock %}
+
+{% block body %}
+<style>
+    #chord path {
+        fill-opacity: .67;
+        stroke: #000;
+        stroke-width: .5px;
+    }
+</style>
+<script type="text/javascript">
+$(function() {
+    createChord();
+});
+</script>
+
+<div class="row">
+    <div class="col-xs-4">{% include "data.html" %}</div>
+    <div class="col-xs-8">
+        <h2>Visualisaties</h2>
+
+{#        <ul class="nav nav-tabs">#}
+{#            <li role="presentation" class="active"><a href="#">Bin sets</a></li>#}
+{#            <li role="presentation"><a href="#">Bins</a></li>#}
+{#            <li role="presentation"><a href="#">Taxonomie</a></li>#}
+{#        </ul>#}
+
+        <div class="row">
+            <div class="col-xs-6"></div>
+            <div class="col-xs-6"></div>
+        </div>
+
+        <div id="chordPlot">
+        </div>
+    </div>
+</div>
+{% endblock %}

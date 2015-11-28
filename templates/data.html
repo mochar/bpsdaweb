@@ -1,0 +1,133 @@
+<script type="text/javascript">
+$(function() {
+    $('#binsetFile').change(function(e) {
+        var reader = new FileReader();
+        reader.onload = function() {
+            $('#binTable').find('tbody').find('tr').remove();
+            var lines = reader.result.split(/\r\n|\n/);
+            for (var i = 0; i < 5; i++) {
+                var data = lines[i].split(',');
+                $('#binTable').find('tbody')
+                    .append($('<tr>')
+                            .append($('<td>').text(data[0]))
+                            .append($('<td>').text(data[1]))
+                    );
+            }
+        };
+        reader.readAsText(e.target.files.item(0));
+    });
+
+{#    $('#binsetToggle').click(function() {#}
+{#        console.log('here tbh');#}
+{#        if ($('#binsetToggle').find('span').hasClass('glyphicon-plus')) {#}
+{#            $('#binsetToggle').html('<span class="glyphicon glyphicon-minus pull-right"></span>');#}
+{#        } else {#}
+{#            $('#binsetToggle').html('<span class="glyphicon glyphicon-plus pull-right"></span>');#}
+{#        }#}
+{#    });#}
+
+    $('#binsetList').find('a').click(function() {
+        if ($(this).hasClass('active')) {
+            $(this).removeClass('active');
+        } else {
+            var selected_binsets = $(this).parent().find('.active');
+            if (selected_binsets.length == 2) {
+                selected_binsets[0].removeClass('active');
+            }
+            $(this).addClass('active');
+            selected_binsets = $(this).parent().find('.active');
+            if (selected_binsets.length == 2) {
+                Sijax.request('update_chord', [selected_binsets[0].text,
+                                               selected_binsets[1].text]);
+            }
+        }
+    });
+});
+</script>
+
+<h2>Data</h2>
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h4 class="panel-title">
+            Bin sets
+            <a href="#binsetFormPanel" data-toggle="collapse" id="binsetToggle">
+                <span class="glyphicon glyphicon-plus pull-right"></span>
+            </a>
+        </h4>
+    </div>
+
+    <div id="binsetFormPanel" class="panel-collapse collapse">
+    <div class="panel-body">
+        <div id="binsetAlerts"></div>
+
+        <form id="binsetForm" name="binsetForm" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="binsetName">Naam</label>
+                <input type="text" class="form-control" id="binsetName" name="binsetName">
+            </div>
+
+            <div class="form-group">
+                <label for="binsetFile">Bin set bestand</label>
+                <input type="file" id="binsetFile" name="binsetFile">
+                <p class="help-block">Een delimitergescheiden bestand met eerste kolom
+                    contig en tweede kolom bin nummer.</p>
+            </div>
+
+            <table class="table" id="binTable">
+                <thead><tr><th>Contig</th><th>Bin</th></tr></thead>
+                <tbody></tbody>
+            </table>
+
+            <div class="form-group">
+                <label for="binsetContigset">Contigset</label>
+                <select class="form-control" id="binsetContigset" name="binsetContigset">
+                    {% for contigset in contigsets %}
+                        <option>{{ contigset.name }}</option>
+                    {% endfor %}
+                    <option>Nieuw</option>
+                </select>
+                <p class="help-block">Selecteer optie "Nieuw" om een nieuwe
+                    contigset te maken van de contigs in het bin bestand.</p>
+            </div>
+
+            <input id="contigsetSubmit" type="submit" class="btn btn-default" value="Voeg toe" />
+        </form>
+    </div>
+    </div>
+
+    <ul class="list-group" id="binsetList">
+        {% for binset in binsets %}
+            <a href="#" class="list-group-item">{{ binset.name }}</a>
+        {% endfor %}
+    </ul>
+</div>
+
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h4 class="panel-title">Assembled contigs / scaffolds</h4>
+    </div>
+    <div class="panel-body">
+        <form id="contigsetForm" name="contigsetForm" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="contigsetName">Naam</label>
+                <input type="text" class="form-control" id="contigsetName" name="contigsetName">
+            </div>
+
+            <div class="form-group">
+                <label for="contigsetFile">Contig bestand</label>
+                <input type="file" id="contigsetFile" name="contigsetFile">
+                <p class="help-block">Het contig bestand moet in fasta-formaat zijn.</p>
+            </div>
+
+            <input id="contigsetSubmit" type="submit" class="btn btn-default" value="Voeg toe" />
+        </form>
+    </div>
+    <ul class="list-group" id="contigsetList">
+        {% for contigset in contigsets %}
+            <li class="list-group-item">{{ contigset.name }}</li>
+        {% endfor %}
+    </ul>
+</div>
+
