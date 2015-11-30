@@ -68,9 +68,9 @@ class SijaxHandler(object):
         obj_response.reset_form()
 
         # Validate input
-        contig_file = files.get('contigsetFile').filename
+        contig_file = files.get('contigsetFile')
         contigset_name = form_values.get('contigsetName')[0]
-        if '' in (contig_file, contigset_name):
+        if '' in (contig_file.filename, contigset_name):
             SijaxHandler._add_alert(obj_response, '#contigsetAlerts',
                                     'Onjuiste input.')
             return
@@ -87,11 +87,14 @@ class SijaxHandler(object):
         db.session.add(contigset)
         db.session.commit()
 
-        contigs = 100
+        # Add data to database
+        contigs = 0
         """
         for header, sequence in utils.parse_fasta(contig_file):
+            app.logger.debug(header)
+            app.logger.debug(sequence)
             contig = Contig(header=header, sequence=sequence,
-                            contigset=contigset_name)
+                            contigset_id=contigset.id)
             db.session.add(contig)
             contigs += 1
         db.session.commit()
@@ -109,10 +112,10 @@ class SijaxHandler(object):
         obj_response.remove('#binTable > tbody > tr')
 
         # Validate input
-        bin_file = files.get('binsetFile').filename
+        bin_file = files.get('binsetFile')
         binset_name = form_values.get('binsetName')[0]
         contigset_name = form_values.get('binsetContigset')[0]
-        if '' in (bin_file, binset_name):
+        if '' in (bin_file.filename, binset_name):
             SijaxHandler._add_alert(obj_response, '#binsetAlerts',
                                     'Onjuiste input.')
             return
