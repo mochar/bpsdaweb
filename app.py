@@ -89,16 +89,12 @@ class SijaxHandler(object):
 
         # Add data to database
         contigs = 0
-        """
-        for header, sequence in utils.parse_fasta(contig_file):
-            app.logger.debug(header)
-            app.logger.debug(sequence)
+        for header, sequence in utils.parse_fasta(contig_file.stream):
             contig = Contig(header=header, sequence=sequence,
                             contigset_id=contigset.id)
             db.session.add(contig)
             contigs += 1
         db.session.commit()
-        """
 
         obj_response.html_append('#contigsetList',
             '<li class="list-group-item">'
