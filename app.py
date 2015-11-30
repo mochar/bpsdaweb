@@ -64,12 +64,17 @@ class SijaxHandler(object):
 
     @staticmethod
     def contigset_form_handler(obj_response, files, form_values):
-        app.logger.debug('contigset')
-        contig_file = files.get('contigsetFile')
-        contigset_name = form_values.get('contigsetName')
-        if None in (contig_file, contigset_name):
-            return # TODO: flash
-        contigset_name = contigset_name[0]
+        obj_response.reset_form()
+
+        contig_file = files.get('contigsetFile').filename
+        contigset_name = form_values.get('contigsetName')[0]
+        app.logger.debug(contig_file)
+        app.logger.debug(contigset_name)
+        if '' in (contig_file, contigset_name):
+            SijaxHandler._add_alert(obj_response, '#contigsetAlerts',
+                                    'Onjuiste input.')
+            return
+
         contigs = 100
         """
         for header, sequence in utils.parse_fasta(contig_file):
@@ -79,7 +84,7 @@ class SijaxHandler(object):
             contigs += 1
         db.session.commit()
         """
-        obj_response.reset_form()
+
         obj_response.html_append('#contigsetList',
             '<li class="list-group-item">'
             '<span class="badge">{}</span>'
@@ -92,16 +97,13 @@ class SijaxHandler(object):
         obj_response.remove('#binTable > tbody > tr')
 
         # Validate input
-        bin_file = files.get('binsetFile')
-        binset_name = form_values.get('binsetName')
-        binset_contigset = form_values.get('binsetContigset')
-        if None in (bin_file, binset_name, binset_contigset) or\
-           binset_name[0] == '':
+        bin_file = files.get('binsetFile').filename
+        binset_name = form_values.get('binsetName')[0]
+        contigset_name = form_values.get('binsetContigset')[0]
+        if '' in (bin_file, binset_name):
             SijaxHandler._add_alert(obj_response, '#binsetAlerts',
                                     'Onjuiste input.')
             return
-        binset_name = binset_name[0]
-        contigset_name = binset_contigset[0]
 
         binsets = Binset.query.filter_by(name=binset_name,
                                          userid=session['uid']).all()
