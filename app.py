@@ -64,16 +64,28 @@ class SijaxHandler(object):
 
     @staticmethod
     def contigset_form_handler(obj_response, files, form_values):
+        # Clean form
         obj_response.reset_form()
 
+        # Validate input
         contig_file = files.get('contigsetFile').filename
         contigset_name = form_values.get('contigsetName')[0]
-        app.logger.debug(contig_file)
-        app.logger.debug(contigset_name)
         if '' in (contig_file, contigset_name):
             SijaxHandler._add_alert(obj_response, '#contigsetAlerts',
                                     'Onjuiste input.')
             return
+
+        contigsets = Contigset.query.filter_by(name=contigset_name,
+                                               userid=session['uid']).all()
+        if len(contigsets) > 0:
+            SijaxHandler._add_alert(obj_response, '#contigsetAlerts',
+                                    'Contigs zijn al geupload.')
+            return
+
+        # Create new contigset
+        contigset = Contigset(name=contigset_name, userid=session['uid'])
+        db.session.add(contigset)
+        db.session.commit()
 
         contigs = 100
         """
