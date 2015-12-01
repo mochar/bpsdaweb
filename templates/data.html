@@ -98,7 +98,18 @@ $(function() {
 
     <ul class="list-group" id="binsetList">
         {% for binset in binsets %}
-            <a href="#" class="list-group-item">{{ binset.name }}</a>
+            <a href="#{{ binset.name }}" data-toggle="collapse"
+               class="list-group-item">{{ binset.name }}</a>
+            <div id="{{ binset.name }}" class="collapse">
+                <div class="well">
+                <label for="#bins">Bins</label>
+                <select class="form-control" id="bins">
+                    {% for binset in binset.bins.all() %}
+                        <option>{{ binset.name }}</option>
+                    {% endfor %}
+                </select>
+                </div>
+            </div>
         {% endfor %}
     </ul>
 </div>
