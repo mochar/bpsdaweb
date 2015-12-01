@@ -1,6 +1,7 @@
 // --- Chord
 var svg;
-var width = 960, height = 500;
+//var width = 960, height = 500;
+var width = 768, height = 500;
 var innerRadius = Math.min(width, height) * .41,
     outerRadius = innerRadius * 1.1;
 
