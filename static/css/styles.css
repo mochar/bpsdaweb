@@ -4,3 +4,8 @@ outline: none;
 box-shadow:none !important;
 border:1px solid #ccc !important;
 }
+
+.scrollable {
+    max-height: 200px;
+    overflow-y: auto;
+}
