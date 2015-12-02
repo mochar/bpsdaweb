@@ -179,8 +179,8 @@ class SijaxHandler(object):
         bins2 = [bin for bin in binset2.bins.all() if bin.name in bin_sets[1][1]]
         matrix = utils.to_matrix(bins1, bins2)
         # TODO: store color in database someplace else
-        colors = ['#FFDD89' for _ in binset1.bins.all()]
-        colors.extend(['#957244' for _ in binset2.bins.all()])
+        colors = ['#FFDD89' for _ in bins1]
+        colors.extend(['#957244' for _ in bins2])
         obj_response.call('updateChord', [matrix, colors])
 
 
