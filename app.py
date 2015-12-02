@@ -174,9 +174,11 @@ class SijaxHandler(object):
         binset1 = Binset.query.filter_by(userid=session['uid'],
                                          name=bin_sets[0][0]).first()
         bins1 = [bin for bin in binset1.bins.all() if bin.name in bin_sets[0][1]]
+        bins1 = utils.sort_bins(bins1)
         binset2 = Binset.query.filter_by(userid=session['uid'],
                                          name=bin_sets[1][0]).first()
         bins2 = [bin for bin in binset2.bins.all() if bin.name in bin_sets[1][1]]
+        bins2 = utils.sort_bins(bins2, reverse=True)
         matrix = utils.to_matrix(bins1 + bins2)
         # TODO: store color in database someplace else
         colors = ['#FFDD89' for _ in bins1]
