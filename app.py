@@ -172,10 +172,12 @@ class SijaxHandler(object):
     def update_chord(obj_response, *bin_sets):
         app.logger.debug(bin_sets)
         binset1 = Binset.query.filter_by(userid=session['uid'],
-                                         name=bin_sets[0]).first()
+                                         name=bin_sets[0][0]).first()
+        bins1 = binset1.bins.all()
         binset2 = Binset.query.filter_by(userid=session['uid'],
-                                         name=bin_sets[1]).first()
-        matrix = utils.to_matrix(binset1, binset2)
+                                         name=bin_sets[1][0]).first()
+        bins2 = binset2.bins.all()
+        matrix = utils.to_matrix(bins1, bins2)
         # TODO: store color in database someplace else
         colors = ['#FFDD89' for _ in binset1.bins.all()]
         colors.extend(['#957244' for _ in binset2.bins.all()])
