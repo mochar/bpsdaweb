@@ -37,8 +37,10 @@ $(function() {
             $(this).addClass('active');
             selected_binsets = $(this).parent().find('.active');
             if (selected_binsets.length == 2) {
-                Sijax.request('update_chord', [selected_binsets[0].text,
-                                               selected_binsets[1].text]);
+                var bins1 = $('#' + selected_binsets[0].text).find('li').map(function() { return this.id; }).get();
+                var bins2 = $('#' + selected_binsets[1].text).find('li').map(function() { return this.id; }).get();
+                Sijax.request('update_chord', [[selected_binsets[0].text, bins1],
+                                               [selected_binsets[1].text, bins2]]);
             }
         }
     });
@@ -109,9 +111,9 @@ $(function() {
                class="list-group-item">{{ binset.name }}</a>
             <div id="{{ binset.name }}" class="collapse">
                 <ul class="list-group scrollable">
-                {% for binset in binset.bins.all() %}
-                    <li class="list-group-item bin">
-                        {{ binset.name }}
+                {% for bin in binset.bins.all() %}
+                    <li class="list-group-item bin" id="{{ bin.name }}">
+                        {{ bin.name }}
                         <span class="pull-right binButtons">
                             <button class="btn btn-xs btn-default">
                                 <span class="glyphicon glyphicon-eye-open"></span>
