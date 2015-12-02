@@ -25,6 +25,14 @@ $(function() {
 {#            $('#binsetToggle').html('<span class="glyphicon glyphicon-plus pull-right"></span>');#}
 {#        }#}
 {#    });#}
+    function sendUpdateChordRequest() {
+        var binsets = $('#binsetList').find('a.active');
+        var data = [
+                [binsets[0].text, $('#' + binsets[0].text).find('li').not('.binHidden').map(function() { return this.id; }).get()],
+                [binsets[1].text, $('#' + binsets[1].text).find('li').not('.binHidden').map(function() { return this.id; }).get()]
+        ];
+        Sijax.request('update_chord', data);
+    }
 
     $('#binsetList').find('a').click(function() {
         if ($(this).hasClass('active')) {
@@ -37,10 +45,7 @@ $(function() {
             $(this).addClass('active');
             selected_binsets = $(this).parent().find('.active');
             if (selected_binsets.length == 2) {
-                var bins1 = $('#' + selected_binsets[0].text).find('li').map(function() { return this.id; }).get();
-                var bins2 = $('#' + selected_binsets[1].text).find('li').map(function() { return this.id; }).get();
-                Sijax.request('update_chord', [[selected_binsets[0].text, bins1],
-                                               [selected_binsets[1].text, bins2]]);
+                sendUpdateChordRequest();
             }
         }
     });
@@ -48,8 +53,18 @@ $(function() {
     $('.binButtons').hide();
     $('.bin').hover(function() {
         $(this).children('.binButtons').show();
+        $(this).children('.binStatus').hide();
     }, function() {
         $(this).children('.binButtons').hide();
+        $(this).children('.binStatus').show();
+    });
+
+    $('.hideBin').click(function() {
+        $(this).toggleClass('active');
+        $(this).children().toggleClass('glyphicon-eye-open glyphicon-eye-close');
+        $(this).parent().parent().find('.binStatus span').toggleClass('glyphicon-eye-close');
+        $(this).parent().parent().toggleClass('binHidden');
+        sendUpdateChordRequest();
     });
 });
 </script>
@@ -114,11 +129,14 @@ $(function() {
                 {% for bin in binset.bins.all() %}
                     <li class="list-group-item bin" id="{{ bin.name }}">
                         {{ bin.name }}
+                        <span class="pull-right binStatus">
+                            <span class="glyphicon"></span>
+                        </span>
                         <span class="pull-right binButtons">
-                            <button class="btn btn-xs btn-default">
+                            <button class="btn btn-xs btn-default hideBin">
                                 <span class="glyphicon glyphicon-eye-open"></span>
                             </button>
-                            <button class="btn btn-xs btn-danger">
+                            <button class="btn btn-xs btn-danger removeBin">
                                 <span class="glyphicon glyphicon-trash"></span>
                             </button>
                         </span>
