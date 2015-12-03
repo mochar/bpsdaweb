@@ -38,7 +38,9 @@ function updateChord(matrix, colors) {
     // Update groups
     var groupPaths = svg.select('#group')
         .selectAll('path')
-        .data(chord.groups());
+        .data(chord.groups(), function(d) {
+            return d.index;
+        });
 
     groupPaths.enter()
       .append("path")
@@ -59,7 +61,11 @@ function updateChord(matrix, colors) {
     // Update chords
     var chordPaths = svg.select('#chord')
         .selectAll('path')
-        .data(chord.chords());
+        .data(chord.chords(), function(d) {
+            if (d.source.index < d.target.index)
+                return d.source.index + "-" + d.target.index;
+            return d.target.index + "-" + d.source.index;
+        });
 
     chordPaths.enter()
       .append("path")
