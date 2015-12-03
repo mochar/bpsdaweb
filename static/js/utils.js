@@ -9,7 +9,7 @@ function createChord() {
     svg = d3.select("#chordPlot").append("svg")
         .attr("width", width)
         .attr("height", height)
-        .append("g")
+      .append("g")
         .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
 
     svg.append("g").attr("id", "group");
@@ -31,9 +31,8 @@ function updateChord(matrix, colors) {
         .padding(.05)
         .matrix(matrix);
 
-    // TODO: fix this
     var fill = d3.scale.ordinal()
-    //    .domain(d3.range(Object.keys(binGroups[0].data).length + Object.keys(binGroups[1].data).length))
+        .domain(d3.range(colors.length))
         .range(colors);
 
     // Update groups
@@ -42,20 +41,19 @@ function updateChord(matrix, colors) {
         .data(chord.groups());
 
     groupPaths.enter()
-        .append("path")
+      .append("path")
         .on("mouseover", fade(.1))
         .on("mouseout", fade(1))
         .on("click", function(d) {console.log(d.index); console.log(fill(d.index))} );
 
     // TODO: handle update better??
-    groupPaths.attr("d", d3.svg.arc().innerRadius(innerRadius).outerRadius(outerRadius))
+    groupPaths.transition()
+        .attr("d", d3.svg.arc().innerRadius(innerRadius).outerRadius(outerRadius))
         .style("fill", function(d) { return fill(d.index); })
         .style("stroke", function(d) { return '#000000'; });
 
     groupPaths.exit()
         .transition()
-        .duration(1500)
-        .attr('opacity', 0)
         .remove();
 
     // Update chords
@@ -64,16 +62,16 @@ function updateChord(matrix, colors) {
         .data(chord.chords());
 
     chordPaths.enter()
-        .append("path")
+      .append("path")
         .style("opacity", 1);
 
     // TODO: handle update better??
-    chordPaths.attr("d", d3.svg.chord().radius(innerRadius))
+    chordPaths
+        .transition()
+        .attr("d", d3.svg.chord().radius(innerRadius))
         .style("fill", function(d) { return fill(d.source.index); });
 
     chordPaths.exit()
         .transition()
-        .duration(1500)
-        .attr('opacity', 0)
         .remove();
 }
