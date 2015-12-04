@@ -9,3 +9,9 @@ border:1px solid #ccc !important;
     max-height: 200px;
     overflow-y: auto;
 }
+
+#chord path {
+    fill-opacity: .67;
+    stroke: #000;
+    stroke-width: .5px;
+}
