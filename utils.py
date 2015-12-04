@@ -17,10 +17,12 @@ def sort_bins(bins, reverse=False):
     def gc_content(bin):
         gc, atcg = .0, .0
         for contig in bin.contigs:
+            if contig.sequence is None:
+                continue
             gc += contig.sequence.lower().count('g')
             gc += contig.sequence.lower().count('c')
             atcg += len(contig.sequence)
-        return gc / atcg
+        return gc / atcg if atcg else 0
     return sorted(bins, key=gc_content, reverse=reverse)
 
 
