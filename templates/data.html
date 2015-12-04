@@ -4,9 +4,9 @@ $(function() {
         var reader = new FileReader();
         reader.onload = function() {
             $('#binTable').find('tbody').find('tr').remove();
-            var lines = reader.result.split(/\r\n|\n/);
+            var lines = reader.result.split(/\r\n|\r|\n/);
             for (var i = 0; i < 5; i++) {
-                var data = lines[i].split(',');
+                var data = lines[i].split(/\t| |,|;/);
                 $('#binTable').find('tbody')
                     .append($('<tr>')
                             .append($('<td>').text(data[0]))
