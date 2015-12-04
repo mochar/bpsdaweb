@@ -101,6 +101,9 @@ class SijaxHandler(object):
             '<li class="list-group-item">'
             '<span class="badge">{}</span>'
             '{}</li>'.format(contigs, contigset_name))
+        obj_response.html_prepend('#binsetContigset',
+            '<option>{}</option>'.format(contigset_name))
+        obj_response.call('$("#binsetContigset").prop("selectedIndex", 0)')
 
     @staticmethod
     def binset_form_handler(obj_response, files, form_values):
@@ -131,14 +134,12 @@ class SijaxHandler(object):
 
         # Create contigset if none has been chosen.
         contigset = Contigset.query.filter_by(name=contigset_name,
-                                              userid=session['uid']).all()
-        if len(contigset) == 0:
+                                              userid=session['uid']).first()
+        if contigset is None:
             contigset = Contigset(name='', userid=session['uid'])
             db.session.add(contigset)
             db.session.commit()
             contigset.name = 'contigset{}'.format(contigset.id)
-        else:
-            contigset = contigset[0]
 
         # Add data to database
         bin_file_contents = bin_file.read().decode('utf-8')
@@ -148,23 +149,16 @@ class SijaxHandler(object):
                 continue
             contig_name, bin_name = line.rstrip().split(dialect.delimiter)
 
-            contigs = contigset.contigs.filter_by(header=contig_name).all()
-            if len(contigs) == 0:
+            contig = contigset.contigs.filter_by(header=contig_name).first()
+            if contig is None:
                 contig = Contig(header=contig_name, contigset_id=contigset.id)
                 db.session.add(contig)
-            else:
-                contig = contigs[0]
 
-            # Should be 0 if the bin hasn't been added yet, and 1 if it's
-            # already been added in a previous iteration of the loop. If there
-            # is more than 1, something went wrong...
-            bins = binset.bins.filter_by(name=bin_name).all()
-            if len(bins) == 0:
+            bin = binset.bins.filter_by(name=bin_name).first()
+            if bin is None:
                 bin = Bin(name=bin_name, binset_id=binset.id)
-                bin.contigs.append(contig)
                 db.session.add(bin)
-            elif len(bins) == 1:
-                bins[0].contigs.append(contig)
+            bin.contigs.append(contig)
         db.session.commit()
 
         obj_response.html_append('#binsetList',
