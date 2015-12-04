@@ -1,4 +1,5 @@
 import uuid
+import csv
 
 from flask import Flask, render_template, g, session
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -140,10 +141,12 @@ class SijaxHandler(object):
             contigset = contigset[0]
 
         # Add data to database
-        for line in bin_file.read().decode('utf-8').split('\n'):
+        bin_file_contents = bin_file.read().decode('utf-8')
+        dialect = csv.Sniffer().sniff(bin_file_contents)
+        for line in bin_file_contents.splitlines():
             if line == '':
                 continue
-            contig_name, bin_name = line.rstrip().split(',')
+            contig_name, bin_name = line.rstrip().split(dialect.delimiter)
 
             contigs = contigset.contigs.filter_by(header=contig_name).all()
             if len(contigs) == 0:
