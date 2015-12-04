@@ -76,9 +76,9 @@ class SijaxHandler(object):
                                     'Onjuiste input.')
             return
 
-        contigsets = Contigset.query.filter_by(name=contigset_name,
-                                               userid=session['uid']).all()
-        if len(contigsets) > 0:
+        contigset = Contigset.query.filter_by(name=contigset_name,
+                                              userid=session['uid']).first()
+        if contigset is not None:
             SijaxHandler._add_alert(obj_response, '#contigsetAlerts',
                                     'Contigs zijn al geupload.')
             return
@@ -89,18 +89,17 @@ class SijaxHandler(object):
         db.session.commit()
 
         # Add data to database
-        contigs = 0
+        contigs = []
         for header, sequence in utils.parse_fasta(contig_file.stream):
-            contig = Contig(header=header, sequence=sequence,
-                            contigset_id=contigset.id)
-            db.session.add(contig)
-            contigs += 1
+            contigs.append(Contig(header=header, sequence=sequence,
+                                  contigset_id=contigset.id))
+        db.session.add_all(contigs)
         db.session.commit()
 
         obj_response.html_append('#contigsetList',
             '<li class="list-group-item">'
             '<span class="badge">{}</span>'
-            '{}</li>'.format(contigs, contigset_name))
+            '{}</li>'.format(len(contigs), contigset_name))
         obj_response.html_prepend('#binsetContigset',
             '<option>{}</option>'.format(contigset_name))
         obj_response.call('$("#binsetContigset").prop("selectedIndex", 0)')
@@ -120,9 +119,9 @@ class SijaxHandler(object):
                                     'Onjuiste input.')
             return
 
-        binsets = Binset.query.filter_by(name=binset_name,
-                                         userid=session['uid']).all()
-        if len(binsets) > 0: # Bins already uploaded
+        binset = Binset.query.filter_by(name=binset_name,
+                                        userid=session['uid']).first()
+        if binset is not None: # Bins already uploaded
             SijaxHandler._add_alert(obj_response, '#binsetAlerts',
                                     'Bins zijn al geupload.')
             return
