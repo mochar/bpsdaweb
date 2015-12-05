@@ -1,5 +1,6 @@
 import uuid
 import csv
+import json
 
 from flask import Flask, render_template, g, session
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -181,6 +182,26 @@ class SijaxHandler(object):
         colors.extend(['#957244' for _ in bins2])
         obj_response.call('updateChord', [matrix, colors])
 
+    @staticmethod
+    def bin_data(obj_response):
+        binsets = Binset.query.filter_by(userid=session['uid']).all()
+        data = []
+        for binset in binsets:
+            binset_data = {'binset': binset.name, 'active': False, 'bins': []}
+            for bin in binset.bins.all():
+                contigs = [{
+                    'name': contig.header,
+                    'gc': utils.gc_content(contig.sequence) if contig.sequence else 0
+                } for contig in bin.contigs]
+                binset_data['bins'].append({
+                    'name': bin.name,
+                    'contigs': contigs,
+                    'status': 'visible' # [visible, hidden, deleted]
+                })
+            data.append(binset_data)
+        obj_response.script('binsets = '
+                            'JSON.parse(\'{}\');'.format(json.dumps(data)))
+        obj_response.script('console.log("done")')
 
 ''' Views '''
 @app.before_request

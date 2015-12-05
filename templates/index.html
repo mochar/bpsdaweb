@@ -1,17 +1,9 @@
 {% extends "layout.html" %}
 
-{% block scripts %}
-{% endblock %}
-
 {% block body %}
-<script type="text/javascript">
-$(function() {
-    createChord();
-});
-</script>
-
 <div class="row">
     <div class="col-xs-4">{% include "data.html" %}</div>
+{#    <div class="col-xs-4">{% include "test.html" %}</div>#}
     <div class="col-xs-8">
         <h2>Visualisaties</h2>
 
@@ -20,11 +12,6 @@ $(function() {
 {#            <li role="presentation"><a href="#">Bins</a></li>#}
 {#            <li role="presentation"><a href="#">Taxonomie</a></li>#}
 {#        </ul>#}
-
-        <div class="row">
-            <div class="col-xs-6"></div>
-            <div class="col-xs-6"></div>
-        </div>
 
         <div id="chordPlot" class="panel panel-default"></div>
     </div>

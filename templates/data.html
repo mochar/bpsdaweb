@@ -17,37 +17,18 @@ $(function() {
         reader.readAsText(e.target.files.item(0));
     });
 
-{#    $('#binsetToggle').click(function() {#}
-{#        console.log('here tbh');#}
-{#        if ($('#binsetToggle').find('span').hasClass('glyphicon-plus')) {#}
-{#            $('#binsetToggle').html('<span class="glyphicon glyphicon-minus pull-right"></span>');#}
-{#        } else {#}
-{#            $('#binsetToggle').html('<span class="glyphicon glyphicon-plus pull-right"></span>');#}
-{#        }#}
-{#    });#}
-    function sendUpdateChordRequest() {
-        var binsets = $('#binsetList').find('a.active');
-        var data = [
-                [binsets[0].text, $('#' + binsets[0].text).find('li').not('.binHidden').map(function() { return this.id; }).get()],
-                [binsets[1].text, $('#' + binsets[1].text).find('li').not('.binHidden').map(function() { return this.id; }).get()]
-        ];
-        Sijax.request('update_chord', data);
-    }
-
     $('#binsetList a').click(function() {
-        if ($(this).hasClass('active')) {
-            $(this).removeClass('active');
-        } else {
-            var selected_binsets = $(this).parent().find('.active');
-            if (selected_binsets.length == 2) {
-                selected_binsets[0].removeClass('active');
-            }
-            $(this).addClass('active');
-            selected_binsets = $(this).parent().find('.active');
-            if (selected_binsets.length == 2) {
-                sendUpdateChordRequest();
-            }
+        var selected_binset_name = this.text;
+        var selected_binset = binsets.filter(function(bs) {
+            return bs.binset === selected_binset_name;
+        })[0];
+        if (!selected_binset.active) {
+            var active_binsets = binsets.filter(function(bs) { return bs.active; });
+            if (active_binsets.length == 2) active_binsets[0].active = false;
         }
+        selected_binset.active = !selected_binset.active;
+        var matrix = to_matrix(activeBinsetBins());
+        updateChord(matrix);
     });
 
     $('.binButtons').hide();
@@ -64,7 +45,11 @@ $(function() {
         $(this).children().toggleClass('glyphicon-eye-open glyphicon-eye-close');
         $(this).parent().parent().find('.binStatus span').toggleClass('glyphicon-eye-close');
         $(this).parent().parent().toggleClass('binHidden');
-        sendUpdateChordRequest();
+        var bin = $(this).parent().parent().prop('id');
+        var binset = $(this).parent().parent().parent().parent().prop('id');
+        toggleBin(binset, bin);
+        var matrix = to_matrix(activeBinsetBins());
+        updateChord(matrix);
     });
 });
 </script>
@@ -128,6 +113,7 @@ $(function() {
                 <ul class="list-group scrollable">
                 {% for bin in binset.bins.all() %}
                     <li class="list-group-item bin" id="{{ bin.name }}">
+                        <div class="picker"></div>
                         {{ bin.name }}
                         <span class="pull-right binStatus">
                             <span class="glyphicon"></span>
