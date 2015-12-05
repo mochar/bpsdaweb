@@ -40,7 +40,7 @@ function to_matrix(bins) {
         for (var j = 0; j < matching.length; j++) {
             sum += matching[i];
         }
-        //matching[i] = bin1.contigs.length - sum;
+        matching[i] = bin1.contigs.length - sum;
         return matching;
     });
     return matrix;
