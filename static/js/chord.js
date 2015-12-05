@@ -26,10 +26,15 @@ function fade(opacity) {
     };
 }
 
-function updateChord(matrix, colors) {
+function updateChord(matrix) {
     var chord = d3.layout.chord()
         .padding(.05)
         .matrix(matrix);
+
+    var colors = [];
+    for (var i = 0; i < matrix.length; i++) {
+        colors.push('#FFFFFF')
+    };
 
     var fill = d3.scale.ordinal()
         .domain(d3.range(colors.length))
