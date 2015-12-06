@@ -207,7 +207,9 @@ def make_session_permanent():
 
 @flask_sijax.route(app, '/')
 def home():
+    new_user = False
     if not 'uid' in session:
+        new_user = True
         session['uid'] = str(uuid.uuid4())
 
     form_init_js = g.sijax.register_upload_callback('contigsetForm',
@@ -223,7 +225,8 @@ def home():
     contigsets = Contigset.query.filter_by(userid=session['uid']).all()
     binsets = Binset.query.filter_by(userid=session['uid']).all()
     return render_template('index.html', form_init_js=form_init_js,
-                           contigsets=contigsets, binsets=binsets)
+                           contigsets=contigsets, binsets=binsets,
+                           new_user=new_user)
 
 
 if __name__ == '__main__':

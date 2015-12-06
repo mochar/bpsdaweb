@@ -5,7 +5,10 @@
     <div class="col-xs-4">{% include "data.html" %}</div>
 {#    <div class="col-xs-4">{% include "test.html" %}</div>#}
     <div class="col-xs-8">
-        <h2>Visualisaties</h2>
+        {% if new_user %}
+            {% include 'instructions.html' %}
+        {% endif %}
+{#        <h2>Visualisaties</h2>#}
 
 {#        <ul class="nav nav-tabs">#}
 {#            <li role="presentation" class="active"><a href="#">Bin sets</a></li>#}
