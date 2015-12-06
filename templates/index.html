@@ -1,14 +1,24 @@
 {% extends "layout.html" %}
 
 {% block body %}
+<script type="application/javascript">
+$(function() {
+    var binsetSelects = $('.binsetSelect');
+    binsetSelects.prop('selectedIndex', -1);
+    $('#visualiseBtn').click(function() {
+        changeAndUpdateChord(binsetSelects[0].value, binsetSelects[1].value);
+    })
+})
+</script>
+
+<hr>
+
 <div class="row">
     <div class="col-xs-4">{% include "data.html" %}</div>
-{#    <div class="col-xs-4">{% include "test.html" %}</div>#}
     <div class="col-xs-8">
         {% if new_user %}
             {% include 'instructions.html' %}
         {% endif %}
-{#        <h2>Visualisaties</h2>#}
 
 {#        <ul class="nav nav-tabs">#}
 {#            <li role="presentation" class="active"><a href="#">Bin sets</a></li>#}
@@ -16,7 +26,32 @@
 {#            <li role="presentation"><a href="#">Taxonomie</a></li>#}
 {#        </ul>#}
 
-        <div id="chordPlot" class="panel panel-default"></div>
+{#        <div id="chordPlot" class="panel panel-default"></div>#}
+
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-xs-2">
+                        <select class="form-control binsetSelect">
+                        {% for binset in binsets %}
+                            <option>{{ binset.name }}</option>
+                        {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-xs-2">
+                        <select class="form-control binsetSelect">
+                        {% for binset in binsets %}
+                            <option>{{ binset.name }}</option>
+                        {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-xs-2 col-xs-offset-6" id="visualiseBtn">
+                        <button class="btn btn-primary">Visualiseer</button>
+                    </div>
+                </div>
+                <div id="chordPlot"></div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

@@ -7,12 +7,14 @@ from flask.ext.sqlalchemy import SQLAlchemy
 import flask_sijax
 
 import utils
+import randomcolor
 
 
 app = Flask(__name__)
 app.config.from_object('config')
 db = SQLAlchemy(app)
 flask_sijax.Sijax(app)
+randcol = randomcolor.RandomColor()
 
 
 ''' Database '''
@@ -26,6 +28,7 @@ class Bin(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(25))
     binset_id = db.Column(db.Integer, db.ForeignKey('binset.id'))
+    color = db.Column(db.String(7), default='#ffffff')
     contigs = db.relationship('Contig', secondary=bincontig,
                               backref=db.backref('bins', lazy='dynamic'))
 
@@ -41,6 +44,7 @@ class Binset(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50))
     userid = db.Column(db.String)
+    color = db.Column(db.String(7))
     bins = db.relationship('Bin', backref='binset', lazy='dynamic')
 
 class Contigset(db.Model):
@@ -128,7 +132,8 @@ class SijaxHandler(object):
             return
 
         # Create new binset
-        binset = Binset(name=binset_name, userid=session['uid'])
+        binset = Binset(name=binset_name, userid=session['uid'],
+                        color=randcol.generate()[0])
         db.session.add(binset)
         db.session.commit()
 
@@ -156,7 +161,8 @@ class SijaxHandler(object):
 
             bin = binset.bins.filter_by(name=bin_name).first()
             if bin is None:
-                bin = Bin(name=bin_name, binset_id=binset.id)
+                bin = Bin(name=bin_name, binset_id=binset.id,
+                          color=randcol.generate()[0])
                 db.session.add(bin)
             bin.contigs.append(contig)
         db.session.commit()
@@ -164,6 +170,8 @@ class SijaxHandler(object):
         obj_response.html_append('#binsetList',
                                  '<a href="#" class="list-group-item">'
                                  '{}</li>'.format(binset_name))
+        obj_response.html_append('.binsetSelect',
+                                 '<option>{}</option>'.format(binset_name))
 
     @staticmethod
     def update_chord(obj_response, *bin_sets):
@@ -187,11 +195,13 @@ class SijaxHandler(object):
         binsets = Binset.query.filter_by(userid=session['uid']).all()
         data = []
         for binset in binsets:
-            binset_data = {'binset': binset.name, 'active': False, 'bins': []}
+            binset_data = {'binset': binset.name, 'bins': [],
+                           'color': binset.color}
             for bin in binset.bins.all():
                 binset_data['bins'].append({
                     'name': bin.name,
                     'contigs': [contig.header for contig in bin.contigs],
+                    'color': bin.color,
                     'status': 'visible' # [visible, hidden, deleted]
                 })
             data.append(binset_data)

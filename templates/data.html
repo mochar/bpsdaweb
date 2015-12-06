@@ -17,20 +17,7 @@ $(function() {
         reader.readAsText(e.target.files.item(0));
     });
 
-    $('#binsetList a').click(function() {
-        var selected_binset_name = this.text;
-        var selected_binset = binsets.filter(function(bs) {
-            return bs.binset === selected_binset_name;
-        })[0];
-        if (!selected_binset.active) {
-            var active_binsets = binsets.filter(function(bs) { return bs.active; });
-            if (active_binsets.length == 2) active_binsets[0].active = false;
-        }
-        selected_binset.active = !selected_binset.active;
-        var matrix = to_matrix(activeBinsetBins());
-        updateChord(matrix);
-    });
-
+    // Show buttons on hover and status icons otherwise
     $('.binButtons').hide();
     $('.bin').hover(function() {
         $(this).children('.binButtons').show();
@@ -45,16 +32,13 @@ $(function() {
         $(this).children().toggleClass('glyphicon-eye-open glyphicon-eye-close');
         $(this).parent().parent().find('.binStatus span').toggleClass('glyphicon-eye-close');
         $(this).parent().parent().toggleClass('binHidden');
-        var bin = $(this).parent().parent().prop('id');
-        var binset = $(this).parent().parent().parent().parent().prop('id');
-        toggleBin(binset, bin);
-        var matrix = to_matrix(activeBinsetBins());
-        updateChord(matrix);
+        var bin = $($(this).closest('li')).prop('id');
+        var binset = $($(this).closest('div.well-sm')).prop('id');
+        toggleBin(binset.split('Item')[0], bin);
+        $('#visualiseBtn').click();
     });
 });
 </script>
-
-<h2>Data</h2>
 
 <div class="panel panel-default">
     <div class="panel-heading">
@@ -67,7 +51,7 @@ $(function() {
     </div>
 
     <div id="binsetFormPanel" class="panel-collapse collapse">
-    <div class="panel-body">
+    <div class="panel-body well">
         <div id="binsetAlerts"></div>
 
         <form id="binsetForm" name="binsetForm" method="post" enctype="multipart/form-data">
@@ -107,15 +91,15 @@ $(function() {
 
     <ul class="list-group" id="binsetList">
         {% for binset in binsets %}
-            <a href="#{{ binset.name }}" data-toggle="collapse"
+            <a href="#{{ binset.name }}Item" data-toggle="collapse"
                class="list-group-item">{{ binset.name }}</a>
-            <div id="{{ binset.name }}" class="collapse">
+            <div id="{{ binset.name }}Item" class="collapse well-sm">
                 <ul class="list-group scrollable">
                 {% for bin in binset.bins.all() %}
                     <li class="list-group-item bin" id="{{ bin.name }}">
                         <button id="binColor{{ binset.name }}{{ bin.name }}"
-                             style="background-color: #1b6d85"
-                             class="btn btn-default colpicker"></button>
+                                style="background-color: {{ bin.color }}"
+                                class="btn btn-default colpicker"></button>
                         {{ bin.name }}
                         <span class="pull-right binStatus">
                             <span class="glyphicon"></span>

@@ -21,34 +21,17 @@ $(function() {
 });
 
 
-function setBinsetInfo(id, binset) {
-    var binsetBins = bins.filter(function(b) { return b.binset === binset });
-    var panel = $('#binset' + id + 'Panel');
-}
-
-function activeBinsetBins() {
-    var bins = [];
-    binsets.forEach(function(binset) {
-        if (binset.active) {
-            binset.bins.forEach(function(bin) {
-                if (bin.status === "visible") bins.push(bin);
-            });
-        }
-    });
-    return bins;
-}
-
 function to_matrix(bins) {
     var matrix = bins.map(function(bin1, i) {
         var matching = bins.map(function(bin2) {
-            if (bin1 == bin2) return 0;
+            if (bin1 === bin2) return 0;
             return bin1.contigs.filter(function(c) {
                 return bin2.contigs.indexOf(c) > -1;
             }).length;
         });
         var sum = 0;
         for (var j = 0; j < matching.length; j++) {
-            sum += matching[i];
+            sum += matching[j];
         }
         matching[i] = bin1.contigs.length - sum;
         return matching;
@@ -60,6 +43,13 @@ function findBinset(binsetName) {
     for (var i = 0; i < binsets.length; i++) {
         if (binsets[i].binset === binsetName) return binsets[i];
     }
+}
+
+function changeAndUpdateChord(binset1, binset2) {
+    var bins = findBinset(binset1).bins.concat(findBinset(binset2).bins);
+    bins = bins.filter(function(bin) { return bin.status === 'visible'; });
+    var matrix = to_matrix(bins);
+    updateChord(matrix, bins.map(function(b) { return b.color; }));
 }
 
 // Toggles bin.status values "hidden" and "visible"
