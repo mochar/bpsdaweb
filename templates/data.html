@@ -113,7 +113,9 @@ $(function() {
                 <ul class="list-group scrollable">
                 {% for bin in binset.bins.all() %}
                     <li class="list-group-item bin" id="{{ bin.name }}">
-                        <div class="picker"></div>
+                        <button id="binColor{{ binset.name }}{{ bin.name }}"
+                             style="background-color: #1b6d85"
+                             class="btn btn-default colpicker"></button>
                         {{ bin.name }}
                         <span class="pull-right binStatus">
                             <span class="glyphicon"></span>

@@ -4,8 +4,19 @@ $(function() {
     createChord();
     Sijax.request('bin_data');
 
-    $('#picker').colpick({
-        layout: 'hex'
+    $('.colpicker').colpick({
+        layout: 'hex',
+        submit: 0,
+        colorScheme: 'dark',
+        onChange: function(hsb, hex, rgb, el, bySetColor) {
+            $(el).css('background-color', '#' + hex);
+
+            if(!bySetColor) $(el).val(hex);
+        },
+        onHide: function() {
+        }
+    }).keyup(function() {
+        $(this).colpickSetColor(this.value);
     });
 });
 
