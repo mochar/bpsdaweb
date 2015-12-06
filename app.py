@@ -189,13 +189,9 @@ class SijaxHandler(object):
         for binset in binsets:
             binset_data = {'binset': binset.name, 'active': False, 'bins': []}
             for bin in binset.bins.all():
-                contigs = [{
-                    'name': contig.header,
-                    'gc': utils.gc_content(contig.sequence) if contig.sequence else 0
-                } for contig in bin.contigs]
                 binset_data['bins'].append({
                     'name': bin.name,
-                    'contigs': contigs,
+                    'contigs': [contig.header for contig in bin.contigs],
                     'status': 'visible' # [visible, hidden, deleted]
                 })
             data.append(binset_data)
