@@ -1,3 +1,6 @@
+import csv
+
+
 def to_matrix(bins):
     matrix = []
     for i, bin1 in enumerate(bins):
@@ -43,3 +46,12 @@ def parse_fasta(fasta_file):
 def gc_content(sequence):
     gc = sequence.lower().count('g') + sequence.lower().count('c')
     return gc / len(sequence)
+
+
+def parse_dsv(dsv_file, delimiter=None):
+    dsv_file_contents = dsv_file.read().decode('utf-8')
+    if delimiter is None:
+        delimiter = csv.Sniffer().sniff(dsv_file_contents).delimiter
+    for line in dsv_file_contents.splitlines():
+        if line == '': continue
+        yield line.rstrip().split(delimiter)
