@@ -92,7 +92,9 @@ $(function() {
     <ul class="list-group" id="binsetList">
         {% for binset in binsets %}
             <a href="#{{ binset.name }}Item" data-toggle="collapse"
-               class="list-group-item">{{ binset.name }}</a>
+               class="list-group-item" onclick="$(this).button('toggle');">
+                {{ binset.name }}
+            </a>
             <div id="{{ binset.name }}Item" class="collapse well-sm">
                 <ul class="list-group scrollable">
                 {% for bin in binset.bins.all() %}

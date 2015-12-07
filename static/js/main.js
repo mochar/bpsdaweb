@@ -23,15 +23,15 @@ $(function() {
 
 function to_matrix(bins) {
     var matrix = bins.map(function(bin1, i) {
-        var matching = bins.map(function(bin2) {
-            if (bin1 === bin2) return 0;
+        var matching = bins.map(function(bin2, j) {
+            if (i === j) return 0;
             return bin1.contigs.filter(function(c) {
                 return bin2.contigs.indexOf(c) > -1;
             }).length;
         });
         var sum = 0;
-        for (var j = 0; j < matching.length; j++) {
-            sum += matching[j];
+        for (var i = 0; i < matching.length; i++) {
+            sum += matching[i];
         }
         matching[i] = bin1.contigs.length - sum;
         return matching;
@@ -45,9 +45,13 @@ function findBinset(binsetName) {
     }
 }
 
+function activeBinsetBins(binset) {
+    return binset.bins.filter(function(b) { return b.status === 'visible'; });
+}
+
 function changeAndUpdateChord(binset1, binset2) {
-    var bins = findBinset(binset1).bins.concat(findBinset(binset2).bins);
-    bins = bins.filter(function(bin) { return bin.status === 'visible'; });
+    var bins = activeBinsetBins(findBinset(binset1));
+    bins = bins.concat(activeBinsetBins(findBinset(binset2)).reverse());
     var matrix = to_matrix(bins);
     updateChord(matrix, bins.map(function(b) { return b.color; }));
 }
