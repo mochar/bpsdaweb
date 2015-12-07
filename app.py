@@ -1,3 +1,4 @@
+from collections import defaultdict
 import uuid
 import csv
 import json
@@ -137,6 +138,20 @@ class SijaxHandler(object):
         db.session.add(binset)
         db.session.commit()
 
+        #
+        bin_contigs = defaultdict(list)
+        contig_bins = {}
+        for contig_name, bin_name in utils.parse_dsv(bin_file):
+            bin_contigs[bin_name].append(contig_name)
+            contig_bins[contig_name] = bin_name
+
+        bin_objects = {}
+        for bin_name in bin_contigs:
+            bin = Bin(name=bin_name, binset_id=binset.id,
+                      color=randcol.generate()[0])
+            db.session.add(bin)
+            bin_objects[bin_name] = bin
+
         # Create contigset if none has been chosen.
         contigset = Contigset.query.filter_by(name=contigset_name,
                                               userid=session['uid']).first()
@@ -145,26 +160,16 @@ class SijaxHandler(object):
             db.session.add(contigset)
             db.session.commit()
             contigset.name = 'contigset{}'.format(contigset.id)
-
-        # Add data to database
-        bin_file_contents = bin_file.read().decode('utf-8')
-        dialect = csv.Sniffer().sniff(bin_file_contents)
-        for line in bin_file_contents.splitlines():
-            if line == '':
-                continue
-            contig_name, bin_name = line.rstrip().split(dialect.delimiter)
-
-            contig = contigset.contigs.filter_by(header=contig_name).first()
-            if contig is None:
-                contig = Contig(header=contig_name, contigset_id=contigset.id)
-                db.session.add(contig)
-
-            bin = binset.bins.filter_by(name=bin_name).first()
-            if bin is None:
-                bin = Bin(name=bin_name, binset_id=binset.id,
-                          color=randcol.generate()[0])
-                db.session.add(bin)
-            bin.contigs.append(contig)
+            for bin_name, contigs in bin_contigs.items():
+                for contig_name in contigs:
+                    contig = Contig(header=contig_name,
+                                    contigset_id=contigset.id)
+                    bin_objects[bin_name].contigs.append(contig)
+        else:
+            for contig in contigset.contigs:
+                bin_name = contig_bins.get(contig.header)
+                if bin_name:
+                    bin_objects[bin_name].contigs.append(contig)
         db.session.commit()
 
         obj_response.html_append('#binsetList',
@@ -172,6 +177,7 @@ class SijaxHandler(object):
                                  '{}</li>'.format(binset_name))
         obj_response.html_append('.binsetSelect',
                                  '<option>{}</option>'.format(binset_name))
+        obj_response.script('Sijax.request("bin_data")')
 
     @staticmethod
     def update_chord(obj_response, *bin_sets):
