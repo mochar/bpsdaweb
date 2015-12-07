@@ -7,7 +7,13 @@ $(function() {
     binsetSelects.prop('selectedIndex', -1);
     $('#visualiseBtn').click(function() {
         changeAndUpdateChord(binsetSelects[0].value, binsetSelects[1].value);
-    })
+    });
+
+    $('#switchBinsets').click(function() {
+        var index = binsetSelects[0].selectedIndex;
+        binsetSelects[0].selectedIndex = binsetSelects[1].selectedIndex;
+        binsetSelects[1].selectedIndex = index;
+    });
 })
 </script>
 
@@ -20,14 +26,6 @@ $(function() {
             {% include 'instructions.html' %}
         {% endif %}
 
-{#        <ul class="nav nav-tabs">#}
-{#            <li role="presentation" class="active"><a href="#">Bin sets</a></li>#}
-{#            <li role="presentation"><a href="#">Bins</a></li>#}
-{#            <li role="presentation"><a href="#">Taxonomie</a></li>#}
-{#        </ul>#}
-
-{#        <div id="chordPlot" class="panel panel-default"></div>#}
-
         <div class="panel panel-default">
             <div class="panel-body">
                 <div class="row">
@@ -38,6 +36,9 @@ $(function() {
                         {% endfor %}
                         </select>
                     </div>
+                    <button id="switchBinsets" class="col-xs-1 btn btn-default">
+                        <span class="glyphicon glyphicon-transfer"></span>
+                    </button>
                     <div class="col-xs-2">
                         <select class="form-control binsetSelect">
                         {% for binset in binsets %}
@@ -45,7 +46,7 @@ $(function() {
                         {% endfor %}
                         </select>
                     </div>
-                    <div class="col-xs-2 col-xs-offset-6" id="visualiseBtn">
+                    <div class="col-xs-2 col-xs-offset-5" id="visualiseBtn">
                         <button class="btn btn-primary">Visualiseer</button>
                     </div>
                 </div>
