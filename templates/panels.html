@@ -1,0 +1,29 @@
+<script type="text/html" id="chord">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-xs-2">
+                    <select class="form-control binsetSelect"
+                            data-bind="options: $root.binsets,
+                                               optionsText: 'name',
+                                               value: firstSelectedBinset">
+                    </select>
+                </div>
+                <button class="col-xs-1 btn btn-default">
+                    <span class="glyphicon glyphicon-transfer"></span>
+                </button>
+                <div class="col-xs-2">
+                    <select class="form-control binsetSelect"
+                            data-bind="options: $root.binsets,
+                                               optionsText: 'name',
+                                               value: secondSelectedBinset">
+                    </select>
+                </div>
+                <div class="col-xs-2 col-xs-offset-5" id="visualiseBtn">
+                    <button class="btn btn-primary">Visualiseer</button>
+                </div>
+            </div>
+            <div id="chordPlot"></div>
+        </div>
+    </div>
+</script>

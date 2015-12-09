@@ -8,12 +8,6 @@ $(function() {
     $('#visualiseBtn').click(function() {
         changeAndUpdateChord(binsetSelects[0].value, binsetSelects[1].value);
     });
-
-    $('#switchBinsets').click(function() {
-        var index = binsetSelects[0].selectedIndex;
-        binsetSelects[0].selectedIndex = binsetSelects[1].selectedIndex;
-        binsetSelects[1].selectedIndex = index;
-    });
 })
 </script>
 
@@ -26,32 +20,9 @@ $(function() {
             {% include 'instructions.html' %}
         {% endif %}
 
-        <div class="panel panel-default">
-            <div class="panel-body">
-                <div class="row">
-                    <div class="col-xs-2">
-                        <select class="form-control binsetSelect">
-                        {% for binset in binsets %}
-                            <option>{{ binset.name }}</option>
-                        {% endfor %}
-                        </select>
-                    </div>
-                    <button id="switchBinsets" class="col-xs-1 btn btn-default">
-                        <span class="glyphicon glyphicon-transfer"></span>
-                    </button>
-                    <div class="col-xs-2">
-                        <select class="form-control binsetSelect">
-                        {% for binset in binsets %}
-                            <option>{{ binset.name }}</option>
-                        {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-xs-2 col-xs-offset-5" id="visualiseBtn">
-                        <button class="btn btn-primary">Visualiseer</button>
-                    </div>
-                </div>
-                <div id="chordPlot"></div>
-            </div>
+        {% include "panels.html" %}
+
+        <div id="panels" data-bind="template: {name: getPanelTemplate, foreach: panels}">
         </div>
     </div>
 </div>
