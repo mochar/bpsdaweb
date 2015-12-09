@@ -2,7 +2,7 @@ from collections import defaultdict
 import uuid
 import json
 
-from flask import Flask, render_template, g, session
+from flask import Flask, render_template, g, session, abort, jsonify
 from flask.ext.sqlalchemy import SQLAlchemy
 import flask_sijax
 
@@ -218,6 +218,22 @@ class SijaxHandler(object):
 @app.before_request
 def make_session_permanent():
     session.permanent = True
+
+
+@app.route('/binsets')
+def get_binsets():
+    userid = session.get('uid')
+    if userid is None:
+        abort(404)
+    result = []
+    for binset in Binset.query.filter_by(userid=userid).all():
+        binset_result = {'name': binset.name, 'color': binset.color, 'bins': []}
+        for bin in binset.bins:
+            binset_result['bins'].append({
+                'name': bin.name, 'color': bin.color,
+                'contigs': [contig.header for contig in bin.contigs]})
+        result.append(binset_result)
+    return json.dumps(result)
 
 
 @flask_sijax.route(app, '/')
