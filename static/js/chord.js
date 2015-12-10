@@ -1,11 +1,11 @@
 // --- Chord
-var svg, chord;
+var svg;
 var width = 768, height = 500;
 var innerRadius = Math.min(width, height) * .41;
 var outerRadius = innerRadius * 1.1;
 
-function createChord() {
-    svg = d3.select("#chordPlot").append("svg")
+function createChord(element) {
+    svg = d3.select(element).append("svg")
         .attr("width", width)
         .attr("height", height)
       .append("g")
@@ -13,8 +13,6 @@ function createChord() {
 
     svg.append("g").attr("id", "group");
     svg.append("g").attr("id", "chord");
-
-    chord = d3.layout.chord().padding(.05);
 }
 
 // Returns an event handler for fading a given chord group.
@@ -27,8 +25,11 @@ function fade(opacity) {
     };
 }
 
-function updateChord(matrix, colors) {
-    chord.matrix(matrix);
+function updateChord(element, matrix, colors) {
+    var svg = d3.select(element);
+    var chord = d3.layout.chord()
+        .padding(.05)
+        .matrix(matrix);
 
     var fill = d3.scale.ordinal() // scale non-quantitative values
         .domain(d3.range(colors.length))

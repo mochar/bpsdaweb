@@ -220,16 +220,29 @@ def make_session_permanent():
     session.permanent = True
 
 
-@app.route('/binsets')
+@app.route('/binsets/')
 def get_binsets():
     userid = session.get('uid')
     if userid is None:
         abort(404)
     result = []
     for binset in Binset.query.filter_by(userid=userid).all():
-        binset_result = {'name': binset.name, 'color': binset.color,
-            'bins': [bin.name for bin in binset.bins]}
-        result.append(binset_result)
+        result.append({'name': binset.name, 'color': binset.color})
+    return json.dumps(result)
+
+
+@app.route('/binsets/<string:binset_name>')
+def get_bins(binset_name):
+    userid = session.get('uid')
+    if userid is None:
+        abort(404)
+    binset = Binset.query.filter_by(userid=userid, name=binset_name).first()
+    if binset is None:
+        abort(404)
+    result = []
+    for bin in binset.bins:
+        result.append({'name': bin.name, 'color': bin.color,
+            'contigs': [contig.header for contig in bin.contigs]})
     return json.dumps(result)
 
 

@@ -3,27 +3,30 @@
         <div class="panel-body">
             <div class="row">
                 <div class="col-xs-2">
-                    <select class="form-control binsetSelect"
+                    <select class="form-control"
                             data-bind="options: $root.binsets,
-                                               optionsText: 'name',
-                                               value: firstSelectedBinset">
+                                       optionsText: 'name',
+                                       value: firstSelectedBinset">
                     </select>
                 </div>
-                <button class="col-xs-1 btn btn-default">
+                <button class="col-xs-1 btn btn-default"
+                        data-bind="click: switchSelectedBinsets">
                     <span class="glyphicon glyphicon-transfer"></span>
                 </button>
                 <div class="col-xs-2">
-                    <select class="form-control binsetSelect"
+                    <select class="form-control"
                             data-bind="options: $root.binsets,
-                                               optionsText: 'name',
-                                               value: secondSelectedBinset">
+                                       optionsText: 'name',
+                                       value: secondSelectedBinset">
                     </select>
                 </div>
-                <div class="col-xs-2 col-xs-offset-5" id="visualiseBtn">
-                    <button class="btn btn-primary">Visualiseer</button>
+                <div class="col-xs-2 col-xs-offset-5">
+                    <button class="btn btn-primary" data-bind="click: updateChordPanel">
+                        Visualiseer
+                    </button>
                 </div>
             </div>
-            <div id="chordPlot"></div>
+            <div data-bind="chordSvg: updateChordPanel"></div>
         </div>
     </div>
 </script>
