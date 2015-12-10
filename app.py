@@ -240,7 +240,7 @@ def get_bins(binset_name):
     if binset is None:
         abort(404)
     result = []
-    for bin in binset.bins:
+    for bin in utils.sort_bins(binset.bins):
         result.append({'name': bin.name, 'color': bin.color,
             'contigs': [contig.header for contig in bin.contigs]})
     return json.dumps(result)
