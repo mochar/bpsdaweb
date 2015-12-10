@@ -1,11 +1,10 @@
 // --- Chord
-var svg;
 var width = 768, height = 500;
 var innerRadius = Math.min(width, height) * .41;
 var outerRadius = innerRadius * 1.1;
 
 function createChord(element) {
-    svg = d3.select(element).append("svg")
+    var svg = d3.select(element).append("svg")
         .attr("width", width)
         .attr("height", height)
       .append("g")
@@ -13,16 +12,6 @@ function createChord(element) {
 
     svg.append("g").attr("id", "group");
     svg.append("g").attr("id", "chord");
-}
-
-// Returns an event handler for fading a given chord group.
-function fade(opacity) {
-    return function(g, i) {
-        svg.selectAll("#chord path")
-            .filter(function(d) { return d.source.index != i && d.target.index != i; })
-            .transition()
-            .style("opacity", opacity);
-    };
 }
 
 function updateChord(element, matrix, colors) {
@@ -34,6 +23,15 @@ function updateChord(element, matrix, colors) {
     var fill = d3.scale.ordinal() // scale non-quantitative values
         .domain(d3.range(colors.length))
         .range(colors);
+
+    function fade(opacity) {
+        return function(g, i) {
+            svg.selectAll("#chord path")
+                .filter(function(d) { return d.source.index != i && d.target.index != i; })
+                .transition()
+                .style("opacity", opacity);
+        };
+    }
 
     // Update groups
     var groupPaths = svg.select('#group')
