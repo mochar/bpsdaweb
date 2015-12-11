@@ -53,11 +53,8 @@ $(function() {
 
             <div class="form-group">
                 <label for="binsetContigset">Contigset</label>
-                <select class="form-control" id="binsetContigset" name="binsetContigset">
-                    {% for contigset in contigsets %}
-                        <option>{{ contigset.name }}</option>
-                    {% endfor %}
-                    <option>Nieuw</option>
+                <select class="form-control"  name="binsetContigset"
+                        data-bind="options: contigsets, optionsText: 'name'">
                 </select>
                 <p class="help-block">Selecteer optie "Nieuw" om een nieuwe
                     contigset te maken van de contigs in het bin bestand.</p>

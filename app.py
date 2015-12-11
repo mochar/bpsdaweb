@@ -2,7 +2,7 @@ from collections import defaultdict
 import uuid
 import json
 
-from flask import Flask, render_template, g, session, abort, jsonify
+from flask import Flask, render_template, g, session, abort
 from flask.ext.sqlalchemy import SQLAlchemy
 import flask_sijax
 
@@ -101,14 +101,6 @@ class SijaxHandler(object):
         db.session.add_all(contigs)
         db.session.commit()
 
-        obj_response.html_append('#contigsetList',
-            '<li class="list-group-item">'
-            '<span class="badge">{}</span>'
-            '{}</li>'.format(len(contigs), contigset_name))
-        obj_response.html_prepend('#binsetContigset',
-            '<option>{}</option>'.format(contigset_name))
-        obj_response.call('$("#binsetContigset").prop("selectedIndex", 0)')
-
     @staticmethod
     def binset_form_handler(obj_response, files, form_values):
         # Clean form
@@ -170,13 +162,6 @@ class SijaxHandler(object):
                 if bin_name:
                     bin_objects[bin_name].contigs.append(contig)
         db.session.commit()
-
-        obj_response.html_append('#binsetList',
-                                 '<a href="#" class="list-group-item">'
-                                 '{}</li>'.format(binset_name))
-        obj_response.html_append('.binsetSelect',
-                                 '<option>{}</option>'.format(binset_name))
-        obj_response.script('Sijax.request("bin_data")')
 
 ''' Views '''
 @app.before_request
