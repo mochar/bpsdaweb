@@ -178,42 +178,6 @@ class SijaxHandler(object):
                                  '<option>{}</option>'.format(binset_name))
         obj_response.script('Sijax.request("bin_data")')
 
-    @staticmethod
-    def update_chord(obj_response, *bin_sets):
-        app.logger.debug(bin_sets)
-        binset1 = Binset.query.filter_by(userid=session['uid'],
-                                         name=bin_sets[0][0]).first()
-        bins1 = [bin for bin in binset1.bins.all() if bin.name in bin_sets[0][1]]
-        bins1 = utils.sort_bins(bins1)
-        binset2 = Binset.query.filter_by(userid=session['uid'],
-                                         name=bin_sets[1][0]).first()
-        bins2 = [bin for bin in binset2.bins.all() if bin.name in bin_sets[1][1]]
-        bins2 = utils.sort_bins(bins2, reverse=True)
-        matrix = utils.to_matrix(bins1 + bins2)
-        # TODO: store color in database someplace else
-        colors = ['#FFDD89' for _ in bins1]
-        colors.extend(['#957244' for _ in bins2])
-        obj_response.call('updateChord', [matrix, colors])
-
-    @staticmethod
-    def bin_data(obj_response):
-        binsets = Binset.query.filter_by(userid=session['uid']).all()
-        data = []
-        for binset in binsets:
-            binset_data = {'binset': binset.name, 'bins': [],
-                           'color': binset.color}
-            for bin in binset.bins.all():
-                binset_data['bins'].append({
-                    'name': bin.name,
-                    'contigs': [contig.header for contig in bin.contigs],
-                    'color': bin.color,
-                    'status': 'visible' # [visible, hidden, deleted]
-                })
-            data.append(binset_data)
-        obj_response.script('binsets = '
-                            'JSON.parse(\'{}\');'.format(json.dumps(data)))
-        obj_response.script('console.log("done")')
-
 ''' Views '''
 @app.before_request
 def make_session_permanent():
