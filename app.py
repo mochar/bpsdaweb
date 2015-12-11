@@ -227,7 +227,8 @@ def get_binsets():
         abort(404)
     result = []
     for binset in Binset.query.filter_by(userid=userid).all():
-        result.append({'name': binset.name, 'color': binset.color})
+        result.append({'name': binset.name, 'color': binset.color,
+           'bins': [bin.name for bin in binset.bins]})
     return json.dumps(result)
 
 

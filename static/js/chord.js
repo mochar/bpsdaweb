@@ -1,5 +1,5 @@
 // --- Chord
-var width = 768, height = 500;
+var width = 500, height = 500;
 var innerRadius = Math.min(width, height) * .41;
 var outerRadius = innerRadius * 1.1;
 
@@ -34,8 +34,7 @@ function updateChord(element, matrix, colors) {
     }
 
     // Update groups
-    var groupPaths = svg.select('#group')
-        .selectAll('path')
+    var groupPaths = svg.select('#group').selectAll('path')
         .data(chord.groups(), function(d) {
             return d.index;
         });
@@ -57,8 +56,7 @@ function updateChord(element, matrix, colors) {
         .remove();
 
     // Update chords
-    var chordPaths = svg.select('#chord')
-        .selectAll('path')
+    var chordPaths = svg.select('#chord').selectAll('path')
         .data(chord.chords(), function(d) {
             if (d.source.index < d.target.index)
                 return d.source.index + "-" + d.target.index;

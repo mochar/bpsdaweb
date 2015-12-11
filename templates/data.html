@@ -16,27 +16,6 @@ $(function() {
         };
         reader.readAsText(e.target.files.item(0));
     });
-
-    // Show buttons on hover and status icons otherwise
-    $('.binButtons').hide();
-    $('.bin').hover(function() {
-        $(this).children('.binButtons').show();
-        $(this).children('.binStatus').hide();
-    }, function() {
-        $(this).children('.binButtons').hide();
-        $(this).children('.binStatus').show();
-    });
-
-    $('.hideBin').click(function() {
-        $(this).toggleClass('active');
-        $(this).children().toggleClass('glyphicon-eye-open glyphicon-eye-close');
-        $(this).parent().parent().find('.binStatus span').toggleClass('glyphicon-eye-close');
-        $(this).parent().parent().toggleClass('binHidden');
-        var bin = $($(this).closest('li')).prop('id');
-        var binset = $($(this).closest('div.well-sm')).prop('id');
-        toggleBin(binset.split('Item')[0], bin);
-        $('#visualiseBtn').click();
-    });
 });
 </script>
 
@@ -89,37 +68,21 @@ $(function() {
     </div>
     </div>
 
-    <ul class="list-group" id="binsetList">
-        {% for binset in binsets %}
-            <a href="#{{ binset.name }}Item" data-toggle="collapse"
-               class="list-group-item" onclick="$(this).button('toggle');">
-                {{ binset.name }}
-            </a>
-            <div id="{{ binset.name }}Item" class="collapse well-sm">
-                <ul class="list-group scrollable">
-                {% for bin in binset.bins.all() %}
-                    <li class="list-group-item bin" id="{{ bin.name }}">
-                        <button id="binColor{{ binset.name }}{{ bin.name }}"
-                                style="background-color: {{ bin.color }}"
-                                class="btn btn-default colpicker"></button>
-                        {{ bin.name }}
-                        <span class="pull-right binStatus">
-                            <span class="glyphicon"></span>
-                        </span>
-                        <span class="pull-right binButtons">
-                            <button class="btn btn-xs btn-default hideBin">
-                                <span class="glyphicon glyphicon-eye-open"></span>
-                            </button>
-                            <button class="btn btn-xs btn-danger removeBin">
-                                <span class="glyphicon glyphicon-trash"></span>
-                            </button>
-                        </span>
-                    </li>
-                {% endfor %}
-                </ul>
-            </div>
-        {% endfor %}
-    </ul>
+    <ul class="list-group" data-bind="template: {foreach: binsets, name: 'binsetItem'}"></ul>
+    <script type="text/html" id="binsetItem">
+        <li class="list-group-item">
+            <span data-bind="text: name, visible: !editingName()"></span>
+            <input data-bind="visible: editingName, value: name, hasFocus: editingName" />
+            <span class="pull-right">
+                <button class="btn btn-xs btn-default" data-bind="click: editName">
+                    <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                </button>
+                <button class="btn btn-xs btn-danger" data-bind="click: $root.removeBinset">
+                    <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
+                </button>
+            </span>
+        </li>
+    </script>
 </div>
 
 

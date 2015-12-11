@@ -6,12 +6,18 @@ ko.bindingHandlers.chordSvg = {
         console.log("Update chord panel");
         var selectedBinsets = bindingContext.$data.selectedBinsets();
         if (selectedBinsets.length !== 2) return;
-        console.log(selectedBinsets);
+        var unifiedColor = bindingContext.$data.unifiedColor();
         $.getJSON('/binsets/' + selectedBinsets[0].name(), function(binset1) {
             $.getJSON('/binsets/' + selectedBinsets[1].name(), function(binset2) {
-                var bins = binset1.concat(binset2);
+                var bins = binset1.concat(binset2.reverse());
                 var matrix = to_matrix(bins);
-                updateChord(element, matrix, bins.map(function(b) { return b.color; }));
+                if (unifiedColor) {
+                    var color = binset1.map(function() { return selectedBinsets[0].color(); });
+                    color = color.concat(binset2.map(function() { return selectedBinsets[1].color(); }));
+                } else {
+                    var color = bins.map(function(b) { return b.color });
+                }
+                updateChord(element, matrix, color);
             });
         });
     }
@@ -23,6 +29,9 @@ function Binset(data) {
     self.name = ko.observable(data.name);
     self.color = ko.observable(data.color);
     self.bins = ko.observableArray(data.bins);
+    self.editingName = ko.observable(false);
+
+    self.editName = function() { self.editingName(true); }
 }
 
 function ChordPanel() {
@@ -31,6 +40,7 @@ function ChordPanel() {
     self.firstSelectedBinset = ko.observable();
     self.secondSelectedBinset = ko.observable();
     self.selectedBinsets = ko.observableArray();
+    self.unifiedColor = ko.observable(false);
 
     self.switchSelectedBinsets = function() {
         var tmp = self.firstSelectedBinset();
@@ -54,11 +64,9 @@ function ViewModel() {
         return panel.template;
     };
 
-    function getBinsetFromName(binsetName) {
-        return ko.utils.arrayFilter(self.binsets(), function(bs) {
-            return bs.name === binsetName;
-        })[0];
-    }
+    self.removeBinset = function(binset) {
+        self.binsets.remove(binset);
+    };
 
     $.getJSON('/binsets', function(data) {
         var binsets = $.map(data, function(binset) { return new Binset(binset) });

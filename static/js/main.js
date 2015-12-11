@@ -1,9 +1,4 @@
-var binsets = {};
-
 $(function() {
-    createChord();
-    Sijax.request('bin_data');
-
     $('.colpicker').colpick({
         layout: 'hex',
         submit: 0,
@@ -37,36 +32,4 @@ function to_matrix(bins) {
         return matching;
     });
     return matrix;
-}
-
-function findBinset(binsetName) {
-    for (var i = 0; i < binsets.length; i++) {
-        if (binsets[i].binset === binsetName) return binsets[i];
-    }
-}
-
-function activeBinsetBins(binset) {
-    return binset.bins.filter(function(b) { return b.status === 'visible'; });
-}
-
-function changeAndUpdateChord(binset1, binset2) {
-    var bins = activeBinsetBins(findBinset(binset1));
-    bins = bins.concat(activeBinsetBins(findBinset(binset2)).reverse());
-    var matrix = to_matrix(bins);
-    updateChord(matrix, bins.map(function(b) { return b.color; }));
-}
-
-// Toggles bin.status values "hidden" and "visible"
-function toggleBin(binsetName, binName) {
-    var binset = findBinset(binsetName);
-    for (var i = 0; i < binset.bins.length; i++) {
-        if (binset.bins[i].name === binName) {
-            if (binset.bins[i].status === 'visible') {
-                binset.bins[i].status = 'hidden';
-            } else {
-                binset.bins[i].status = 'visible';
-            }
-            return;
-        }
-    }
 }
