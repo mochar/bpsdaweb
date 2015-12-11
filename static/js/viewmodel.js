@@ -23,7 +23,6 @@ ko.bindingHandlers.chordSvg = {
     }
 };
 
-
 function Binset(data) {
     var self = this;
     self.name = ko.observable(data.name);
@@ -34,9 +33,15 @@ function Binset(data) {
     self.editName = function() { self.editingName(true); }
 }
 
+function BinsetPanel(binset) {
+    var self = this;
+    self.template = "binsetPanel";
+    self.binset = ko.observable(binset);
+}
+
 function ChordPanel() {
     var self = this;
-    self.template = "chord";
+    self.template = "chordPanel";
     self.firstSelectedBinset = ko.observable();
     self.secondSelectedBinset = ko.observable();
     self.selectedBinsets = ko.observableArray();
@@ -57,11 +62,15 @@ function ChordPanel() {
 function ViewModel() {
     var self = this;
     self.binsets = ko.observableArray([]);
+    self.contigsets = ko.observableArray([]);
 
     // Panels
-    self.panels = ko.observableArray([new ChordPanel()]);
+    self.panels = ko.observableArray([new ChordPanel(), new BinsetPanel("kek")]);
     self.getPanelTemplate = function(panel) {
         return panel.template;
+    };
+    self.removePanel = function(panel) {
+        self.panels.remove(panel);
     };
 
     self.removeBinset = function(binset) {
@@ -71,7 +80,12 @@ function ViewModel() {
     $.getJSON('/binsets', function(data) {
         var binsets = $.map(data, function(binset) { return new Binset(binset) });
         self.binsets(binsets);
-        console.log('viewmodel done');
+        console.log('viewmodel: got binsets');
+    });
+
+    $.getJSON('/contigsets', function(data) {
+        self.contigsets(data);
+        console.log('viewmodel: got contigsets');
     });
 }
 

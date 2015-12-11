@@ -247,6 +247,17 @@ def get_bins(binset_name):
     return json.dumps(result)
 
 
+@app.route('/contigsets/')
+def get_contigsets():
+    userid = session.get('uid')
+    if userid is None:
+        abort(404)
+    result = []
+    for contigset in Contigset.query.filter_by(userid=userid).all():
+        result.append({'name': contigset.name})
+    return json.dumps(result)
+
+
 @flask_sijax.route(app, '/')
 def home():
     new_user = False

@@ -1,4 +1,4 @@
-<script type="text/html" id="chord">
+<script type="text/html" id="chordPanel">
     <div class="panel panel-default">
         <div class="panel-body">
             <div class="row">
@@ -27,11 +27,35 @@
                     <button class="btn btn-primary" data-bind="click: updateChordPanel">
                         Visualiseer
                     </button>
+                    <button type="button" class="close" aria-label="Close" data-bind="click: $root.removePanel">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
             </div>
             <div class="row">
                 <div data-bind="chordSvg: updateChordPanel" class="col-xs-9"></div>
                 <div class="col-xs-3"></div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/html" id="binsetPanel">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-xs-2">
+                    <select class="form-control"
+                            data-bind="options: $root.binsets,
+                                       optionsText: 'name',
+                                       value: binset">
+                    </select>
+                </div>
+                <div class="col-xs-10">
+                    <button type="button" class="close" aria-label="Close" data-bind="click: $root.removePanel">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
