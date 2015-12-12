@@ -57,6 +57,19 @@
                     </button>
                 </div>
             </div>
+            <br>
+            <div class="row">
+                <div class="col-xs-3">
+                    <!-- ko if: typeof binset() !== 'undefined' -->
+                    <ul class="list-group scrollable" data-bind="foreach: binset().bins">
+                        <li class="list-group-item" data-bind="text: $data"></li>
+                    </ul>
+                    <!-- /ko -->
+                </div>
+                <div class="col-xs-9">
+
+                </div>
+            </div>
         </div>
     </div>
 </script>

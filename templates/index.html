@@ -1,7 +1,12 @@
 {% extends "layout.html" %}
 
 {% block body %}
-<hr>
+<div class="row">
+    <div class="col-xs-11"><hr></div>
+    <div class="colxs">
+        <button type="button" class="btn btn-primary" data-bind="click: newChordPanel">+</button>
+    </div>
+</div>
 
 <div class="row">
     <div class="col-xs-4">{% include "data.html" %}</div>

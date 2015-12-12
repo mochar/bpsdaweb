@@ -72,6 +72,9 @@ function ViewModel() {
     self.removePanel = function(panel) {
         self.panels.remove(panel);
     };
+    self.newChordPanel = function() {
+        self.panels.unshift(new ChordPanel());
+    };
 
     self.removeBinset = function(binset) {
         self.binsets.remove(binset);
