@@ -35,21 +35,22 @@ function updateChord(element, matrix, colors) {
 
     // Update groups
     var groupPaths = svg.select('#group').selectAll('path')
-        .data(chord.groups(), function(d) {
-            return d.index;
-        });
+        .data(chord.groups(), function(d) { return d.index; });
 
-    groupPaths.enter()
-      .append("path")
+    groupPaths.enter().append("path")
+        .style("fill", function(d) { return fill(d.index); })
+        .style("stroke", function(d) { return '#000000'; })
+        .style('opacity', 0)
         .on("mouseover", fade(.1))
         .on("mouseout", fade(1))
-        .on("click", function(d) {console.log(d.index); console.log(fill(d.index))} );
+        .on("click", function(d) {
+            console.log(d.index);
+            console.log(fill(d.index));
+        });
 
-    // TODO: handle update better??
     groupPaths.transition()
-        .attr("d", d3.svg.arc().innerRadius(innerRadius).outerRadius(outerRadius))
-        .style("fill", function(d) { return fill(d.index); })
-        .style("stroke", function(d) { return '#000000'; });
+        .style('opacity', 1)
+        .attr("d", d3.svg.arc().innerRadius(innerRadius).outerRadius(outerRadius));
 
     groupPaths.exit()
         .transition()
@@ -65,13 +66,12 @@ function updateChord(element, matrix, colors) {
 
     chordPaths.enter()
       .append("path")
-        .style("opacity", 1);
-
-    // TODO: handle update better??
-    chordPaths
-        .transition()
-        .attr("d", d3.svg.chord().radius(innerRadius))
+        .style("opacity", 0)
         .style("fill", function(d) { return fill(d.source.index); });
+
+    chordPaths.transition()
+        .style('opacity', 1)
+        .attr("d", d3.svg.chord().radius(innerRadius));
 
     chordPaths.exit()
         .transition()
