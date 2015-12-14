@@ -17,7 +17,12 @@ ko.bindingHandlers.chordSvg = {
                 } else {
                     var color = bins.map(function(b) { return b.color });
                 }
-                updateChord(element, matrix, color);
+                updateChord(element, matrix, color, bins);
+                d3.select(element).selectAll('#group path')
+                    .on('click', function(d) {
+                        bindingContext.$data.selectedBin(d.bin);
+                        console.log(d.bin);
+                    });
             });
         });
     }
@@ -46,6 +51,7 @@ function ChordPanel() {
     self.secondSelectedBinset = ko.observable();
     self.selectedBinsets = ko.observableArray();
     self.unifiedColor = ko.observable(false);
+    self.selectedBin = ko.observable({name: 'test'});
 
     self.switchSelectedBinsets = function() {
         var tmp = self.firstSelectedBinset();

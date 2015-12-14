@@ -14,11 +14,15 @@ function createChord(element) {
     svg.append("g").attr("id", "chord");
 }
 
-function updateChord(element, matrix, colors) {
+function updateChord(element, matrix, colors, bins) {
     var svg = d3.select(element);
     var chord = d3.layout.chord()
         .padding(.05)
         .matrix(matrix);
+
+    var groups = chord.groups().map(function(group, i) {
+        return $.extend(group, {bin: bins[i]})
+    });
 
     var fill = d3.scale.ordinal() // scale non-quantitative values
         .domain(d3.range(colors.length))
@@ -42,11 +46,7 @@ function updateChord(element, matrix, colors) {
         .style("stroke", function(d) { return '#000000'; })
         .style('opacity', 0)
         .on("mouseover", fade(.1))
-        .on("mouseout", fade(1))
-        .on("click", function(d) {
-            console.log(d.index);
-            console.log(fill(d.index));
-        });
+        .on("mouseout", fade(1));
 
     groupPaths.transition()
         .style('opacity', 1)
