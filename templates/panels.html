@@ -24,7 +24,8 @@
                         <input type="checkbox" data-bind="checked: unifiedColor" /> Uniforme kleur
                 </div>
                 <div class="col-xs-2">
-                    <button class="btn btn-primary" data-bind="click: updateChordPanel">
+                    <button class="btn btn-primary" data-bind="click: updateChordPanel,
+                        enable: firstSelectedBinset && secondSelectedBinset">
                         Visualiseer
                     </button>
                     <button type="button" class="close" aria-label="Close" data-bind="click: $root.removePanel">
