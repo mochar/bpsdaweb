@@ -2,7 +2,7 @@ from collections import defaultdict
 import uuid
 import json
 
-from flask import Flask, render_template, g, session, abort
+from flask import Flask, render_template, g, session, abort, request
 from flask.ext.sqlalchemy import SQLAlchemy
 import flask_sijax
 
@@ -205,6 +205,23 @@ def get_contigsets():
     for contigset in Contigset.query.filter_by(userid=userid).all():
         result.append({'name': contigset.name})
     return json.dumps(result)
+
+
+@app.route('/to_matrix')
+def to_matrix():
+    userid = session.get('uid')
+    if userid is None:
+        abort(404)
+    binset1_id = request.args.get('binset1')
+    binset2_id = request.args.get('binset2')
+    if None in (binset1_id, binset2_id):
+        abort(400)
+    binset1 = Binset.query.get(binset1_id)
+    binset2 = Binset.query.get(binset2_id)
+    if None in (binset1, binset2):
+        abort(404)
+    matrix = utils.to_matrix(binset1.bins.all() + binset2.bins.all())
+    return json.dumps(matrix)
 
 
 @flask_sijax.route(app, '/')
