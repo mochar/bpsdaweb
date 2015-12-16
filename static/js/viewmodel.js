@@ -12,7 +12,6 @@ ko.bindingHandlers.chordSvg = {
         d3.select(element).selectAll('#group path')
             .on('click', function(d) {
                 bindingContext.$data.selectedBin(bins[d.index]);
-                console.log(bins[d.index]);
             });
     }
 };
@@ -32,6 +31,12 @@ function BinsetPanel(binset) {
     var self = this;
     self.template = "binsetPanel";
     self.binset = ko.observable(binset);
+}
+
+function ContigsPanel() {
+    var self = this;
+    self.template = "contigsPanel";
+    var selectedContigsets = ko.observableArray([]);
 }
 
 function ChordPanel() {
@@ -93,7 +98,8 @@ function ViewModel() {
     self.bins = ko.observableArray([]);
 
     // Panels
-    self.panels = ko.observableArray([new ChordPanel(), new BinsetPanel("kek")]);
+    self.panels = ko.observableArray([new ChordPanel(), //new BinsetPanel("kek"),
+        new ContigsPanel()]);
     self.getPanelTemplate = function(panel) {
         return panel.template;
     };

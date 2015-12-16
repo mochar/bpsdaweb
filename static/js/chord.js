@@ -22,7 +22,7 @@ function updateChord(element, matrix, bins, unifiedColor) {
         return function(g, i) {
             svg.selectAll("#chord path")
                 .filter(function(d) { return d.source.index != i && d.target.index != i; })
-                .transition()
+              .transition()
                 .style("opacity", opacity);
         };
     }
@@ -32,17 +32,16 @@ function updateChord(element, matrix, bins, unifiedColor) {
         .data(chord.groups(), function(d) { return d.index; });
 
     groupPaths.enter().append("path")
-        .style("stroke", function(d) { return '#000000'; })
+        .style("stroke", '#000000')
         .style('opacity', 0)
         .on("mouseover", fade(.1))
         .on("mouseout", fade(1));
 
-    groupPaths
+    groupPaths.transition()
         .style("fill", function(d) {
             var bin = bins[d.index];
             return unifiedColor ? bin.binsetColor : bin.color;
         })
-      .transition()
         .style('opacity', 1)
         .attr("d", d3.svg.arc().innerRadius(innerRadius).outerRadius(outerRadius));
 
@@ -62,12 +61,11 @@ function updateChord(element, matrix, bins, unifiedColor) {
       .append("path")
         .style("opacity", 0);
 
-    chordPaths
+    chordPaths.transition()
         .style("fill", function(d) {
             var bin = bins[d.source.index];
             return unifiedColor ? bin.binsetColor : bin.color;
         })
-      .transition()
         .style('opacity', 1)
         .attr("d", d3.svg.chord().radius(innerRadius));
 

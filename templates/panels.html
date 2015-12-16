@@ -76,3 +76,24 @@
         </div>
     </div>
 </script>
+
+<script type="text/html" id="contigsPanel">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <button type="button" class="close" aria-label="Close" data-bind="click: $root.removePanel">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <div class="row">
+                <div class="col-xs-3">
+                    <select class="form-control" multiple="multiple" size="5"
+                            data-bind="options: $root.contigsets,
+                                       selectedOptions: selectedContigsets,
+                                       optionsText: 'name',
+                                       value: contigset">
+                    </select>
+                </div>
+                <div class="col-xs-9" data-bind="scatterSvg: true"></div>
+            </div>
+        </div>
+    </div>
+</script>
