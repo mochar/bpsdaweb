@@ -54,7 +54,7 @@ $(function() {
             <div class="form-group">
                 <label for="binsetContigset">Contigset</label>
                 <select class="form-control"  name="binsetContigset" id="binsetContigset"
-                        data-bind="foreach: contigsets">
+                        data-bind="foreach: contigsets().concat({name: 'Nieuw'})">
                     <option data-bind="text: name"></option>
                 </select>
                 <p class="help-block">Selecteer optie "Nieuw" om een nieuwe
