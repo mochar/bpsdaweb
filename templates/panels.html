@@ -36,7 +36,7 @@
             <div class="row">
                 <div data-bind="chordSvg: updateChordPanel" class="col-xs-9"></div>
                 <div class="col-xs-3">
-                    <p data-bind="text: selectedBin().name"></p>
+                    <p data-bind="text: selectedBin().id"></p>
                 </div>
             </div>
         </div>
@@ -85,11 +85,10 @@
             </button>
             <div class="row">
                 <div class="col-xs-3">
-                    <select class="form-control" multiple="multiple" size="5"
+                    <select class="form-control" multiple size="5"
                             data-bind="options: $root.contigsets,
                                        selectedOptions: selectedContigsets,
-                                       optionsText: 'name',
-                                       value: contigset">
+                                       optionsText: 'name'">
                     </select>
                 </div>
                 <div class="col-xs-9" data-bind="scatterSvg: true"></div>

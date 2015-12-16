@@ -36,7 +36,7 @@ function BinsetPanel(binset) {
 function ContigsPanel() {
     var self = this;
     self.template = "contigsPanel";
-    var selectedContigsets = ko.observableArray([]);
+    self.selectedContigsets = ko.observableArray([]);
 }
 
 function ChordPanel() {
