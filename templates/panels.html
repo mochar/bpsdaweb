@@ -6,7 +6,7 @@
                     <select class="form-control"
                             data-bind="options: $root.binsets,
                                        optionsText: 'name',
-                                       value: firstSelectedBinset">
+                                       value: selectedBinset1">
                     </select>
                 </div>
                 <button class="col-xs-1 btn btn-default"
@@ -17,7 +17,7 @@
                     <select class="form-control"
                             data-bind="options: $root.binsets,
                                        optionsText: 'name',
-                                       value: secondSelectedBinset">
+                                       value: selectedBinset2">
                     </select>
                 </div>
                 <div class="col-xs-5">
@@ -25,7 +25,7 @@
                 </div>
                 <div class="col-xs-2">
                     <button class="btn btn-primary" data-bind="click: updateChordPanel,
-                        enable: firstSelectedBinset && secondSelectedBinset">
+                        enable: selectedBinset1 && selectedBinset2">
                         Visualiseer
                     </button>
                     <button type="button" class="close" aria-label="Close" data-bind="click: $root.removePanel">
