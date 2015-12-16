@@ -23,6 +23,7 @@ bincontig = db.Table('bincontig',
     db.Column('contig_id', db.Integer, db.ForeignKey('contig.id'))
 )
 
+
 class Bin(db.Model):
     __tablename__ = 'bin'
     id = db.Column(db.Integer, primary_key=True)
@@ -32,12 +33,14 @@ class Bin(db.Model):
     contigs = db.relationship('Contig', secondary=bincontig,
                               backref=db.backref('bins', lazy='dynamic'))
 
+
 class Contig(db.Model):
     __tablename__ = 'contig'
     id = db.Column(db.Integer, primary_key=True)
     header = db.Column(db.String(120))
     sequence = db.Column(db.String)
     contigset_id = db.Column(db.Integer, db.ForeignKey('contigset.id'))
+
 
 class Binset(db.Model):
     __tablename__ = 'binset'
@@ -46,6 +49,8 @@ class Binset(db.Model):
     userid = db.Column(db.String)
     color = db.Column(db.String(7))
     bins = db.relationship('Bin', backref='binset', lazy='dynamic')
+    contigset_id = db.Column(db.Integer, db.ForeignKey('contigset.id'))
+
 
 class Contigset(db.Model):
     __tablename__ = 'contigset'
@@ -53,6 +58,7 @@ class Contigset(db.Model):
     name = db.Column(db.String(50))
     userid = db.Column(db.String)
     contigs = db.relationship('Contig', backref='contigset', lazy='dynamic')
+    binsets = db.relationship('Binset', backref='contigset', lazy='dynamic')
 
 
 ''' Sijax '''
@@ -116,13 +122,6 @@ class SijaxHandler(object):
                                     'Onjuiste input.')
             return
 
-        binset = Binset.query.filter_by(name=binset_name,
-                                        userid=session['uid']).first()
-        if binset is not None: # Bins already uploaded
-            SijaxHandler._add_alert(obj_response, '#binsetAlerts',
-                                    'Bins zijn al geupload.')
-            return
-
         # Create new binset
         binset = Binset(name=binset_name, userid=session['uid'],
                         color=randcol.generate()[0])
@@ -161,6 +160,7 @@ class SijaxHandler(object):
                 bin_name = contig_bins.get(contig.header)
                 if bin_name:
                     bin_objects[bin_name].contigs.append(contig)
+        binset.contigset_id = contigset.id
         db.session.commit()
 
 ''' Views '''
@@ -177,22 +177,23 @@ def get_binsets():
     result = []
     for binset in Binset.query.filter_by(userid=userid).all():
         result.append({'name': binset.name, 'color': binset.color,
-           'bins': [bin.name for bin in binset.bins]})
+           'id': binset.id, 'bins': [bin.id for bin in binset.bins],
+           'contigset': binset.contigset_id})
     return json.dumps(result)
 
 
-@app.route('/binsets/<string:binset_name>')
-def get_bins(binset_name):
+@app.route('/binsets/<int:binset_id>')
+def get_bins(binset_id):
     userid = session.get('uid')
     if userid is None:
         abort(404)
-    binset = Binset.query.filter_by(userid=userid, name=binset_name).first()
+    binset = Binset.query.filter_by(userid=userid, id=binset_id).first()
     if binset is None:
         abort(404)
     result = []
     for bin in utils.sort_bins(binset.bins):
-        result.append({'name': bin.name, 'color': bin.color,
-            'contigs': [contig.header for contig in bin.contigs]})
+        result.append({'id': bin.id, 'name': bin.name, 'color': bin.color,
+            'contigs': [contig.id for contig in bin.contigs]})
     return json.dumps(result)
 
 
@@ -203,7 +204,7 @@ def get_contigsets():
         abort(404)
     result = []
     for contigset in Contigset.query.filter_by(userid=userid).all():
-        result.append({'name': contigset.name})
+        result.append({'name': contigset.name, 'id': contigset.id})
     return json.dumps(result)
 
 
@@ -212,16 +213,11 @@ def to_matrix():
     userid = session.get('uid')
     if userid is None:
         abort(404)
-    binset1_id = request.args.get('binset1')
-    binset2_id = request.args.get('binset2')
-    if None in (binset1_id, binset2_id):
+    bins = request.args.get('bins')
+    if bins is None:
         abort(400)
-    binset1 = Binset.query.get(binset1_id)
-    binset2 = Binset.query.get(binset2_id)
-    if None in (binset1, binset2):
-        abort(404)
-    matrix = utils.to_matrix(binset1.bins.all() + binset2.bins.all())
-    return json.dumps(matrix)
+    bins = Bin.query.filter(Bin.id.in_(bins.split(','))).all()
+    return json.dumps(utils.to_matrix(bins))
 
 
 @flask_sijax.route(app, '/')
@@ -240,11 +236,7 @@ def home():
         g.sijax.register_object(SijaxHandler)
         return g.sijax.process_request()
 
-    # User specific contig- and binsets
-    contigsets = Contigset.query.filter_by(userid=session['uid']).all()
-    binsets = Binset.query.filter_by(userid=session['uid']).all()
     return render_template('index.html', form_init_js=form_init_js,
-                           contigsets=contigsets, binsets=binsets,
                            new_user=new_user)
 
 
