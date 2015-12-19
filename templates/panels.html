@@ -24,18 +24,19 @@
                                        value: selectedBinset2">
                     </select>
                 </div>
+                <button class="col-xs-1 btn btn-default"
+                        data-bind="click: toggleSettings, css: { active: showSettings }">
+                    <span class="glyphicon glyphicon-cog"></span>
+                </button>
                 <div class="col-xs-3">
                     <button class="btn btn-primary" data-bind="click: updateChordPanel,
                         enable: selectedBinset1 && selectedBinset2">
                         Visualiseer
                     </button>
                 </div>
-                <div class="col-xs-1">
-                    <a href="#" data-bind="click: toggleSettings">Opties</a>
-                </div>
             </div>
 
-            <div data-bind="visible: showSettings">
+            <div data-bind="visible: showSettings" class="well well-sm">
                 <input type="checkbox" data-bind="checked: unifiedColor" /> Uniforme kleur
             </div>
 
