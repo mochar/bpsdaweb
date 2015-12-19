@@ -209,6 +209,25 @@ def get_contigsets():
     return json.dumps(result)
 
 
+@app.route('/contigsets/<int:contigset_id>')
+def get_contigs(contigset_id):
+    userid = session.get('uid')
+    if userid is None:
+        abort(404)
+    contigset = Contigset.query.filter_by(userid=userid, id=contigset_id).first()
+    if contigset is None:
+        abort(404)
+    index = int(request.args.get('index', 1))
+    items = int(request.args.get('items', 50))
+    contigs = contigset.contigs.paginate(index, items, False).items
+    result = []
+    for contig in contigs:
+        result.append({'id': contig.id, 'name': contig.header, 'gc': 0.5,
+                       'coverage': 1,
+                       'length': len(contig.sequence) if contig.sequence else '-'})
+    return json.dumps(result)
+
+
 @app.route('/to_matrix')
 def to_matrix():
     userid = session.get('uid')

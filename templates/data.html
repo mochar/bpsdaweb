@@ -19,6 +19,91 @@ $(function() {
 });
 </script>
 
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h4 class="panel-title">
+            Assembled contigs / scaffolds
+            <a href="#contigsetFormPanel" data-toggle="collapse">
+                <span class="glyphicon glyphicon-plus pull-right"></span>
+            </a>
+        </h4>
+    </div>
+
+    <div id="contigsetFormPanel" class="panel-collapse collapse">
+        <div class="panel-body well">
+            <div id="contigsetAlerts"></div>
+
+            <form id="contigsetForm" name="contigsetForm" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="contigsetName">Naam</label>
+                    <input type="text" class="form-control" id="contigsetName" name="contigsetName">
+                </div>
+
+                <div class="form-group">
+                    <label for="contigsetFile">Contig bestand</label>
+                    <input type="file" id="contigsetFile" name="contigsetFile">
+                    <p class="help-block">Het contig bestand moet in fasta-formaat zijn.</p>
+                </div>
+
+                <input id="contigsetSubmit" type="submit" class="btn btn-default" value="Voeg toe" />
+            </form>
+        </div>
+    </div>
+
+{#    <ul class="list-group" data-bind="template: {foreach: contigsets, name: 'contigsetItem'}"></ul>#}
+{#    <script type="text/html" id="contigsetItem">#}
+{#        <li class="list-group-item">#}
+{#            <span data-bind="text: name"></span>#}
+{#            <span class="badge" data-bind="text: length"></span>#}
+{#        </li>#}
+{#    </script>#}
+
+    <div class="row">
+        <div class="col-xs-6">
+            <select class="form-control"
+                    data-bind="options: contigsets,
+                               optionsText: 'name',
+                               value: selectedContigset">
+            </select>
+        </div>
+        <div class="col-xs-3" data-bind="with: selectedContigset">
+{#            <span class="badge" data-bind="text: length"></span>#}
+        </div>
+        <div class="col-xs-1">
+            <button class="btn btn-sm btn-default" data-bind="">
+                <span class="glyphicon glyphicon-filter" aria-hidden="true"></span>
+            </button>
+        </div>
+        <div class="col-xs-1">
+            <button class="btn btn-sm btn-default" data-bind="">
+                <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+            </button>
+        </div>
+    </div>
+    <table class="table" style="table-layout: fixed">
+        <thead>
+            <tr>
+                <th width="60%">Contig</th>
+                <th width="20%">GC%</th>
+                <th width="20%">Lengte</th>
+            </tr>
+        </thead>
+    </table>
+    <div style="overflow-y: auto; max-height: 200px;">
+        <table class="table table-condensed" style="table-layout: fixed">
+            <tbody data-bind="foreach: contigs">
+                <tr>
+                    <td data-bind="text: name" width="60%"></td>
+                    <td data-bind="text: gc" width="20%"></td>
+                    <td data-bind="text: length" width="20%"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
 <div class="panel panel-default">
     <div class="panel-heading">
         <h4 class="panel-title">
@@ -82,45 +167,3 @@ $(function() {
         </li>
     </script>
 </div>
-
-
-<div class="panel panel-default">
-    <div class="panel-heading">
-        <h4 class="panel-title">
-            Assembled contigs / scaffolds
-            <a href="#contigsetFormPanel" data-toggle="collapse">
-                <span class="glyphicon glyphicon-plus pull-right"></span>
-            </a>
-        </h4>
-    </div>
-
-    <div id="contigsetFormPanel" class="panel-collapse collapse">
-    <div class="panel-body well">
-        <div id="contigsetAlerts"></div>
-
-        <form id="contigsetForm" name="contigsetForm" method="post" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="contigsetName">Naam</label>
-                <input type="text" class="form-control" id="contigsetName" name="contigsetName">
-            </div>
-
-            <div class="form-group">
-                <label for="contigsetFile">Contig bestand</label>
-                <input type="file" id="contigsetFile" name="contigsetFile">
-                <p class="help-block">Het contig bestand moet in fasta-formaat zijn.</p>
-            </div>
-
-            <input id="contigsetSubmit" type="submit" class="btn btn-default" value="Voeg toe" />
-        </form>
-    </div>
-    </div>
-
-    <ul class="list-group" data-bind="template: {foreach: contigsets, name: 'contigsetItem'}"></ul>
-    <script type="text/html" id="contigsetItem">
-        <li class="list-group-item">
-            <span data-bind="text: name"></span>
-            <span class="badge" data-bind="text: length"></span>
-        </li>
-    </script>
-</div>
-

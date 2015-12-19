@@ -100,7 +100,14 @@ function ViewModel() {
     var self = this;
     self.binsets = ko.observableArray([]);
     self.contigsets = ko.observableArray([]);
-    self.bins = ko.observableArray([]);
+    self.selectedContigset = ko.observable();
+    self.contigs = ko.observableArray([]);
+
+    ko.computed(function() {
+        var contigset = self.selectedContigset();
+        if (typeof contigset === 'undefined') return;
+        $.getJSON('/contigsets/' + contigset.id, self.contigs);
+    });
 
     // Panels
     self.panels = ko.observableArray([new ChordPanel(), //new BinsetPanel("kek"),
@@ -119,6 +126,7 @@ function ViewModel() {
         self.binsets.remove(binset);
     };
 
+    // Data
     $.getJSON('/binsets/', function(data) {
         var binsets = $.map(data, function(binset) { return new Binset(binset) });
         self.binsets(binsets);
@@ -127,6 +135,7 @@ function ViewModel() {
 
     $.getJSON('/contigsets/', function(data) {
         self.contigsets(data);
+        self.selectedContigset(self.contigsets()[0]);
         console.log('viewmodel: got contigsets');
     });
 }
