@@ -106,8 +106,12 @@ function ViewModel() {
     ko.computed(function() {
         var contigset = self.selectedContigset();
         if (typeof contigset === 'undefined') return;
-        $.getJSON('/contigsets/' + contigset.id, self.contigs);
+        var data = {items: 50};
+        $.getJSON('/contigsets/' + contigset.id, data, self.contigs);
     });
+
+    self.showFilters = ko.observable(false);
+    self.toggleFilters = function() { self.showFilters(!self.showFilters()); };
 
     // Panels
     self.panels = ko.observableArray([new ChordPanel(), //new BinsetPanel("kek"),

@@ -51,15 +51,7 @@ $(function() {
         </div>
     </div>
 
-{#    <ul class="list-group" data-bind="template: {foreach: contigsets, name: 'contigsetItem'}"></ul>#}
-{#    <script type="text/html" id="contigsetItem">#}
-{#        <li class="list-group-item">#}
-{#            <span data-bind="text: name"></span>#}
-{#            <span class="badge" data-bind="text: length"></span>#}
-{#        </li>#}
-{#    </script>#}
-
-    <div class="row">
+    <div class="row" data-bind="visible: contigs().length > 0">
         <div class="col-xs-6">
             <select class="form-control"
                     data-bind="options: contigsets,
@@ -71,7 +63,8 @@ $(function() {
 {#            <span class="badge" data-bind="text: length"></span>#}
         </div>
         <div class="col-xs-1">
-            <button class="btn btn-sm btn-default" data-bind="">
+            <button class="btn btn-sm btn-default"
+                    data-bind="click: toggleFilters, css: { active: showFilters }">
                 <span class="glyphicon glyphicon-filter" aria-hidden="true"></span>
             </button>
         </div>
@@ -81,22 +74,70 @@ $(function() {
             </button>
         </div>
     </div>
-    <table class="table" style="table-layout: fixed">
+    <div class="well well-sm" data-bind="visible: showFilters">
+        <form class="form-horizontal">
+            <div class="form-group">
+                <label class="col-xs-2 control-label">GC</label>
+                <div class="col-xs-3 col-xs-offset-2">
+                    <select class="form-control" name="gcOperator">
+                        <option> > </option>
+                        <option> < </option>
+                        <option> = </option>
+                    </select>
+                </div>
+                <div class="col-xs-3">
+                    <input class="form-control" type="text" name="gcValue" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-2 control-label">Lengte</label>
+                <div class="col-xs-3 col-xs-offset-2">
+                    <select class="form-control" name="lengthOperator">
+                        <option> > </option>
+                        <option> < </option>
+                        <option> = </option>
+                    </select>
+                </div>
+                <div class="col-xs-3">
+                    <input class="form-control" type="text" name="lengthValue" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-2 control-label">Coverage</label>
+                <div class="col-xs-3 col-xs-offset-2">
+                    <select class="form-control" name="coverageOperator">
+                        <option> > </option>
+                        <option> < </option>
+                        <option> = </option>
+                    </select>
+                </div>
+                <div class="col-xs-3">
+                    <input class="form-control" type="text" name="coverageValue" />
+                </div>
+            </div>
+        </form>
+        <button class="btn btn-primary">Toepassen</button>
+    </div>
+    <table class="table" style="table-layout: fixed"
+           data-bind="visible: contigs().length > 0">
         <thead>
             <tr>
-                <th width="60%">Contig</th>
-                <th width="20%">GC%</th>
+                <th width="50%">Contig</th>
+                <th width="20%">GC</th>
                 <th width="20%">Lengte</th>
+                <th width="10%">Cov</th>
             </tr>
         </thead>
     </table>
-    <div style="overflow-y: auto; max-height: 200px;">
+    <div style="overflow-y: auto; max-height: 200px;"
+         data-bind="visible: contigs().length > 0">
         <table class="table table-condensed" style="table-layout: fixed">
             <tbody data-bind="foreach: contigs">
                 <tr>
-                    <td data-bind="text: name" width="60%"></td>
+                    <td data-bind="text: name" width="50%"></td>
                     <td data-bind="text: gc" width="20%"></td>
                     <td data-bind="text: length" width="20%"></td>
+                    <td data-bind="text: coverage" width="10%"></td>
                 </tr>
             </tbody>
         </table>

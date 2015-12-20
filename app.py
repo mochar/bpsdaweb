@@ -205,7 +205,7 @@ def get_contigsets():
     result = []
     for contigset in Contigset.query.filter_by(userid=userid).all():
         result.append({'name': contigset.name, 'id': contigset.id,
-            'length': len(contigset.contigs.all())})
+            'length': contigset.contigs.count()})
     return json.dumps(result)
 
 
@@ -222,9 +222,10 @@ def get_contigs(contigset_id):
     contigs = contigset.contigs.paginate(index, items, False).items
     result = []
     for contig in contigs:
-        result.append({'id': contig.id, 'name': contig.header, 'gc': 0.5,
-                       'coverage': 1,
-                       'length': len(contig.sequence) if contig.sequence else '-'})
+        gc = utils.gc_content(contig.sequence) if contig.sequence else '-'
+        length = len(contig.sequence) if contig.sequence else '-'
+        result.append({'id': contig.id, 'name': contig.header, 'gc': gc,
+                       'coverage': 1, 'length': length})
     return json.dumps(result)
 
 
