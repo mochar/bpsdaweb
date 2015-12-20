@@ -96,6 +96,14 @@ function Binset(data) {
     self.editName = function() { self.editingName(true); }
 }
 
+function Contigset(data) {
+    var self = this;
+    self.id = data.id;
+    self.name = ko.observable(data.name);
+    self.contigs = ko.observableArray(data.contigs);
+    self.binsets = ko.observableArray(data.binsets);
+}
+
 function ViewModel() {
     var self = this;
     self.binsets = ko.observableArray([]);
@@ -132,13 +140,14 @@ function ViewModel() {
 
     // Data
     $.getJSON('/binsets/', function(data) {
-        var binsets = $.map(data, function(binset) { return new Binset(binset) });
+        var binsets = $.map(data, function(bs) { return new Binset(bs); });
         self.binsets(binsets);
         console.log('viewmodel: got binsets');
     });
 
     $.getJSON('/contigsets/', function(data) {
-        self.contigsets(data);
+        var contigsets = $.map(data, function(cs) { return new Contigset(cs); });
+        self.contigsets(contigsets);
         self.selectedContigset(self.contigsets()[0]);
         console.log('viewmodel: got contigsets');
     });

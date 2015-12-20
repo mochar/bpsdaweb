@@ -205,7 +205,8 @@ def get_contigsets():
     result = []
     for contigset in Contigset.query.filter_by(userid=userid).all():
         result.append({'name': contigset.name, 'id': contigset.id,
-            'length': contigset.contigs.count()})
+            'length': contigset.contigs.count(),
+            'binsets': [binset.id for binset in contigset.binsets]})
     return json.dumps(result)
 
 
