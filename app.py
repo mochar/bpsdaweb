@@ -37,7 +37,7 @@ class Bin(db.Model):
 class Contig(db.Model):
     __tablename__ = 'contig'
     id = db.Column(db.Integer, primary_key=True)
-    header = db.Column(db.String(120))
+    name = db.Column(db.String(120))
     sequence = db.Column(db.String)
     contigset_id = db.Column(db.Integer, db.ForeignKey('contigset.id'))
 
@@ -46,7 +46,6 @@ class Binset(db.Model):
     __tablename__ = 'binset'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50))
-    userid = db.Column(db.String)
     color = db.Column(db.String(7))
     bins = db.relationship('Bin', backref='binset', lazy='dynamic')
     contigset_id = db.Column(db.Integer, db.ForeignKey('contigset.id'))
