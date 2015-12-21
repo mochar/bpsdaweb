@@ -192,7 +192,7 @@ $(function() {
     </div>
     </div>
 
-    <ul class="list-group" data-bind="template: {foreach: binsets, name: 'binsetItem'}"></ul>
+    <ul class="list-group" data-bind="template: {foreach: contigsetBinsets, name: 'binsetItem'}"></ul>
     <script type="text/html" id="binsetItem">
         <li class="list-group-item" data-bind="style: { 'border-left-color': color, 'border-left-width': '4px'}">
             <span data-bind="text: name, visible: !editingName()"></span>

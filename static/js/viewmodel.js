@@ -88,6 +88,7 @@ function ChordPanel() {
 function Binset(data) {
     var self = this;
     self.id = data.id;
+    self.contigset = data.contigset;
     self.name = ko.observable(data.name);
     self.color = ko.observable(data.color);
     self.bins = ko.observableArray(data.bins);
@@ -108,12 +109,22 @@ function ViewModel() {
     var self = this;
     self.binsets = ko.observableArray([]);
     self.contigsets = ko.observableArray([]);
-    self.selectedContigset = ko.observable();
+    self.selectedContigset = ko.observable(null);
     self.contigs = ko.observableArray([]);
+
+    // The binsets of the selected contigset
+    self.contigsetBinsets = ko.computed(function() {
+        var contigset = self.selectedContigset();
+        var binsets = self.binsets();
+        if (!contigset) return binsets;
+        return ko.utils.arrayFilter(binsets, function(binset) {
+            return binset.contigset === contigset.id;
+        })
+    });
 
     ko.computed(function() {
         var contigset = self.selectedContigset();
-        if (typeof contigset === 'undefined') return;
+        if (!contigset) return;
         var data = {items: 50};
         $.getJSON('/contigsets/' + contigset.id, data, self.contigs);
     });
