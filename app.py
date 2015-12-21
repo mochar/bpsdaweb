@@ -93,16 +93,15 @@ class SijaxHandler(object):
                                     'Contigs zijn al geupload.')
             return
 
-        # Create new contigset
-        contigset = Contigset(name=contigset_name, userid=session['uid'])
-        db.session.add(contigset)
-        db.session.commit()
-
         # Add data to database
         contigs = []
         for header, sequence in utils.parse_fasta(contig_file.stream):
-            contigs.append(Contig(header=header, sequence=sequence,
-                                  contigset_id=contigset.id))
+            contigs.append(Contig(name=header, sequence=sequence))
+
+        contigset = Contigset(name=contigset_name, userid=session['uid'],
+            contigs=contigs)
+
+        db.session.add(contigset)
         db.session.add_all(contigs)
         db.session.commit()
 
