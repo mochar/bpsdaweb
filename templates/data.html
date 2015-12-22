@@ -59,19 +59,19 @@ $(function() {
                                value: selectedContigset">
             </select>
         </div>
-        <div class="col-xs-3" data-bind="with: selectedContigset">
-{#            <span class="badge" data-bind="text: length"></span>#}
-        </div>
-        <div class="col-xs-1">
-            <button class="btn btn-sm btn-default"
-                    data-bind="click: toggleFilters, css: { active: showFilters }">
-                <span class="glyphicon glyphicon-filter" aria-hidden="true"></span>
-            </button>
-        </div>
-        <div class="col-xs-1">
-            <button class="btn btn-sm btn-default" data-bind="">
-                <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
-            </button>
+        <div class="col-xs-4 col-xs-offset-2">
+            <div class="btn-group btn-group-sm" role="group">
+                <button class="btn btn-default" type="button"
+                        data-bind="click: toggleFilters, css: { active: showFilters }">
+                    <span class="glyphicon glyphicon-filter" aria-hidden="true"></span>
+                </button>
+                <button class="btn btn-default" data-bind="" type="button">
+                    <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+                </button>
+                <button class="btn btn-danger" type="button">
+                    <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                </button>
+            </div>
         </div>
     </div>
     <div class="well well-sm" data-bind="visible: showFilters">
