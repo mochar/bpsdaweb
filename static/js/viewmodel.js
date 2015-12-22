@@ -116,7 +116,7 @@ function ViewModel() {
     self.contigsetBinsets = ko.computed(function() {
         var contigset = self.selectedContigset();
         var binsets = self.binsets();
-        if (!contigset) return binsets;
+        if (!contigset) return [];
         return ko.utils.arrayFilter(binsets, function(binset) {
             return binset.contigset === contigset.id;
         })
