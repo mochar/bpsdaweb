@@ -143,12 +143,17 @@ class SijaxHandler(object):
                 contigs=contigs)
             db.session.add(contigset)
         else:
+            done = {}
             for contig in contigset.contigs:
                 bin_name = contig_bins.get(contig.name)
-                if bin_name:
+                if not bin_name:
+                    continue
+                bin = done.get(bin_name)
+                if bin is None:
                     bin = Bin(name=bin_name, color=randcol.generate()[0])
-                    contig.bins.append(bin)
                     bins.append(bin)
+                    done[bin_name] = bin
+                bin.contigs.append(contig)
 
         binset = Binset(name=binset_name, color=randcol.generate()[0],
             bins=bins, contigset=contigset)
@@ -168,7 +173,9 @@ def get_binsets():
     if userid is None:
         abort(404)
     result = []
-    for binset in Binset.query.filter_by(userid=userid).all():
+    binsets = [bs for cs in Contigset.query.filter_by(userid=userid).all()
+               for bs in cs.binsets.all()]
+    for binset in binsets:
         result.append({'name': binset.name, 'color': binset.color,
            'id': binset.id, 'bins': [bin.id for bin in binset.bins],
            'contigset': binset.contigset_id})
@@ -180,7 +187,10 @@ def get_bins(binset_id):
     userid = session.get('uid')
     if userid is None:
         abort(404)
-    binset = Binset.query.filter_by(userid=userid, id=binset_id).first()
+    contigsets = Contigset.query.filter_by(userid=userid).all()
+    for contigset in contigsets:
+        binset = contigset.binsets.filter_by(id=binset_id).first()
+        if binset is not None: break
     if binset is None:
         abort(404)
     result = []
@@ -218,7 +228,7 @@ def get_contigs(contigset_id):
     for contig in contigs:
         gc = utils.gc_content(contig.sequence) if contig.sequence else '-'
         length = len(contig.sequence) if contig.sequence else '-'
-        result.append({'id': contig.id, 'name': contig.header, 'gc': gc,
+        result.append({'id': contig.id, 'name': contig.name, 'gc': gc,
                        'coverage': 1, 'length': length})
     return json.dumps(result)
 
