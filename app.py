@@ -102,7 +102,6 @@ class SijaxHandler(object):
             contigs=contigs)
 
         db.session.add(contigset)
-        db.session.add_all(contigs)
         db.session.commit()
 
     @staticmethod
@@ -120,45 +119,41 @@ class SijaxHandler(object):
                                     'Onjuiste input.')
             return
 
-        # Create new binset
-        binset = Binset(name=binset_name, userid=session['uid'],
-                        color=randcol.generate()[0])
-        db.session.add(binset)
-        db.session.commit()
+        # TODO: use id instead of name
+        contigset = Contigset.query.filter_by(name=contigset_name,
+            userid=session['uid']).first()
 
-        #
         bin_contigs = defaultdict(list)
         contig_bins = {}
         for contig_name, bin_name in utils.parse_dsv(bin_file):
             bin_contigs[bin_name].append(contig_name)
             contig_bins[contig_name] = bin_name
 
-        bin_objects = {}
-        for bin_name in bin_contigs:
-            bin = Bin(name=bin_name, binset_id=binset.id,
-                      color=randcol.generate()[0])
-            db.session.add(bin)
-            bin_objects[bin_name] = bin
-
-        # Create contigset if none has been chosen.
-        contigset = Contigset.query.filter_by(name=contigset_name,
-                                              userid=session['uid']).first()
+        bins = []
         if contigset is None:
-            contigset = Contigset(name='', userid=session['uid'])
+            contigs = []
+            for bin_name, bin_contigs in bin_contigs.items():
+                bin_contigs = [Contig(name=c) for c in bin_contigs]
+                bin = Bin(name=bin_name, color=randcol.generate()[0],
+                    contigs=bin_contigs)
+                contigs.extend(bin_contigs)
+                bins.append(bin)
+
+            contigset = Contigset(name='contigset', userid=session['uid'],
+                contigs=contigs)
             db.session.add(contigset)
-            db.session.commit()
-            contigset.name = 'contigset{}'.format(contigset.id)
-            for bin_name, contigs in bin_contigs.items():
-                for contig_name in contigs:
-                    contig = Contig(header=contig_name,
-                                    contigset_id=contigset.id)
-                    bin_objects[bin_name].contigs.append(contig)
         else:
             for contig in contigset.contigs:
-                bin_name = contig_bins.get(contig.header)
+                bin_name = contig_bins.get(contig.name)
                 if bin_name:
-                    bin_objects[bin_name].contigs.append(contig)
-        binset.contigset_id = contigset.id
+                    bin = Bin(name=bin_name, color=randcol.generate()[0])
+                    contig.bins.append(bin)
+                    bins.append(bin)
+
+        binset = Binset(name=binset_name, color=randcol.generate()[0],
+            bins=bins, contigset=contigset)
+
+        db.session.add(binset)
         db.session.commit()
 
 ''' Views '''
