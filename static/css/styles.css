@@ -10,8 +10,21 @@ border:1px solid #ccc !important;
     overflow-y: auto;
 }
 
+/* Chord */
 #chord path {
     fill-opacity: .67;
     stroke: #000;
     stroke-width: .5px;
+}
+
+/* Scatterplot */
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.dot {
+  stroke: #000;
 }

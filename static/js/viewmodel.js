@@ -16,6 +16,18 @@ ko.bindingHandlers.chordSvg = {
     }
 };
 
+ko.bindingHandlers.scatterSvg = {
+    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+        createScatterplot(element);
+    },
+    update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+        console.log("Update scatterplot panel");
+        var contigs = bindingContext.$data.contigs();
+
+        updateScatterplot(element, contigs);
+    }
+};
+
 ko.extenders.trackChange = function(target, track) {
     if (track) {
         target.isDirty = ko.observable(false);
@@ -36,7 +48,20 @@ function BinsetPanel(binset) {
 function ContigsPanel() {
     var self = this;
     self.template = "contigsPanel";
+    self.xAxis = ko.observable();
+    self.yAxis = ko.observable();
     self.selectedContigsets = ko.observableArray([]);
+    self.contigs = ko.observableArray([]);
+
+    ko.computed(function() {
+        var contigsets = self.selectedContigsets();
+        for(var i = 0; i < contigsets.length; i++) {
+            var data = {items: contigsets[i].length};
+            $.getJSON('/contigsets/' + contigsets[i].id, data, function(data) {
+                self.contigs(data);
+            });
+        }
+    });
 }
 
 function ChordPanel() {
@@ -133,8 +158,7 @@ function ViewModel() {
     self.toggleFilters = function() { self.showFilters(!self.showFilters()); };
 
     // Panels
-    self.panels = ko.observableArray([new ChordPanel(), //new BinsetPanel("kek"),
-        new ContigsPanel()]);
+    self.panels = ko.observableArray([new ContigsPanel(), new ChordPanel()]);
     self.getPanelTemplate = function(panel) {
         return panel.template;
     };

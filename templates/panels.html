@@ -92,11 +92,28 @@
             </button>
             <div class="row">
                 <div class="col-xs-3">
-                    <select class="form-control" multiple size="5"
-                            data-bind="options: $root.contigsets,
+                    <div class="form-group">
+                        <label>x-as</label>
+                        <select class="form-control">
+                            <option>gc</option>
+                            <option>lengte</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>y-as</label>
+                        <select class="form-control">
+                            <option>gc</option>
+                            <option>lengte</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>contigsets</label>
+                        <select class="form-control" multiple size="5"
+                                data-bind="options: $root.contigsets,
                                        selectedOptions: selectedContigsets,
                                        optionsText: 'name'">
-                    </select>
+                        </select>
+                    </div>
                 </div>
                 <div class="col-xs-9" data-bind="scatterSvg: true"></div>
             </div>
