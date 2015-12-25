@@ -112,11 +112,15 @@ function ViewModel() {
     self.selectedContigset = ko.observable(null);
     self.contigs = ko.observableArray([]);
 
-    // The binsets of the selected contigset
-    self.contigsetBinsets = ko.computed(function() {
+    self.contigsetsToShow = ko.pureComputed(function() {
+        var selectedContigset = self.selectedContigset();
+        return selectedContigset ? [selectedContigset] : self.contigsets();
+    });
+
+    self.binsetsToShow = ko.pureComputed(function() {
         var contigset = self.selectedContigset();
         var binsets = self.binsets();
-        if (!contigset) return [];
+        if (!contigset) return self.binsets();
         return ko.utils.arrayFilter(binsets, function(binset) {
             return binset.contigset === contigset.id;
         })
@@ -131,6 +135,9 @@ function ViewModel() {
 
     self.showFilters = ko.observable(false);
     self.toggleFilters = function() { self.showFilters(!self.showFilters()); };
+
+    self.showElement = function(elem) { if (elem.nodeType === 1) $(elem).hide().slideDown() };
+    self.hideElement = function(elem) { if (elem.nodeType === 1) $(elem).slideUp(function() { $(elem).remove(); }) };
 
     // Panels
     self.panels = ko.observableArray([new ChordPanel(), //new BinsetPanel("kek"),
@@ -159,7 +166,6 @@ function ViewModel() {
     $.getJSON('/contigsets/', function(data) {
         var contigsets = $.map(data, function(cs) { return new Contigset(cs); });
         self.contigsets(contigsets);
-        self.selectedContigset(self.contigsets()[0]);
         console.log('viewmodel: got contigsets');
     });
 }
