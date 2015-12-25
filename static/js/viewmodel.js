@@ -102,7 +102,11 @@ function Contigset(data) {
     self.id = data.id;
     self.name = ko.observable(data.name);
     self.contigs = ko.observableArray(data.contigs);
-    self.binsets = ko.observableArray(data.binsets);
+    self.binsets = ko.observableArray([]);
+
+    $.getJSON('/contigsets/' + self.id + '/binsets', function(data) {
+        self.binsets(data.binsets.map(function(bs) { return new Binset(bs); }));
+    })
 }
 
 function ViewModel() {
@@ -150,15 +154,8 @@ function ViewModel() {
     };
 
     // Data
-    $.getJSON('/binsets/', function(data) {
-        var binsets = $.map(data, function(bs) { return new Binset(bs); });
-        self.binsets(binsets);
-        console.log('viewmodel: got binsets');
-    });
-
-    $.getJSON('/contigsets/', function(data) {
-        var contigsets = $.map(data, function(cs) { return new Contigset(cs); });
-        self.contigsets(contigsets);
+    $.getJSON('/contigsets', function(data) {
+        self.contigsets($.map(data.contigsets, function(cs) { return new Contigset(cs); }));
         self.selectedContigset(self.contigsets()[0]);
         console.log('viewmodel: got contigsets');
     });
