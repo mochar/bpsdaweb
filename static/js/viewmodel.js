@@ -22,12 +22,11 @@ ko.bindingHandlers.slideVisible = {
         $(element).toggle(visible);
     },
     update: function(element, valueAccessor) {
-        console.log("kek");
         var visible = ko.unwrap(valueAccessor());
         if (visible) {
             $(element).hide().slideDown();
         } else {
-            $(element).slideUp(function() { $(element).hide(); });
+            $(element).slideUp();
         }
     }
 };
