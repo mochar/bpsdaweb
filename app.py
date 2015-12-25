@@ -355,12 +355,23 @@ class BinsetApi(Resource):
         db.session.commit()
 
 
+class BinListApi(Resource):
+    def get(self, contigset_id, id):
+        binset = binset_or_404(contigset_id, id)
+        result = []
+        for bin in binset.bins:
+            result.append({'name': bin.name, 'id': bin.id, 'color': bin.color,
+                'binset': binset.id, 'contigs': [c.id for c in bin.contigs]})
+        return {'bins': result}
+
+
 api.add_resource(ContigsetListApi, '/contigsets')
 api.add_resource(ContigsetApi, '/contigsets/<int:id>')
 api.add_resource(ContigListApi, '/contigsets/<int:contigset_id>/contigs')
 api.add_resource(ContigApi, '/contigsets/<int:contigset_id>/contigs/<int:id>')
 api.add_resource(BinsetListApi, '/contigsets/<int:contigset_id>/binsets')
 api.add_resource(BinsetApi, '/contigsets/<int:contigset_id>/binsets/<int:id>')
+api.add_resource(BinListApi, '/contigsets/<int:contigset_id>/binsets/<int:id>/bins')
 
 ''' Views '''
 @app.before_request
