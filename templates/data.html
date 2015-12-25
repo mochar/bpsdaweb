@@ -98,7 +98,7 @@ $(function() {
         </li>
     </ul>
 
-    <div class="well well-sm" data-bind="visible: showFilters">
+    <div class="well well-sm" data-bind="slideVisible: showFilters">
         <form class="form-horizontal">
             <div class="form-group">
                 <label class="col-xs-2 control-label">GC</label>
@@ -142,8 +142,9 @@ $(function() {
         </form>
         <button class="btn btn-primary">Toepassen</button>
     </div>
+
     <table class="table" style="table-layout: fixed"
-           data-bind="visible: contigs().length > 0">
+           data-bind="slideVisible: selectedContigset">
         <thead>
             <tr>
                 <th width="50%">Contig</th>
@@ -154,7 +155,7 @@ $(function() {
         </thead>
     </table>
     <div style="overflow-y: auto; max-height: 200px;"
-         data-bind="visible: contigs().length > 0">
+         data-bind="slideVisible: selectedContigset">
         <table class="table table-condensed" style="table-layout: fixed">
             <tbody data-bind="foreach: contigs">
                 <tr>
