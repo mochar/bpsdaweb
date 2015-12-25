@@ -34,7 +34,7 @@ class Bin(db.Model):
     binset_id = db.Column(db.Integer, db.ForeignKey('binset.id'))
     color = db.Column(db.String(7), default='#ffffff')
     contigs = db.relationship('Contig', secondary=bincontig,
-                              backref=db.backref('bins', lazy='dynamic'))
+        backref=db.backref('bins', lazy='dynamic'), cascade='all, delete')
 
 
 class Contig(db.Model):
@@ -50,7 +50,8 @@ class Binset(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50))
     color = db.Column(db.String(7))
-    bins = db.relationship('Bin', backref='binset', lazy='dynamic')
+    bins = db.relationship('Bin', backref='binset', lazy='dynamic',
+        cascade='all, delete')
     contigset_id = db.Column(db.Integer, db.ForeignKey('contigset.id'))
 
 
@@ -59,8 +60,10 @@ class Contigset(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50))
     userid = db.Column(db.String)
-    contigs = db.relationship('Contig', backref='contigset', lazy='dynamic')
-    binsets = db.relationship('Binset', backref='contigset', lazy='dynamic')
+    contigs = db.relationship('Contig', backref='contigset', lazy='dynamic',
+        cascade='all, delete')
+    binsets = db.relationship('Binset', backref='contigset', lazy='dynamic',
+        cascade='all, delete')
 
 
 ''' Sijax '''
@@ -176,6 +179,14 @@ def user_contigset_or_404(id):
     return contigset
 
 
+def binset_or_404(contigset_id, id):
+    contigset = user_contigset_or_404(contigset_id)
+    binset = contigset.binsets.filter_by(id=id).first()
+    if binset is None:
+        abort(404)
+    return binset
+
+
 class ContigsetListApi(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
@@ -235,8 +246,6 @@ class ContigsetApi(Resource):
 
     def delete(self, id):
         contigset = user_contigset_or_404(id)
-        contigset.contigs.delete()
-        contigset.binsets.delete()
         db.session.delete(contigset)
         db.session.commit()
 
@@ -266,10 +275,83 @@ class ContigApi(Resource):
         }
 
 
+class BinsetListApi(Resource):
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('name', type=str, default='binset',
+            location='form')
+        self.reqparse.add_argument('contigset', type=int, required=True,
+            location='form')
+        self.reqparse.add_argument('bins', required=True,
+           type=werkzeug.datastructures.FileStorage, location='files')
+        super(BinsetListApi, self).__init__()
+
+    def get(self, contigset_id):
+        contigset = user_contigset_or_404(contigset_id)
+        result = []
+        for binset in contigset.binsets:
+            result.append({'name': binset.name, 'id': binset.id,
+                'color': binset.color, 'bins': [bin.id for bin in binset.bins]})
+        return {'binsets': result}
+
+    def post(self, contigset_id):
+        contigset = user_contigset_or_404(contigset_id)
+        args = self.reqparse.parse_args()
+
+        contig_bins = {}
+        for contig_name, bin_name in utils.parse_dsv(args.bins):
+            contig_bins[contig_name] = bin_name
+
+        bins = []
+        done = {}
+        for contig in contigset.contigs:
+            bin_name = contig_bins.get(contig.name)
+            if not bin_name:
+                continue
+            bin = done.get(bin_name)
+            if bin is None:
+                bin = Bin(name=bin_name, color=randcol.generate()[0])
+                bins.append(bin)
+                done[bin_name] = bin
+            bin.contigs.append(contig)
+
+        binset = Binset(name=args.name, color=randcol.generate()[0],
+            bins=bins, contigset=contigset)
+
+        db.session.add(binset)
+        db.session.commit()
+
+
+class BinsetApi(Resource):
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('name', type=str, location='form')
+        super(BinsetApi, self).__init__()
+
+    def get(self, contigset_id, id):
+        binset = binset_or_404(contigset_id, id)
+        return {'id': binset.id, 'name': binset.name, 'color': binset.color,
+            'bins': [bin.id for bin in binset.bins]}
+
+    def put(self, contigset_id, id):
+        args = self.reqparse.parse_args()
+        binset = binset_or_404(contigset_id, id)
+        if args.name is not None:
+            binset.name = args.name
+        db.session.commit()
+
+    def delete(self, contigset_id, id):
+        binset = binset_or_404(contigset_id, id)
+        db.session.delete(binset)
+        db.session.commit()
+
+
 api.add_resource(ContigsetListApi, '/contigsets')
 api.add_resource(ContigsetApi, '/contigsets/<int:id>')
 api.add_resource(ContigListApi, '/contigsets/<int:contigset_id>/contigs')
 api.add_resource(ContigApi, '/contigsets/<int:contigset_id>/contigs/<int:id>')
+api.add_resource(BinsetListApi, '/contigsets/<int:contigset_id>/binsets')
+api.add_resource(BinsetApi, '/contigsets/<int:contigset_id>/binsets/<int:id>')
 
 ''' Views '''
 @app.before_request
