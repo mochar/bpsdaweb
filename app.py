@@ -2,8 +2,10 @@ from collections import defaultdict
 import uuid
 import json
 
+import werkzeug
 from flask import Flask, render_template, g, session, abort, request
 from flask.ext.sqlalchemy import SQLAlchemy
+from flask_restful import Api, Resource, reqparse
 import flask_sijax
 
 import utils
@@ -13,6 +15,7 @@ import randomcolor
 app = Flask(__name__)
 app.config.from_object('config')
 db = SQLAlchemy(app)
+api = Api(app)
 flask_sijax.Sijax(app)
 randcol = randomcolor.RandomColor()
 
@@ -160,6 +163,91 @@ class SijaxHandler(object):
 
         db.session.add(binset)
         db.session.commit()
+
+
+''' API '''
+class ContigsetListApi(Resource):
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('name', type=str, default='contigset',
+            location='form')
+        self.reqparse.add_argument('contigs', required=True,
+            type=werkzeug.datastructures.FileStorage, location='files')
+        super(ContigsetListApi, self).__init__()
+
+    def get(self):
+        userid = session.get('uid')
+        if userid is None:
+            abort(404)
+        result = []
+        for contigset in Contigset.query.filter_by(userid=userid).all():
+            result.append({'name': contigset.name, 'id': contigset.id,
+                           'length': contigset.contigs.count(),
+                           'binsets': [binset.id for binset in contigset.binsets]})
+        return {'contigsets': result}
+
+    def post(self):
+        args = self.reqparse.parse_args()
+        contigs = []
+        for header, sequence in utils.parse_fasta(args.contigs.stream):
+            contigs.append(Contig(name=header, sequence=sequence))
+
+        contigset = Contigset(name=args.name, userid=session['uid'],
+            contigs=contigs)
+
+        db.session.add(contigset)
+        db.session.commit()
+
+        return {'id': contigset.id, 'name': args.name, 'length': len(contigs),
+            'binsets': []}
+
+
+class ContigsetApi(Resource):
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('name', type=str, location='form')
+        super(ContigsetApi, self).__init__()
+
+    def get(self, id):
+        userid = session.get('uid')
+        if userid is None:
+            abort(404)
+        contigset = Contigset.query.filter_by(userid=userid, id=id).first()
+        if contigset is None:
+            abort(404)
+        return {
+            'name': contigset.name,
+            'contigs': [c.id for c in contigset.contigs],
+            'binsets': [binset.id for binset in contigset.binsets]
+        }
+
+    def put(self, id):
+        args = self.reqparse.parse_args()
+        userid = session.get('uid')
+        if userid is None:
+            abort(404)
+        contigset = Contigset.query.filter_by(userid=userid, id=id).first()
+        if contigset is None:
+            abort(404)
+        if args.name is not None:
+            contigset.name = args.name
+        db.session.commit()
+
+    def delete(self, id):
+        userid = session.get('uid')
+        if userid is None:
+            abort(404)
+        contigset = Contigset.query.filter_by(userid=userid, id=id).first()
+        if contigset is None:
+            abort(404)
+        contigset.contigs.delete()
+        contigset.binsets.delete()
+        db.session.delete(contigset)
+        db.session.commit()
+
+
+api.add_resource(ContigsetListApi, '/contigsets')
+api.add_resource(ContigsetApi, '/contigsets/<int:id>')
 
 ''' Views '''
 @app.before_request
