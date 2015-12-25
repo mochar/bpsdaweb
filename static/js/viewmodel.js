@@ -107,8 +107,8 @@ function Binset(data) {
     self.name = ko.observable(data.name);
     self.color = ko.observable(data.color);
     self.bins = ko.observableArray(data.bins);
-    self.editingName = ko.observable(false);
 
+    self.editingName = ko.observable(false);
     self.editName = function() { self.editingName(true); }
 }
 
@@ -126,7 +126,6 @@ function Contigset(data) {
 
 function ViewModel() {
     var self = this;
-    self.binsets = ko.observableArray([]);
     self.contigsets = ko.observableArray([]);
     self.selectedContigset = ko.observable(null);
     self.contigs = ko.observableArray([]);
@@ -138,18 +137,19 @@ function ViewModel() {
 
     self.binsetsToShow = ko.pureComputed(function() {
         var contigset = self.selectedContigset();
-        var binsets = self.binsets();
-        if (!contigset) return self.binsets();
-        return ko.utils.arrayFilter(binsets, function(binset) {
-            return binset.contigset === contigset.id;
-        })
+        if (contigset) return contigset.binsets();
+        var binsets = [];
+        ko.utils.arrayForEach(self.contigsets(), function(contigset) {
+            binsets = binsets.concat(contigset.binsets());
+        });
+        return binsets;
     });
 
     ko.computed(function() {
         var contigset = self.selectedContigset();
         if (!contigset) return;
         var data = {items: 50};
-        $.getJSON('/contigsets/' + contigset.id, data, self.contigs);
+        //$.getJSON('/contigsets/' + contigset.id, data, self.contigs);
     });
 
     self.showFilters = ko.observable(false);
@@ -178,7 +178,6 @@ function ViewModel() {
     // Data
     $.getJSON('/contigsets', function(data) {
         self.contigsets($.map(data.contigsets, function(cs) { return new Contigset(cs); }));
-        self.selectedContigset(self.contigsets()[0]);
         console.log('viewmodel: got contigsets');
     });
 }
