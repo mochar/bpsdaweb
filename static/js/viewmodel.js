@@ -16,6 +16,22 @@ ko.bindingHandlers.chordSvg = {
     }
 };
 
+ko.bindingHandlers.slideVisible = {
+    init: function(element, valueAccessor) {
+        var visible = ko.unwrap(valueAccessor());
+        $(element).toggle(visible);
+    },
+    update: function(element, valueAccessor) {
+        console.log("kek");
+        var visible = ko.unwrap(valueAccessor());
+        if (visible) {
+            $(element).hide().slideDown();
+        } else {
+            $(element).slideUp(function() { $(element).hide(); });
+        }
+    }
+};
+
 ko.extenders.trackChange = function(target, track) {
     if (track) {
         target.isDirty = ko.observable(false);
