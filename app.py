@@ -298,7 +298,8 @@ class BinsetListApi(Resource):
         contigset = user_contigset_or_404(contigset_id)
         result = []
         for binset in contigset.binsets:
-            result.append({'name': binset.name, 'id': binset.id,
+            result.append({
+                'name': binset.name, 'id': binset.id, 'contigset': contigset.id,
                 'color': binset.color, 'bins': [bin.id for bin in binset.bins]})
         return {'binsets': result}
 
