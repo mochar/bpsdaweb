@@ -251,10 +251,18 @@ class ContigsetApi(Resource):
 
 
 class ContigListApi(Resource):
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('_items', type=int, default=50)
+        self.reqparse.add_argument('index', type=int, default=1)
+        super(ContigListApi, self).__init__()
+
     def get(self, contigset_id):
+        args = self.reqparse.parse_args()
         contigset = user_contigset_or_404(contigset_id)
+        contigs = contigset.contigs.paginate(args.index, args._items, False).items
         result = []
-        for contig in contigset.contigs:
+        for contig in contigs:
             gc = utils.gc_content(contig.sequence) if contig.sequence else '-'
             length = len(contig.sequence) if contig.sequence else '-'
             result.append({'id': contig.id, 'name': contig.name, 'gc': gc,
