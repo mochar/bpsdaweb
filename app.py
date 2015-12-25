@@ -166,6 +166,16 @@ class SijaxHandler(object):
 
 
 ''' API '''
+def user_contigset_or_404(id):
+    userid = session.get('uid')
+    if userid is None:
+        abort(404)
+    contigset = Contigset.query.filter_by(userid=userid, id=id).first()
+    if contigset is None:
+        abort(404)
+    return contigset
+
+
 class ContigsetListApi(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
@@ -209,12 +219,7 @@ class ContigsetApi(Resource):
         super(ContigsetApi, self).__init__()
 
     def get(self, id):
-        userid = session.get('uid')
-        if userid is None:
-            abort(404)
-        contigset = Contigset.query.filter_by(userid=userid, id=id).first()
-        if contigset is None:
-            abort(404)
+        contigset = user_contigset_or_404(id)
         return {
             'name': contigset.name,
             'contigs': [c.id for c in contigset.contigs],
@@ -223,31 +228,48 @@ class ContigsetApi(Resource):
 
     def put(self, id):
         args = self.reqparse.parse_args()
-        userid = session.get('uid')
-        if userid is None:
-            abort(404)
-        contigset = Contigset.query.filter_by(userid=userid, id=id).first()
-        if contigset is None:
-            abort(404)
+        contigset = user_contigset_or_404(id)
         if args.name is not None:
             contigset.name = args.name
         db.session.commit()
 
     def delete(self, id):
-        userid = session.get('uid')
-        if userid is None:
-            abort(404)
-        contigset = Contigset.query.filter_by(userid=userid, id=id).first()
-        if contigset is None:
-            abort(404)
+        contigset = user_contigset_or_404(id)
         contigset.contigs.delete()
         contigset.binsets.delete()
         db.session.delete(contigset)
         db.session.commit()
 
 
+class ContigListApi(Resource):
+    def get(self, contigset_id):
+        contigset = user_contigset_or_404(contigset_id)
+        result = []
+        for contig in contigset.contigs:
+            gc = utils.gc_content(contig.sequence) if contig.sequence else '-'
+            length = len(contig.sequence) if contig.sequence else '-'
+            result.append({'id': contig.id, 'name': contig.name, 'gc': gc,
+                'length': length})
+        return {'contigs': result}
+
+
+class ContigApi(Resource):
+    def get(self, contigset_id, id):
+        contigset = user_contigset_or_404(contigset_id)
+        contig = contigset.contigs.filter_by(id=id).first()
+        if contig is None:
+            abort(404)
+        return {
+            'name': contig.name,
+            'id': contig.id,
+            'sequence': contig.sequence
+        }
+
+
 api.add_resource(ContigsetListApi, '/contigsets')
 api.add_resource(ContigsetApi, '/contigsets/<int:id>')
+api.add_resource(ContigListApi, '/contigsets/<int:contigset_id>/contigs')
+api.add_resource(ContigApi, '/contigsets/<int:contigset_id>/contigs/<int:id>')
 
 ''' Views '''
 @app.before_request
