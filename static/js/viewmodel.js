@@ -17,14 +17,29 @@ ko.bindingHandlers.chordSvg = {
 };
 
 ko.bindingHandlers.scatterSvg = {
-    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+    init: function (element, valueAccessor, allBindings, viewModel, bindingContext) {
         createScatterplot(element);
     },
-    update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+    update: function (element, valueAccessor, allBindings, viewModel, bindingContext) {
         console.log("Update scatterplot panel");
         var contigs = bindingContext.$data.contigs();
 
         updateScatterplot(element, contigs);
+    }
+};
+
+ko.bindingHandlers.slideVisible = {
+    init: function(element, valueAccessor) {
+        var visible = ko.unwrap(valueAccessor());
+        $(element).toggle(visible);
+    },
+    update: function(element, valueAccessor) {
+        var visible = ko.unwrap(valueAccessor());
+        if (visible) {
+            $(element).hide().slideDown();
+        } else {
+            $(element).slideUp();
+        }
     }
 };
 
@@ -92,18 +107,19 @@ function ChordPanel() {
             var binsets = [self.selectedBinset1(), self.selectedBinset2()];
             var binIds = binsets[0].bins().concat(binsets[1].bins());
             var data = {bins: binIds.join(',')};
+            var url = '/contigsets/' + binsets[0].contigset + '/binsets/';
             $.when(
                 $.getJSON('/to_matrix', data),
-                $.getJSON('/binsets/' + binsets[0].id, data),
-                $.getJSON('/binsets/' + binsets[1].id, data)
+                $.getJSON(url + binsets[0].id + '/bins'),
+                $.getJSON(url + binsets[1].id + '/bins')
             ).done(function(matrix, bins1, bins2) {
-                bins1[0].forEach(function(b) {
+                bins1[0].bins.forEach(function(b) {
                     $.extend(b, {binsetColor: binsets[0].color()});
                 });
-                bins2[0].forEach(function(b) {
+                bins2[0].bins.forEach(function(b) {
                     $.extend(b, {binsetColor: binsets[1].color()});
                 });
-                self.bins = bins1[0].concat(bins2[0].reverse());
+                self.bins = bins1[0].bins.concat(bins2[0].bins);
                 self.matrix(matrix[0]);
             });
         }
@@ -117,8 +133,8 @@ function Binset(data) {
     self.name = ko.observable(data.name);
     self.color = ko.observable(data.color);
     self.bins = ko.observableArray(data.bins);
-    self.editingName = ko.observable(false);
 
+    self.editingName = ko.observable(false);
     self.editName = function() { self.editingName(true); }
 }
 
@@ -127,35 +143,52 @@ function Contigset(data) {
     self.id = data.id;
     self.name = ko.observable(data.name);
     self.contigs = ko.observableArray(data.contigs);
-    self.binsets = ko.observableArray(data.binsets);
+    self.binsets = ko.observableArray([]);
+
+    $.getJSON('/contigsets/' + self.id + '/binsets', function(data) {
+        self.binsets(data.binsets.map(function(bs) { return new Binset(bs); }));
+    })
 }
 
 function ViewModel() {
     var self = this;
-    self.binsets = ko.observableArray([]);
     self.contigsets = ko.observableArray([]);
     self.selectedContigset = ko.observable(null);
     self.contigs = ko.observableArray([]);
 
-    // The binsets of the selected contigset
-    self.contigsetBinsets = ko.computed(function() {
+    self.binsets = ko.pureComputed(function() {
+        var contigsets = self.contigsets();
+        var binsets = [];
+        ko.utils.arrayForEach(contigsets, function(contigset) {
+            binsets = binsets.concat(contigset.binsets());
+        });
+        return binsets;
+    });
+
+    self.contigsetsToShow = ko.pureComputed(function() {
+        var selectedContigset = self.selectedContigset();
+        return selectedContigset ? [selectedContigset] : self.contigsets();
+    });
+
+    self.binsetsToShow = ko.pureComputed(function() {
         var contigset = self.selectedContigset();
-        var binsets = self.binsets();
-        if (!contigset) return [];
-        return ko.utils.arrayFilter(binsets, function(binset) {
-            return binset.contigset === contigset.id;
-        })
+        return contigset ? contigset.binsets() : self.binsets();
     });
 
     ko.computed(function() {
         var contigset = self.selectedContigset();
         if (!contigset) return;
         var data = {items: 50};
-        $.getJSON('/contigsets/' + contigset.id, data, self.contigs);
+        $.getJSON('/contigsets/' + contigset.id + '/contigs', data, function(data) {
+            self.contigs(data.contigs);
+        });
     });
 
     self.showFilters = ko.observable(false);
     self.toggleFilters = function() { self.showFilters(!self.showFilters()); };
+
+    self.showElement = function(elem) { if (elem.nodeType === 1) $(elem).hide().slideDown() };
+    self.hideElement = function(elem) { if (elem.nodeType === 1) $(elem).slideUp(function() { $(elem).remove(); }) };
 
     // Panels
     self.panels = ko.observableArray([new ContigsPanel(), new ChordPanel()]);
@@ -173,17 +206,53 @@ function ViewModel() {
         self.binsets.remove(binset);
     };
 
-    // Data
-    $.getJSON('/binsets/', function(data) {
-        var binsets = $.map(data, function(bs) { return new Binset(bs); });
-        self.binsets(binsets);
-        console.log('viewmodel: got binsets');
-    });
+    // Data upload
+    self.uploadContigset = function(formElement) {
+        var formData = new FormData(formElement);
+        formElement.reset();
+        $.ajax({
+            url: '/contigsets',
+            type: 'POST',
+            data: formData,
+            async: false,
+            success: function (data) {
+                self.contigsets.push(new Contigset(data));
+            },
+            cache: false,
+            contentType: false,
+            processData: false
+        });
+    };
 
-    $.getJSON('/contigsets/', function(data) {
-        var contigsets = $.map(data, function(cs) { return new Contigset(cs); });
-        self.contigsets(contigsets);
-        self.selectedContigset(self.contigsets()[0]);
+    self.uploadBinset = function(formElement) {
+        var formData = new FormData(formElement);
+        var contigsetId = $('#binsetContigset').val();
+        $('#binTable > tbody > tr').remove();
+        formElement.reset();
+
+        $.ajax({
+            url: '/contigsets/' + contigsetId + '/binsets',
+            type: 'POST',
+            data: formData,
+            async: false,
+            success: function (data) {
+                var contigsets = self.contigsets();
+                for(var i = 0; i < contigsets.length; i++) {
+                    if (contigsets[i].id == contigsetId) {
+                        contigsets[i].binsets.push(new Binset(data));
+                        break;
+                    }
+                }
+            },
+            cache: false,
+            contentType: false,
+            processData: false
+        });
+    };
+
+    // Data
+    $.getJSON('/contigsets', function(data) {
+        self.contigsets($.map(data.contigsets, function(cs) { return new Contigset(cs); }));
         console.log('viewmodel: got contigsets');
     });
 }
