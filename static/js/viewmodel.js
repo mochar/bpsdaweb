@@ -182,6 +182,24 @@ function ViewModel() {
         self.binsets.remove(binset);
     };
 
+    // Data upload
+    self.uploadContigset = function(formElement) {
+        var formData = new FormData(formElement);
+        formElement.reset();
+        $.ajax({
+            url: '/contigsets',
+            type: 'POST',
+            data: formData,
+            async: false,
+            success: function (data) {
+                self.contigsets.push(new Contigset(data));
+            },
+            cache: false,
+            contentType: false,
+            processData: false
+        });
+    };
+
     // Data
     $.getJSON('/contigsets', function(data) {
         self.contigsets($.map(data.contigsets, function(cs) { return new Contigset(cs); }));
