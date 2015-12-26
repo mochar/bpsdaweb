@@ -217,9 +217,10 @@ class ContigsetListApi(Resource):
 
     def post(self):
         args = self.reqparse.parse_args()
+        app.logger.debug(args)
 
         contigs = []
-        if args.contigs is not None:
+        if args.contigs:
             for header, sequence in utils.parse_fasta(args.contigs.stream):
                 contigs.append(Contig(name=header, sequence=sequence))
 
