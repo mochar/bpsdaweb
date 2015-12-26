@@ -200,8 +200,8 @@ class ContigsetListApi(Resource):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument('name', type=str, default='contigset',
             location='form')
-        self.reqparse.add_argument('contigs', required=True,
-            type=werkzeug.datastructures.FileStorage, location='files')
+        self.reqparse.add_argument('contigs', location='files',
+            type=werkzeug.datastructures.FileStorage)
         super(ContigsetListApi, self).__init__()
 
     def get(self):
@@ -217,9 +217,11 @@ class ContigsetListApi(Resource):
 
     def post(self):
         args = self.reqparse.parse_args()
+
         contigs = []
-        for header, sequence in utils.parse_fasta(args.contigs.stream):
-            contigs.append(Contig(name=header, sequence=sequence))
+        if args.contigs is not None:
+            for header, sequence in utils.parse_fasta(args.contigs.stream):
+                contigs.append(Contig(name=header, sequence=sequence))
 
         contigset = Contigset(name=args.name, userid=session['uid'],
             contigs=contigs)
