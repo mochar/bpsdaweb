@@ -203,6 +203,7 @@ function ViewModel() {
     self.uploadBinset = function(formElement) {
         var formData = new FormData(formElement);
         var contigsetId = $('#binsetContigset').val();
+        $('#binTable > tbody > tr').remove();
         formElement.reset();
 
         $.ajax({
