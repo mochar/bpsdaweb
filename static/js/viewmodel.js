@@ -72,8 +72,10 @@ function ContigsPanel() {
         var contigsets = self.selectedContigsets();
         for(var i = 0; i < contigsets.length; i++) {
             var data = {items: contigsets[i].length};
-            $.getJSON('/contigsets/' + contigsets[i].id, data, function(data) {
-                self.contigs(data);
+            data = {};
+            var url = '/contigsets/' + contigsets[i].id + '/contigs';
+            $.getJSON(url, data, function(data) {
+                self.contigs(data.contigs);
             });
         }
     });
