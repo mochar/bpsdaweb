@@ -34,7 +34,7 @@ class Bin(db.Model):
     binset_id = db.Column(db.Integer, db.ForeignKey('binset.id'))
     color = db.Column(db.String(7), default='#ffffff')
     contigs = db.relationship('Contig', secondary=bincontig,
-        backref=db.backref('bins', lazy='dynamic'), cascade='all, delete')
+        backref=db.backref('bins', lazy='dynamic'))
 
 
 class Contig(db.Model):
@@ -185,6 +185,14 @@ def binset_or_404(contigset_id, id):
     if binset is None:
         abort(404)
     return binset
+
+
+def bin_or_404(contigset_id, binset_id, id):
+    binset = binset_or_404(contigset_id, binset_id)
+    bin = binset.bins.filter_by(id=id).first()
+    if bin is None:
+        abort(404)
+    return bin
 
 
 class ContigsetListApi(Resource):
@@ -365,6 +373,32 @@ class BinListApi(Resource):
         return {'bins': result}
 
 
+class BinApi(Resource):
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('name', type=str, location='form')
+        self.reqparse.add_argument('color', type=str, location='form')
+
+    def get(self, contigset_id, binset_id, id):
+        bin = bin_or_404(contigset_id, binset_id, id)
+        return {
+            'id': bin.id, 'name': bin.name, 'color': bin.color,
+            'binset': bin.binset_id, 'contigs': [c.id for c in bin.contigs]
+        }
+
+    def put(self, contigset_id, binset_id, id):
+        args = self.reqparse.parse_args()
+        bin = bin_or_404(contigset_id, binset_id, id)
+        if args.name is not None:
+            bin.name = args.name
+        db.session.commit()
+
+    def delete(self, contigset_id, binset_id, id):
+        bin = bin_or_404(contigset_id, binset_id, id)
+        db.session.delete(bin)
+        db.session.commit()
+
+
 api.add_resource(ContigsetListApi, '/contigsets')
 api.add_resource(ContigsetApi, '/contigsets/<int:id>')
 api.add_resource(ContigListApi, '/contigsets/<int:contigset_id>/contigs')
@@ -372,6 +406,8 @@ api.add_resource(ContigApi, '/contigsets/<int:contigset_id>/contigs/<int:id>')
 api.add_resource(BinsetListApi, '/contigsets/<int:contigset_id>/binsets')
 api.add_resource(BinsetApi, '/contigsets/<int:contigset_id>/binsets/<int:id>')
 api.add_resource(BinListApi, '/contigsets/<int:contigset_id>/binsets/<int:id>/bins')
+api.add_resource(BinApi, '/contigsets/<int:contigset_id>/binsets/'
+                             '<int:binset_id>/bins/<int:id>')
 
 ''' Views '''
 @app.before_request
