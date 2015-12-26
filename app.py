@@ -1,4 +1,3 @@
-from collections import defaultdict
 import uuid
 import json
 
@@ -6,7 +5,6 @@ import werkzeug
 from flask import Flask, render_template, g, session, abort, request
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_restful import Api, Resource, reqparse
-import flask_sijax
 
 import utils
 import randomcolor
@@ -16,7 +14,6 @@ app = Flask(__name__)
 app.config.from_object('config')
 db = SQLAlchemy(app)
 api = Api(app)
-flask_sijax.Sijax(app)
 randcol = randomcolor.RandomColor()
 
 
@@ -64,108 +61,6 @@ class Contigset(db.Model):
         cascade='all, delete')
     binsets = db.relationship('Binset', backref='contigset', lazy='dynamic',
         cascade='all, delete')
-
-
-''' Sijax '''
-class SijaxHandler(object):
-    @staticmethod
-    def _add_alert(obj_response, div, text):
-        obj_response.html(div, """
-        <div class="alert alert-warning alert-dismissible" role="alert">
-            <button type="button" class="close" data-dismiss="alert"
-                    aria-label="Close"><span aria-hidden="true">&times;</span>
-            </button>
-            {}
-        </div>
-        """.format(text))
-
-    @staticmethod
-    def contigset_form_handler(obj_response, files, form_values):
-        # Clean form
-        obj_response.reset_form()
-
-        # Validate input
-        contig_file = files.get('contigsetFile')
-        contigset_name = form_values.get('contigsetName')[0]
-        if '' in (contig_file.filename, contigset_name):
-            SijaxHandler._add_alert(obj_response, '#contigsetAlerts',
-                                    'Onjuiste input.')
-            return
-
-        contigset = Contigset.query.filter_by(name=contigset_name,
-                                              userid=session['uid']).first()
-        if contigset is not None:
-            SijaxHandler._add_alert(obj_response, '#contigsetAlerts',
-                                    'Contigs zijn al geupload.')
-            return
-
-        # Add data to database
-        contigs = []
-        for header, sequence in utils.parse_fasta(contig_file.stream):
-            contigs.append(Contig(name=header, sequence=sequence))
-
-        contigset = Contigset(name=contigset_name, userid=session['uid'],
-            contigs=contigs)
-
-        db.session.add(contigset)
-        db.session.commit()
-
-    @staticmethod
-    def binset_form_handler(obj_response, files, form_values):
-        # Clean form
-        obj_response.reset_form()
-        obj_response.remove('#binTable > tbody > tr')
-
-        # Validate input
-        bin_file = files.get('binsetFile')
-        binset_name = form_values.get('binsetName')[0]
-        contigset_name = form_values.get('binsetContigset')[0]
-        if '' in (bin_file.filename, binset_name):
-            SijaxHandler._add_alert(obj_response, '#binsetAlerts',
-                                    'Onjuiste input.')
-            return
-
-        # TODO: use id instead of name
-        contigset = Contigset.query.filter_by(name=contigset_name,
-            userid=session['uid']).first()
-
-        bin_contigs = defaultdict(list)
-        contig_bins = {}
-        for contig_name, bin_name in utils.parse_dsv(bin_file):
-            bin_contigs[bin_name].append(contig_name)
-            contig_bins[contig_name] = bin_name
-
-        bins = []
-        if contigset is None:
-            contigs = []
-            for bin_name, bin_contigs in bin_contigs.items():
-                bin_contigs = [Contig(name=c) for c in bin_contigs]
-                bin = Bin(name=bin_name, color=randcol.generate()[0],
-                    contigs=bin_contigs)
-                contigs.extend(bin_contigs)
-                bins.append(bin)
-
-            contigset = Contigset(name='contigset', userid=session['uid'],
-                contigs=contigs)
-            db.session.add(contigset)
-        else:
-            done = {}
-            for contig in contigset.contigs:
-                bin_name = contig_bins.get(contig.name)
-                if not bin_name:
-                    continue
-                bin = done.get(bin_name)
-                if bin is None:
-                    bin = Bin(name=bin_name, color=randcol.generate()[0])
-                    bins.append(bin)
-                    done[bin_name] = bin
-                bin.contigs.append(contig)
-
-        binset = Binset(name=binset_name, color=randcol.generate()[0],
-            bins=bins, contigset=contigset)
-
-        db.session.add(binset)
-        db.session.commit()
 
 
 ''' API '''
@@ -421,6 +316,7 @@ api.add_resource(BinListApi, '/contigsets/<int:contigset_id>/binsets/<int:id>/bi
 api.add_resource(BinApi, '/contigsets/<int:contigset_id>/binsets/'
                              '<int:binset_id>/bins/<int:id>')
 
+
 ''' Views '''
 @app.before_request
 def make_session_permanent():
@@ -439,24 +335,13 @@ def to_matrix():
     return json.dumps(utils.to_matrix(bins))
 
 
-@flask_sijax.route(app, '/')
+@app.route('/')
 def home():
     new_user = False
     if not 'uid' in session:
         new_user = True
         session['uid'] = str(uuid.uuid4())
-
-    form_init_js = g.sijax.register_upload_callback('contigsetForm',
-        SijaxHandler.contigset_form_handler)
-    form_init_js += g.sijax.register_upload_callback('binsetForm',
-        SijaxHandler.binset_form_handler)
-
-    if g.sijax.is_sijax_request:
-        g.sijax.register_object(SijaxHandler)
-        return g.sijax.process_request()
-
-    return render_template('index.html', form_init_js=form_init_js,
-                           new_user=new_user)
+    return render_template('index.html', new_user=new_user)
 
 
 if __name__ == '__main__':
