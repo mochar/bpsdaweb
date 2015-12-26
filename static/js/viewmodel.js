@@ -82,18 +82,19 @@ function ChordPanel() {
             var binsets = [self.selectedBinset1(), self.selectedBinset2()];
             var binIds = binsets[0].bins().concat(binsets[1].bins());
             var data = {bins: binIds.join(',')};
+            var url = '/contigsets/' + binsets[0].contigset + '/binsets/';
             $.when(
                 $.getJSON('/to_matrix', data),
-                $.getJSON('/binsets/' + binsets[0].id, data),
-                $.getJSON('/binsets/' + binsets[1].id, data)
+                $.getJSON(url + binsets[0].id + '/bins'),
+                $.getJSON(url + binsets[1].id + '/bins')
             ).done(function(matrix, bins1, bins2) {
-                bins1[0].forEach(function(b) {
+                bins1[0].bins.forEach(function(b) {
                     $.extend(b, {binsetColor: binsets[0].color()});
                 });
-                bins2[0].forEach(function(b) {
+                bins2[0].bins.forEach(function(b) {
                     $.extend(b, {binsetColor: binsets[1].color()});
                 });
-                self.bins = bins1[0].concat(bins2[0].reverse());
+                self.bins = bins1[0].bins.concat(bins2[0].bins);
                 self.matrix(matrix[0]);
             });
         }
@@ -136,7 +137,6 @@ function ViewModel() {
         ko.utils.arrayForEach(contigsets, function(contigset) {
             binsets = binsets.concat(contigset.binsets());
         });
-        console.log(binsets);
         return binsets;
     });
 
