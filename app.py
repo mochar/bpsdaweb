@@ -346,7 +346,7 @@ class BinsetListApi(Resource):
         db.session.add(binset)
         db.session.commit()
         return {'id': binset.id, 'name': binset.name, 'color': binset.color,
-            'bins': [bin.id for bin in binset.bins]}
+            'bins': [bin.id for bin in binset.bins], 'contigset': contigset.id}
 
 
 class BinsetApi(Resource):
@@ -357,8 +357,11 @@ class BinsetApi(Resource):
 
     def get(self, contigset_id, id):
         binset = binset_or_404(contigset_id, id)
-        return {'id': binset.id, 'name': binset.name, 'color': binset.color,
-            'bins': [bin.id for bin in binset.bins]}
+        return {
+            'id': binset.id, 'name': binset.name, 'color': binset.color,
+            'bins': [bin.id for bin in binset.bins],
+            'contigset': binset.contigset.id
+        }
 
     def put(self, contigset_id, id):
         args = self.reqparse.parse_args()
