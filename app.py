@@ -345,6 +345,8 @@ class BinsetListApi(Resource):
 
         db.session.add(binset)
         db.session.commit()
+        return {'id': binset.id, 'name': binset.name, 'color': binset.color,
+            'bins': [bin.id for bin in binset.bins]}
 
 
 class BinsetApi(Resource):
