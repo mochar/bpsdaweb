@@ -296,8 +296,6 @@ class BinsetListApi(Resource):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument('name', type=str, default='binset',
             location='form')
-        self.reqparse.add_argument('contigset', type=int, required=True,
-            location='form')
         self.reqparse.add_argument('bins', required=True,
            type=werkzeug.datastructures.FileStorage, location='files')
         super(BinsetListApi, self).__init__()
@@ -315,25 +313,32 @@ class BinsetListApi(Resource):
         contigset = user_contigset_or_404(contigset_id)
         args = self.reqparse.parse_args()
 
+        # Dict: contig -> bin
         contig_bins = {}
         for contig_name, bin_name in utils.parse_dsv(args.bins):
             contig_bins[contig_name] = bin_name
 
-        bins = []
+        filter = Contig.name.in_(contig_bins)
+        contigs = contigset.contigs.filter(filter).all()
+
+        # Bins can contain contig names which are not present in the contigset.
+        # Add these new contigs to the contigset.
+        contig_names = [contig.name for contig in contigs]
+        for contig_name in [c for c in contig_bins if c not in contig_names]:
+            contigs.append(Contig(name=contig_name))
+        contigset.contigs = contigs
+
         done = {}
-        for contig in contigset.contigs:
-            bin_name = contig_bins.get(contig.name)
-            if not bin_name:
-                continue
+        for contig in contigs:
+            bin_name = contig_bins[contig.name]
             bin = done.get(bin_name)
             if bin is None:
                 bin = Bin(name=bin_name, color=randcol.generate()[0])
-                bins.append(bin)
                 done[bin_name] = bin
             bin.contigs.append(contig)
 
         binset = Binset(name=args.name, color=randcol.generate()[0],
-            bins=bins, contigset=contigset)
+            bins=list(done.values()), contigset=contigset)
 
         db.session.add(binset)
         db.session.commit()
