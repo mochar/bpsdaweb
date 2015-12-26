@@ -200,6 +200,31 @@ function ViewModel() {
         });
     };
 
+    self.uploadBinset = function(formElement) {
+        var formData = new FormData(formElement);
+        var contigsetId = $('#binsetContigset').val();
+        formElement.reset();
+
+        $.ajax({
+            url: '/contigsets/' + contigsetId + '/binsets',
+            type: 'POST',
+            data: formData,
+            async: false,
+            success: function (data) {
+                var contigsets = self.contigsets();
+                for(var i = 0; i < contigsets.length; i++) {
+                    if (contigsets[i].id == contigsetId) {
+                        contigsets[i].binsets.push(new Binset(data));
+                        break;
+                    }
+                }
+            },
+            cache: false,
+            contentType: false,
+            processData: false
+        });
+    };
+
     // Data
     $.getJSON('/contigsets', function(data) {
         self.contigsets($.map(data.contigsets, function(cs) { return new Contigset(cs); }));

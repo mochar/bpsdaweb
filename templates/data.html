@@ -117,7 +117,7 @@ $(function() {
     </div>
 
     <table class="table" style="table-layout: fixed"
-           data-bind="slideVisible: selectedContigset">
+           data-bind="visible: selectedContigset">
         <thead>
             <tr>
                 <th width="60%">Contig</th>
@@ -127,7 +127,7 @@ $(function() {
         </thead>
     </table>
     <div style="overflow-y: auto; max-height: 200px;"
-         data-bind="slideVisible: selectedContigset">
+         data-bind="visible: selectedContigset">
         <table class="table table-condensed" style="table-layout: fixed">
             <tbody data-bind="foreach: contigs">
                 <tr>
@@ -155,15 +155,16 @@ $(function() {
     <div class="panel-body well">
         <div id="binsetAlerts"></div>
 
-        <form id="binsetForm" name="binsetForm" method="post" enctype="multipart/form-data">
+        <form id="binsetForm" name="binsetForm" method="post"
+              enctype="multipart/form-data" data-bind="submit: uploadBinset">
             <div class="form-group">
                 <label for="binsetName">Naam</label>
-                <input type="text" class="form-control" id="binsetName" name="binsetName">
+                <input type="text" class="form-control" id="binsetName" name="name">
             </div>
 
             <div class="form-group">
                 <label for="binsetFile">Bin set bestand</label>
-                <input type="file" id="binsetFile" name="binsetFile">
+                <input type="file" id="binsetFile" name="bins">
                 <p class="help-block">Een delimitergescheiden bestand met eerste kolom
                     contig en tweede kolom bin nummer.</p>
             </div>
@@ -175,15 +176,15 @@ $(function() {
 
             <div class="form-group">
                 <label for="binsetContigset">Contigset</label>
-                <select class="form-control"  name="binsetContigset" id="binsetContigset"
-                        data-bind="foreach: contigsets().concat({name: 'Nieuw'})">
-                    <option data-bind="text: name"></option>
+                <select class="form-control" name="contigset" id="binsetContigset"
+                        data-bind="foreach: contigsets">
+                    <option data-bind="text: name, attr: { value: id }"></option>
                 </select>
-                <p class="help-block">Selecteer optie "Nieuw" om een nieuwe
-                    contigset te maken van de contigs in het bin bestand.</p>
+                <p class="help-block">Voeg een nieuwe (lege) contigset toe in
+                    de panel hierboven.</p>
             </div>
 
-            <input id="contigsetSubmit" type="submit" class="btn btn-default" value="Voeg toe" />
+            <button class="btn btn-default" type="submit">Voeg toe</button>
         </form>
     </div>
     </div>

@@ -217,7 +217,6 @@ class ContigsetListApi(Resource):
 
     def post(self):
         args = self.reqparse.parse_args()
-        app.logger.debug(args)
 
         contigs = []
         if args.contigs:
