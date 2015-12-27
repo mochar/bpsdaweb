@@ -17,10 +17,21 @@ function createScatterplot(element) {
     // axes
     svg.append("g")
         .attr("class", "x axis")
-        .attr("transform", "translate(0," + height + ")");
+        .attr("transform", "translate(0," + height + ")")
+      .append("text")
+        .attr("class", "label")
+        .attr("x", width)
+        .attr("y", -6)
+        .style("text-anchor", "end");
 
     svg.append("g")
-        .attr("class", "y axis");
+        .attr("class", "y axis")
+      .append("text")
+        .attr("class", "label")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", ".71em")
+        .style("text-anchor", "end");
 }
 
 function updateScatterplot(element, contigs) {
@@ -52,26 +63,9 @@ function updateScatterplot(element, contigs) {
     xScale.domain([d3.min(contigs, xValue)-1, d3.max(contigs, xValue)+1]);
     yScale.domain([d3.min(contigs, yValue)-1, d3.max(contigs, yValue)+1]);
 
-    // x-axis
-    svg.select('g.x')
-        .call(xAxis)
-      .append("text")
-        .attr("class", "label")
-        .attr("x", width)
-        .attr("y", -6)
-        .style("text-anchor", "end")
-        .text(x_data);
-
-    // y-axis
-    svg.select('g.y')
-        .call(yAxis)
-      .append("text")
-        .attr("class", "label")
-        .attr("transform", "rotate(-90)")
-        .attr("y", 6)
-        .attr("dy", ".71em")
-        .style("text-anchor", "end")
-        .text(y_data);
+    // axes
+    svg.select('g.x').call(xAxis).select('.label').text(x_data);
+    svg.select('g.y').call(yAxis).select(".label").text(y_data);
 
     // draw dots
     var dots = svg.selectAll(".dot").data(contigs);
