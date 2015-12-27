@@ -181,8 +181,19 @@ function ViewModel() {
         self.panels.unshift(new ChordPanel());
     };
 
+
     self.removeBinset = function(binset) {
         self.binsets.remove(binset);
+    };
+
+    self.deleteContigset = function(contigset) {
+        $.ajax({
+            url: '/contigsets/' + contigset.id,
+            type: 'DELETE',
+            success: function(response) {
+            }
+        });
+        self.contigsets.remove(contigset);
     };
 
     // Data upload
