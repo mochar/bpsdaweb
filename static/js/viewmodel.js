@@ -31,6 +31,15 @@ ko.bindingHandlers.slideVisible = {
     }
 };
 
+ko.bindingHandlers.tooltip = {
+    init: function(element, valueAccessor) {
+        var local = ko.utils.unwrapObservable(valueAccessor());
+        var options = {placement: 'right'};
+        ko.utils.extend(options, local);
+        $(element).tooltip(options);
+    }
+};
+
 ko.extenders.trackChange = function(target, track) {
     if (track) {
         target.isDirty = ko.observable(false);
