@@ -122,7 +122,10 @@ function Contigset(data) {
 
     $.getJSON('/contigsets/' + self.id + '/binsets', function(data) {
         self.binsets(data.binsets.map(function(bs) { return new Binset(bs); }));
-    })
+    });
+
+    self.showDelete = ko.observable(false);
+    self.toggleDelete = function() { self.showDelete(!self.showDelete()); };
 }
 
 function ViewModel() {

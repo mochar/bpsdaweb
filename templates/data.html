@@ -52,10 +52,8 @@ $(function() {
         </div>
     </div>
 
-    <ul class="list-group" data-bind="template: {foreach: contigsetsToShow,
-                                                 beforeRemove: hideElement,
-                                                 afterAdd: showElement}">
-        <li class="list-group-item">
+    <ul class="list-group" data-bind="foreach: contigsetsToShow">
+        <li class="list-group-item"> <!-- data-bind="slideVisible: !showDelete()"> -->
             <span data-bind="text: name"></span>
             <span class="pull-right">
                 <button class="btn btn-xs btn-default"
@@ -68,10 +66,17 @@ $(function() {
                                    click: function(){$root.selectedContigset(null)}">
                     <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
                 </button>
-                <button class="btn btn-xs btn-danger" data-bind="click: ">
+                <button class="btn btn-xs btn-danger" data-bind="click: toggleDelete">
                     <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
                 </button>
             </span>
+        </li>
+        <li class="list-group-item list-group-item-danger" data-bind="slideVisible: showDelete">
+            <span class="small">Let op: Alle binsets worden ook verwijderd</span>
+                <span class="pull-right">
+                    <button class="btn btn-xs btn-default" data-bind="click: toggleDelete">Annuleer</button>
+                    <button class="btn btn-xs btn-danger" data-bind="click: toggleDelete">Verwijder</button>
+                </span>
         </li>
     </ul>
 
@@ -84,7 +89,7 @@ $(function() {
         </span>
     </div>
 
-    <div class="well well-sm" data-bind="slideVisible: showFilters">
+    <div class="well well-sm" data-bind="visible: showFilters">
         <form class="form-horizontal">
             <div class="form-group">
                 <label class="col-xs-2 control-label">GC</label>
@@ -201,7 +206,7 @@ $(function() {
                 <button class="btn btn-xs btn-default" data-bind="click: editName">
                     <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                 </button>
-                <button class="btn btn-xs btn-danger" data-bind="click: $root.removeBinset">
+                <button class="btn btn-xs btn-danger">
                     <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
                 </button>
             </span>
