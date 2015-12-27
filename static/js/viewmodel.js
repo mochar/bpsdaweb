@@ -118,8 +118,20 @@ function Binset(data) {
     self.color = ko.observable(data.color);
     self.bins = ko.observableArray(data.bins);
 
-    self.editingName = ko.observable(false);
-    self.editName = function() { self.editingName(true); }
+    self.showDelete = ko.observable(false);
+    self.toggleDelete = function() { self.showDelete(!self.showDelete()); };
+
+    // Renaming
+    self.renaming = ko.observable(false);
+    self.rename = function() { self.renaming(true); };
+    ko.computed(function() {
+        var name = self.name();
+        $.ajax({
+            url: '/contigsets/' + self.contigset + '/binsets/' + self.id,
+            type: 'PUT',
+            data: {'name': name}
+        });
+    });
 }
 
 function Contigset(data) {
@@ -203,8 +215,17 @@ function ViewModel() {
     };
 
 
-    self.removeBinset = function(binset) {
-        self.binsets.remove(binset);
+    self.deleteBinset = function(binset) {
+        $.ajax({
+            url: '/contigsets/' + binset.contigset + '/binsets/' + binset.id,
+            type: 'DELETE',
+            success: function(response) {
+            }
+        });
+        var contigset = self.contigsets().filter(function(cs) {
+            return cs.id === binset.contigset;
+        })[0];
+        contigset.binsets.remove(binset);
     };
 
     self.deleteContigset = function(contigset) {

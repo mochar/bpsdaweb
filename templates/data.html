@@ -77,11 +77,11 @@ $(function() {
         </li>
         <li class="list-group-item list-group-item-danger" data-bind="slideVisible: showDelete">
             <span class="small">Let op: Alle binsets worden ook verwijderd</span>
-                <span class="pull-right">
-                    <button class="btn btn-xs btn-default" data-bind="click: toggleDelete">Annuleer</button>
-                    <button class="btn btn-xs btn-danger"
-                            data-bind="click: $root.deleteContigset">Verwijder</button>
-                </span>
+            <span class="pull-right">
+                <button class="btn btn-xs btn-default" data-bind="click: toggleDelete">Annuleer</button>
+                <button class="btn btn-xs btn-danger"
+                        data-bind="click: $root.deleteContigset">Verwijder</button>
+            </span>
         </li>
     </ul>
 
@@ -199,24 +199,29 @@ $(function() {
     </div>
     </div>
 
-    <ul class="list-group" data-bind="template: {foreach: binsetsToShow,
-                                                 name: 'binsetItem',
-                                                 beforeRemove: hideElement,
-                                                 afterAdd: showElement}"></ul>
-    <script type="text/html" id="binsetItem">
-        <li class="list-group-item" data-bind="style: { 'border-left-color': color, 'border-left-width': '4px'}">
-            <span data-bind="text: name, visible: !editingName()"></span>
-            <input data-bind="visible: editingName, value: name, hasFocus: editingName" />
+    <ul class="list-group" data-bind="foreach: binsetsToShow">
+        <li class="list-group-item" data-bind="style: { 'border-left-color': color,
+                                                        'border-left-width': '4px'}">
+            <span data-bind="text: name,
+                             visible: !renaming(),
+                             tooltip: { title: 'Klik om te wijzigen' },
+                             click: rename"></span>
+            <input data-bind="visible: renaming, value: name, hasFocus: renaming" />
             <span class="pull-right">
-                <button class="btn btn-xs btn-default" data-bind="click: editName">
-                    <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
-                </button>
-                <button class="btn btn-xs btn-danger">
+                <button class="btn btn-xs btn-danger" data-bind="click: toggleDelete">
                     <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
                 </button>
             </span>
         </li>
-    </script>
+        <li class="list-group-item list-group-item-danger" data-bind="slideVisible: showDelete">
+            <span class="small">Binset verwijderen?</span>
+            <span class="pull-right">
+                <button class="btn btn-xs btn-default" data-bind="click: toggleDelete">Annuleer</button>
+                <button class="btn btn-xs btn-danger"
+                        data-bind="click: $root.deleteBinset">Verwijder</button>
+            </span>
+        </li>
+    </ul>
 </div>
 
 <textarea data-bind="value: ko.toJSON($root, null, 2)" class="form-control"

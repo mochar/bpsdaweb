@@ -246,7 +246,7 @@ class BinsetListApi(Resource):
 class BinsetApi(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('name', type=str, location='form')
+        self.reqparse.add_argument('name', type=str)
         super(BinsetApi, self).__init__()
 
     def get(self, contigset_id, id):
