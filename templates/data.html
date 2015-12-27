@@ -54,7 +54,11 @@ $(function() {
 
     <ul class="list-group" data-bind="foreach: contigsetsToShow">
         <li class="list-group-item" data-bind="slideVisible: true">
-            <span data-bind="text: name"></span>
+            <span data-bind="text: name,
+                             visible: !renaming(),
+                             tooltip: { title: 'Klik om te wijzigen' },
+                             click: rename"></span>
+            <input data-bind="visible: renaming, value: name, hasFocus: renaming" />
             <span class="pull-right">
                 <button class="btn btn-xs btn-default"
                         data-bind="visible: !$root.selectedContigset(),

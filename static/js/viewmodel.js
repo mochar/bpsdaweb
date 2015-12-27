@@ -135,6 +135,18 @@ function Contigset(data) {
 
     self.showDelete = ko.observable(false);
     self.toggleDelete = function() { self.showDelete(!self.showDelete()); };
+
+    // Renaming
+    self.renaming = ko.observable(false);
+    self.rename = function() { self.renaming(true); };
+    ko.computed(function() {
+        var name = self.name();
+        $.ajax({
+            url: '/contigsets/' + self.id,
+            type: 'PUT',
+            data: {'name': name}
+        });
+    });
 }
 
 function ViewModel() {
