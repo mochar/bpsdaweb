@@ -1,5 +1,5 @@
 function createScatterplot(element) {
-    var margin = {top: 20, right: 20, bottom: 30, left: 50},
+    var margin = {top: 20, right: 30, bottom: 30, left: 50},
         width = 500 - margin.left - margin.right,
         height = 500 - margin.top - margin.bottom;
 
@@ -10,7 +10,7 @@ function createScatterplot(element) {
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     // add the tooltip area
-    var tooltip = d3.select(element).append("div")
+    d3.select(element).append("div")
         .attr("class", "tooltip")
         .style("opacity", 0);
 
@@ -34,14 +34,14 @@ function createScatterplot(element) {
         .style("text-anchor", "end");
 }
 
-function updateScatterplot(element, contigs) {
+function updateScatterplot(element, contigs, selectedContigs) {
     var contigs_remove = [];
 
     var x_data = "gc",
         y_data = "length",
         colour = "#58ACFA";
 
-    var margin = {top: 20, right: 20, bottom: 30, left: 50},
+    var margin = {top: 20, right: 30, bottom: 30, left: 50},
         width = 500 - margin.left - margin.right,
         height = 500 - margin.top - margin.bottom;
 
@@ -58,6 +58,7 @@ function updateScatterplot(element, contigs) {
         yAxis = d3.svg.axis().scale(yScale).orient("left");
 
     var svg = d3.select(element).select('svg');
+    var tooltip = d3.select(element).select('.tooltip');
 
     // don't want dots overlapping axis, so add in buffer to data domain
     xScale.domain([d3.min(contigs, xValue)-1, d3.max(contigs, xValue)+1]);
@@ -68,7 +69,7 @@ function updateScatterplot(element, contigs) {
     svg.select('g.y').call(yAxis).select(".label").text(y_data);
 
     // draw dots
-    var dots = svg.selectAll(".dot").data(contigs);
+    var dots = svg.selectAll(".dot").data(contigs, function(d) { return d.id; });
 
     dots.exit().remove();
 
@@ -83,8 +84,7 @@ function updateScatterplot(element, contigs) {
             tooltip.transition()
                 .duration(200)
                 .style("opacity", .9);
-            tooltip.html(d.contig + "<br/> (" + xValue(d)
-                    + ", " + yValue(d) + ")")
+            tooltip.html(d.name)
                 .style("left", (d3.event.pageX + 5) + "px")
                 .style("top", (d3.event.pageY - 28) + "px");
         })
@@ -96,14 +96,15 @@ function updateScatterplot(element, contigs) {
         .on("click", function(d) {
             var active = this.active ? false : true,
                 newOpacity = active ? 1 : 0.5;
-            d3.select(this)
-                .style("opacity", newOpacity);
+            d3.select(this).style("opacity", newOpacity);
 
             this.active = active;
 
             if (this.active) {
                 contigs_remove.push(d.contig);
+                selectedContigs.push(d);
             } else {
+                selectedContigs.remove(d);
                 var contig_index = contigs_remove.indexOf(d.contig);
                 if (contig_index > -1 ) {
                     contigs_remove.splice(contig_index, 1);

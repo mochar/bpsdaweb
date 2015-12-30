@@ -24,7 +24,7 @@ ko.bindingHandlers.scatterSvg = {
         console.log("Update scatterplot panel");
         var contigs = bindingContext.$data.contigs();
 
-        updateScatterplot(element, contigs);
+        updateScatterplot(element, contigs, bindingContext.$data.selectedContigs);
     }
 };
 
@@ -67,6 +67,7 @@ function ContigsPanel() {
     self.yAxis = ko.observable();
     self.selectedContigsets = ko.observableArray([]);
     self.contigs = ko.observableArray([]);
+    self.selectedContigs = ko.observableArray([]);
 
     ko.computed(function() {
         var contigsets = self.selectedContigsets();

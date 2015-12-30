@@ -114,6 +114,11 @@
                                        optionsText: 'name'">
                         </select>
                     </div>
+                    <ul class="list-group scrollable" data-bind="foreach: selectedContigs">
+                        <li class="list-group-item">
+                            <span data-bind="text: name"></span>
+                        </li>
+                    </ul>
                 </div>
                 <div class="col-xs-9" data-bind="scatterSvg: true"></div>
             </div>
