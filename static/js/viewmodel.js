@@ -59,7 +59,7 @@ function ChordPanel() {
     self.template = "chordPanel";
     self.selectedBinset1 = ko.observable(null).extend({trackChange: true});
     self.selectedBinset2 = ko.observable(null).extend({trackChange: true});
-    self.selectedBin = ko.observable('test');
+    self.selectedBin = ko.observable();
     self.showSettings = ko.observable(false);
 
     self.unifiedColor = ko.observable(false);
