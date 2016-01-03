@@ -165,6 +165,7 @@ function ViewModel() {
     var self = this;
     self.contigsets = ko.observableArray([]);
     self.selectedContigset = ko.observable(null);
+    self.selectedBinset = ko.observable(null);
     self.contigs = ko.observableArray([]);
 
     self.binsets = ko.pureComputed(function() {
@@ -177,12 +178,14 @@ function ViewModel() {
     });
 
     self.contigsetsToShow = ko.pureComputed(function() {
-        var selectedContigset = self.selectedContigset();
-        return selectedContigset ? [selectedContigset] : self.contigsets();
+        var contigset = self.selectedContigset();
+        return contigset ? [contigset] : self.contigsets();
     });
 
     self.binsetsToShow = ko.pureComputed(function() {
         var contigset = self.selectedContigset();
+        var binset = self.selectedBinset();
+        if (binset) return binset;
         return contigset ? contigset.binsets() : self.binsets();
     });
 
@@ -212,6 +215,13 @@ function ViewModel() {
     };
     self.newChordPanel = function() {
         self.panels.unshift(new ChordPanel());
+    };
+
+
+    self.contigsetFromId = function(id) {
+        for(var i = 0; i < self.contigsets().length; i++) {
+            if (self.contigsets()[i].id == id) return self.contigsets()[i];
+        }
     };
 
 

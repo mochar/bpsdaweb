@@ -201,13 +201,24 @@ $(function() {
 
     <ul class="list-group" data-bind="foreach: binsetsToShow">
         <li class="list-group-item" data-bind="style: { 'border-left-color': color,
-                                                        'border-left-width': '4px'}">
+                                                        'border-left-width': '4px'},
+                                               slideVisible: true">
             <span data-bind="text: name,
                              visible: !renaming(),
                              tooltip: { title: 'Klik om te wijzigen' },
                              click: rename"></span>
             <input data-bind="visible: renaming, value: name, hasFocus: renaming" />
             <span class="pull-right">
+                <button class="btn btn-xs btn-default"
+                        data-bind="visible: !$root.selectedBinset(),
+                                   click: $root.selectedBinset">
+                    <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+                </button>
+                <button class="btn btn-xs btn-default"
+                        data-bind="visible: $root.selectedBinset,
+                                   click: function(){$root.selectedBinset(null)}">
+                    <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
+                </button>
                 <button class="btn btn-xs btn-danger" data-bind="click: toggleDelete">
                     <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
                 </button>
