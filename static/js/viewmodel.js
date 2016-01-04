@@ -110,6 +110,29 @@ function ChordPanel() {
     };
 }
 
+function ContigSection() {
+    var self = this;
+    self.contigs = ko.observableArray([]);
+    self.contigsetId = ko.observable();
+    self.showFilters = ko.observable(false);
+    self.toggleFilters = function() { self.showFilters(!self.showFilters()); };
+    self.view = ko.observable('table'); // Either table or plot
+
+    ko.pureComputed(function() {
+        var view = self.view();
+        console.log(view);
+    });
+
+    ko.computed(function() {
+        var contigsetId = self.contigsetId();
+        if (!contigsetId) return;
+        var data = {_items: 7};
+        $.getJSON('/contigsets/' + contigsetId + '/contigs', data, function(data) {
+            self.contigs(data.contigs);
+        });
+    });
+}
+
 function Binset(data) {
     var self = this;
     self.id = data.id;
@@ -166,7 +189,7 @@ function ViewModel() {
     self.contigsets = ko.observableArray([]);
     self.selectedContigset = ko.observable(null);
     self.selectedBinset = ko.observable(null);
-    self.contigs = ko.observableArray([]);
+    self.contigSection = new ContigSection();
 
     self.binsets = ko.pureComputed(function() {
         var contigsets = self.contigsets();
@@ -192,14 +215,8 @@ function ViewModel() {
     ko.computed(function() {
         var contigset = self.selectedContigset();
         if (!contigset) return;
-        var data = {items: 50};
-        $.getJSON('/contigsets/' + contigset.id + '/contigs', data, function(data) {
-            self.contigs(data.contigs);
-        });
+        self.contigSection.contigsetId(contigset.id);
     });
-
-    self.showFilters = ko.observable(false);
-    self.toggleFilters = function() { self.showFilters(!self.showFilters()); };
 
     self.showElement = function(elem) { if (elem.nodeType === 1) $(elem).hide().slideDown() };
     self.hideElement = function(elem) { if (elem.nodeType === 1) $(elem).slideUp(function() { $(elem).remove(); }) };

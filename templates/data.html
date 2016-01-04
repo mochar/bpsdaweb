@@ -174,9 +174,23 @@ $(function() {
 
 
 
-<div class="panel panel-default" data-bind="slideVisible: selectedContigset">
-    <div class="panel-body" data-bind="">
+<div class="panel panel-default" data-bind="with: contigSection,
+                                            slideVisible: selectedContigset">
+    <div class="panel-body">
         <span class="pull-right">
+            <div class="btn-group" data-toggle="buttons">
+                <label class="btn btn-sm btn-default"
+                       data-bind="css: { active: view() === 'plot' },
+                                  click: function() { view('plot') }">
+                    <span class="glyphicon glyphicon-signal" aria-hidden="true"></span>
+                </label>
+                <label class="btn btn-sm btn-default"
+                       data-bind="css: { active: view() === 'table' },
+                                  click: function() { view('table') }">
+                    <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+                </label>
+            </div>
+
             <button class="btn btn-sm btn-default"
                     data-bind="click: toggleFilters, css: { active: showFilters }">
                 <span class="glyphicon glyphicon-filter" aria-hidden="true"></span>
@@ -216,28 +230,22 @@ $(function() {
         <button class="btn btn-primary">Toepassen</button>
     </div>
 
-    <table class="table" style="table-layout: fixed"
-           data-bind="">
+    <table class="table table-condensed">
         <thead>
-        <tr>
-            <th width="60%">Contig</th>
-            <th width="20%">GC</th>
-            <th width="20%">Lengte</th>
-        </tr>
+            <tr>
+                <th width="60%">Contig</th>
+                <th width="20%">GC</th>
+                <th width="20%">Lengte</th>
+            </tr>
         </thead>
-    </table>
-    <div style="overflow-y: auto; max-height: 200px;"
-         data-bind="">
-        <table class="table table-condensed" style="table-layout: fixed">
-            <tbody data-bind="foreach: contigs">
+        <tbody data-bind="foreach: contigs">
             <tr>
                 <td data-bind="text: name" width="60%"></td>
                 <td data-bind="text: gc" width="20%"></td>
                 <td data-bind="text: length" width="20%"></td>
             </tr>
-            </tbody>
-        </table>
-    </div>
+        </tbody>
+    </table>
 </div>
 
 
