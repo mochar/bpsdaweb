@@ -1,21 +1,3 @@
-ko.bindingHandlers.chordSvg = {
-    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-        createChord(element);
-    },
-    update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-        console.log("Update chord panel");
-        var matrix = bindingContext.$data.matrix();
-        var unifiedColor = bindingContext.$data.unifiedColor();
-        var bins = bindingContext.$data.bins;
-
-        updateChord(element, matrix, bins, unifiedColor);
-        d3.select(element).selectAll('#group path')
-            .on('click', function(d) {
-                bindingContext.$data.selectedBin(bins[d.index]);
-            });
-    }
-};
-
 ko.bindingHandlers.slideVisible = {
     init: function(element, valueAccessor) {
         var visible = ko.unwrap(valueAccessor());
@@ -68,7 +50,7 @@ function ChordPanel() {
     self.template = "chordPanel";
     self.selectedBinset1 = ko.observable(null).extend({trackChange: true});
     self.selectedBinset2 = ko.observable(null).extend({trackChange: true});
-    self.selectedBin = ko.observable('test');
+    self.selectedBin = ko.observable();
     self.showSettings = ko.observable(false);
 
     self.unifiedColor = ko.observable(false);
