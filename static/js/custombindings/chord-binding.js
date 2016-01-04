@@ -1,6 +1,11 @@
 ko.bindingHandlers.chordSvg = {
     init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
         var width = 500, height = 500,
+            innerRadius = Math.min(width, height) * .41,
+            outerRadius = innerRadius * 1.1,
+            arc = d3.svg.arc()
+                .innerRadius(outerRadius * 1.03).outerRadius(outerRadius * 1.06)
+                .startAngle(0).endAngle(0),
             svg = d3.select(element).append("svg")
                 .attr("width", width)
                 .attr("height", height)
@@ -9,17 +14,33 @@ ko.bindingHandlers.chordSvg = {
 
         svg.append("g").attr("id", "group");
         svg.append("g").attr("id", "chord");
+
+        // The two arcs around the chord groups
+        var arcs = svg.append("g").attr("id", "arc");
+        arcs.append("path")
+            .attr("id", "arc1")
+            .style("stroke", "#000000")
+            .attr("d", arc);
+        arcs.append("path")
+            .attr("id", "arc2")
+            .style("stroke", "#000000")
+            .attr("d", arc);
     },
     update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
         var matrix = bindingContext.$data.matrix();
         var unifiedColor = bindingContext.$data.unifiedColor();
         var bins = bindingContext.$data.bins;
 
+        var binset1 = bindingContext.$data.selectedBinset1.peek();
+        var binset2 = bindingContext.$data.selectedBinset2.peek();
+
         var width = 500, height = 500,
             innerRadius = Math.min(width, height) * .41,
             outerRadius = innerRadius * 1.1,
+            arc = d3.svg.arc()
+                .innerRadius(outerRadius * 1.03).outerRadius(outerRadius * 1.06),
             chord = d3.layout.chord().padding(.05).matrix(matrix),
-            svg = d3.select(element);
+            svg = d3.select(element).select("g");
 
         function fade(opacity) {
             return function(g, i) {
@@ -78,5 +99,21 @@ ko.bindingHandlers.chordSvg = {
         chordPaths.exit()
             .transition()
             .remove();
+
+        // Update arcs
+        if (!binset1 && !binset2) return;
+        svg.select('#arc').select('#arc1')
+            .attr("fill", binset1.color())
+          .transition()
+            .attr("d", arc
+                .startAngle(chord.groups()[0].startAngle)
+                .endAngle(chord.groups()[binset1.bins().length - 1].endAngle));
+
+        svg.select('#arc').select('#arc2')
+            .attr("fill", binset2.color())
+            .transition()
+            .attr("d", arc
+                .startAngle(chord.groups()[binset1.bins().length].startAngle)
+                .endAngle(chord.groups()[chord.groups().length - 1].endAngle));
     }
 };
