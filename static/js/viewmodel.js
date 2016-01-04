@@ -13,6 +13,15 @@ ko.bindingHandlers.slideVisible = {
     }
 };
 
+ko.bindingHandlers.tooltip = {
+    init: function(element, valueAccessor) {
+        var local = ko.utils.unwrapObservable(valueAccessor());
+        var options = {placement: 'right'};
+        ko.utils.extend(options, local);
+        $(element).tooltip(options);
+    }
+};
+
 ko.extenders.trackChange = function(target, track) {
     if (track) {
         target.isDirty = ko.observable(false);
@@ -91,8 +100,20 @@ function Binset(data) {
     self.color = ko.observable(data.color);
     self.bins = ko.observableArray(data.bins);
 
-    self.editingName = ko.observable(false);
-    self.editName = function() { self.editingName(true); }
+    self.showDelete = ko.observable(false);
+    self.toggleDelete = function() { self.showDelete(!self.showDelete()); };
+
+    // Renaming
+    self.renaming = ko.observable(false);
+    self.rename = function() { self.renaming(true); };
+    ko.computed(function() {
+        var name = self.name();
+        $.ajax({
+            url: '/contigsets/' + self.contigset + '/binsets/' + self.id,
+            type: 'PUT',
+            data: {'name': name}
+        });
+    });
 }
 
 function Contigset(data) {
@@ -104,13 +125,29 @@ function Contigset(data) {
 
     $.getJSON('/contigsets/' + self.id + '/binsets', function(data) {
         self.binsets(data.binsets.map(function(bs) { return new Binset(bs); }));
-    })
+    });
+
+    self.showDelete = ko.observable(false);
+    self.toggleDelete = function() { self.showDelete(!self.showDelete()); };
+
+    // Renaming
+    self.renaming = ko.observable(false);
+    self.rename = function() { self.renaming(true); };
+    ko.computed(function() {
+        var name = self.name();
+        $.ajax({
+            url: '/contigsets/' + self.id,
+            type: 'PUT',
+            data: {'name': name}
+        });
+    });
 }
 
 function ViewModel() {
     var self = this;
     self.contigsets = ko.observableArray([]);
     self.selectedContigset = ko.observable(null);
+    self.selectedBinset = ko.observable(null);
     self.contigs = ko.observableArray([]);
 
     self.binsets = ko.pureComputed(function() {
@@ -123,12 +160,14 @@ function ViewModel() {
     });
 
     self.contigsetsToShow = ko.pureComputed(function() {
-        var selectedContigset = self.selectedContigset();
-        return selectedContigset ? [selectedContigset] : self.contigsets();
+        var contigset = self.selectedContigset();
+        return contigset ? [contigset] : self.contigsets();
     });
 
     self.binsetsToShow = ko.pureComputed(function() {
         var contigset = self.selectedContigset();
+        var binset = self.selectedBinset();
+        if (binset) return binset;
         return contigset ? contigset.binsets() : self.binsets();
     });
 
@@ -160,8 +199,35 @@ function ViewModel() {
         self.panels.unshift(new ChordPanel());
     };
 
-    self.removeBinset = function(binset) {
-        self.binsets.remove(binset);
+
+    self.contigsetFromId = function(id) {
+        for(var i = 0; i < self.contigsets().length; i++) {
+            if (self.contigsets()[i].id == id) return self.contigsets()[i];
+        }
+    };
+
+
+    self.deleteBinset = function(binset) {
+        $.ajax({
+            url: '/contigsets/' + binset.contigset + '/binsets/' + binset.id,
+            type: 'DELETE',
+            success: function(response) {
+            }
+        });
+        var contigset = self.contigsets().filter(function(cs) {
+            return cs.id === binset.contigset;
+        })[0];
+        contigset.binsets.remove(binset);
+    };
+
+    self.deleteContigset = function(contigset) {
+        $.ajax({
+            url: '/contigsets/' + contigset.id,
+            type: 'DELETE',
+            success: function(response) {
+            }
+        });
+        self.contigsets.remove(contigset);
     };
 
     // Data upload

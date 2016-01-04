@@ -131,7 +131,7 @@ class ContigsetListApi(Resource):
 class ContigsetApi(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('name', type=str, location='form')
+        self.reqparse.add_argument('name', type=str)
         super(ContigsetApi, self).__init__()
 
     def get(self, id):
@@ -246,7 +246,7 @@ class BinsetListApi(Resource):
 class BinsetApi(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('name', type=str, location='form')
+        self.reqparse.add_argument('name', type=str)
         super(BinsetApi, self).__init__()
 
     def get(self, contigset_id, id):

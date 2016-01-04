@@ -52,11 +52,13 @@ $(function() {
         </div>
     </div>
 
-    <ul class="list-group" data-bind="template: {foreach: contigsetsToShow,
-                                                 beforeRemove: hideElement,
-                                                 afterAdd: showElement}">
-        <li class="list-group-item">
-            <span data-bind="text: name"></span>
+    <ul class="list-group" data-bind="foreach: contigsetsToShow">
+        <li class="list-group-item" data-bind="slideVisible: true">
+            <span data-bind="text: name,
+                             visible: !renaming(),
+                             tooltip: { title: 'Klik om te wijzigen' },
+                             click: rename"></span>
+            <input data-bind="visible: renaming, value: name, hasFocus: renaming" />
             <span class="pull-right">
                 <button class="btn btn-xs btn-default"
                         data-bind="visible: !$root.selectedContigset(),
@@ -68,76 +70,21 @@ $(function() {
                                    click: function(){$root.selectedContigset(null)}">
                     <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
                 </button>
-                <button class="btn btn-xs btn-danger" data-bind="click: ">
+                <button class="btn btn-xs btn-danger" data-bind="click: toggleDelete">
                     <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
                 </button>
             </span>
         </li>
+        <li class="list-group-item list-group-item-danger" data-bind="slideVisible: showDelete">
+            <span class="small">Let op: Alle binsets worden ook verwijderd</span>
+            <span class="pull-right">
+                <button class="btn btn-xs btn-default" data-bind="click: toggleDelete">Annuleer</button>
+                <button class="btn btn-xs btn-danger"
+                        data-bind="click: $root.deleteContigset">Verwijder</button>
+            </span>
+        </li>
     </ul>
 
-    <div class="panel-body" data-bind="slideVisible: selectedContigset">
-        <span class="pull-right">
-            <button class="btn btn-sm btn-default"
-                    data-bind="click: toggleFilters, css: { active: showFilters }">
-                <span class="glyphicon glyphicon-filter" aria-hidden="true"></span>
-            </button>
-        </span>
-    </div>
-
-    <div class="well well-sm" data-bind="slideVisible: showFilters">
-        <form class="form-horizontal">
-            <div class="form-group">
-                <label class="col-xs-2 control-label">GC</label>
-                <div class="col-xs-3 col-xs-offset-2">
-                    <select class="form-control" name="gcOperator">
-                        <option> > </option>
-                        <option> < </option>
-                        <option> = </option>
-                    </select>
-                </div>
-                <div class="col-xs-3">
-                    <input class="form-control" type="text" name="gcValue" />
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-xs-2 control-label">Lengte</label>
-                <div class="col-xs-3 col-xs-offset-2">
-                    <select class="form-control" name="lengthOperator">
-                        <option> > </option>
-                        <option> < </option>
-                        <option> = </option>
-                    </select>
-                </div>
-                <div class="col-xs-3">
-                    <input class="form-control" type="text" name="lengthValue" />
-                </div>
-            </div>
-        </form>
-        <button class="btn btn-primary">Toepassen</button>
-    </div>
-
-    <table class="table" style="table-layout: fixed"
-           data-bind="visible: selectedContigset">
-        <thead>
-            <tr>
-                <th width="60%">Contig</th>
-                <th width="20%">GC</th>
-                <th width="20%">Lengte</th>
-            </tr>
-        </thead>
-    </table>
-    <div style="overflow-y: auto; max-height: 200px;"
-         data-bind="visible: selectedContigset">
-        <table class="table table-condensed" style="table-layout: fixed">
-            <tbody data-bind="foreach: contigs">
-                <tr>
-                    <td data-bind="text: name" width="60%"></td>
-                    <td data-bind="text: gc" width="20%"></td>
-                    <td data-bind="text: length" width="20%"></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
 </div>
 
 
@@ -189,25 +136,110 @@ $(function() {
     </div>
     </div>
 
-    <ul class="list-group" data-bind="template: {foreach: binsetsToShow,
-                                                 name: 'binsetItem',
-                                                 beforeRemove: hideElement,
-                                                 afterAdd: showElement}"></ul>
-    <script type="text/html" id="binsetItem">
-        <li class="list-group-item" data-bind="style: { 'border-left-color': color, 'border-left-width': '4px'}">
-            <span data-bind="text: name, visible: !editingName()"></span>
-            <input data-bind="visible: editingName, value: name, hasFocus: editingName" />
+    <ul class="list-group" data-bind="foreach: binsetsToShow">
+        <li class="list-group-item" data-bind="style: { 'border-left-color': color,
+                                                        'border-left-width': '4px'},
+                                               slideVisible: true">
+            <span data-bind="text: name,
+                             visible: !renaming(),
+                             tooltip: { title: 'Klik om te wijzigen' },
+                             click: rename"></span>
+            <input data-bind="visible: renaming, value: name, hasFocus: renaming" />
             <span class="pull-right">
-                <button class="btn btn-xs btn-default" data-bind="click: editName">
-                    <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                <button class="btn btn-xs btn-default"
+                        data-bind="visible: !$root.selectedBinset() && $root.selectedContigset,
+                                   click: $root.selectedBinset">
+                    <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
                 </button>
-                <button class="btn btn-xs btn-danger" data-bind="click: $root.removeBinset">
+                <button class="btn btn-xs btn-default"
+                        data-bind="visible: $root.selectedBinset,
+                                   click: function(){$root.selectedBinset(null)}">
+                    <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
+                </button>
+                <button class="btn btn-xs btn-danger" data-bind="click: toggleDelete">
                     <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
                 </button>
             </span>
         </li>
-    </script>
+        <li class="list-group-item list-group-item-danger" data-bind="slideVisible: showDelete">
+            <span class="small">Binset verwijderen?</span>
+            <span class="pull-right">
+                <button class="btn btn-xs btn-default" data-bind="click: toggleDelete">Annuleer</button>
+                <button class="btn btn-xs btn-danger"
+                        data-bind="click: $root.deleteBinset">Verwijder</button>
+            </span>
+        </li>
+    </ul>
 </div>
+
+
+
+<div class="panel panel-default" data-bind="slideVisible: selectedContigset">
+    <div class="panel-body" data-bind="">
+        <span class="pull-right">
+            <button class="btn btn-sm btn-default"
+                    data-bind="click: toggleFilters, css: { active: showFilters }">
+                <span class="glyphicon glyphicon-filter" aria-hidden="true"></span>
+            </button>
+        </span>
+    </div>
+
+    <div class="well well-sm" data-bind="visible: showFilters">
+        <form class="form-horizontal">
+            <div class="form-group">
+                <label class="col-xs-2 control-label">GC</label>
+                <div class="col-xs-3 col-xs-offset-2">
+                    <select class="form-control" name="gcOperator">
+                        <option> > </option>
+                        <option> < </option>
+                        <option> = </option>
+                    </select>
+                </div>
+                <div class="col-xs-3">
+                    <input class="form-control" type="text" name="gcValue" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-2 control-label">Lengte</label>
+                <div class="col-xs-3 col-xs-offset-2">
+                    <select class="form-control" name="lengthOperator">
+                        <option> > </option>
+                        <option> < </option>
+                        <option> = </option>
+                    </select>
+                </div>
+                <div class="col-xs-3">
+                    <input class="form-control" type="text" name="lengthValue" />
+                </div>
+            </div>
+        </form>
+        <button class="btn btn-primary">Toepassen</button>
+    </div>
+
+    <table class="table" style="table-layout: fixed"
+           data-bind="">
+        <thead>
+        <tr>
+            <th width="60%">Contig</th>
+            <th width="20%">GC</th>
+            <th width="20%">Lengte</th>
+        </tr>
+        </thead>
+    </table>
+    <div style="overflow-y: auto; max-height: 200px;"
+         data-bind="">
+        <table class="table table-condensed" style="table-layout: fixed">
+            <tbody data-bind="foreach: contigs">
+            <tr>
+                <td data-bind="text: name" width="60%"></td>
+                <td data-bind="text: gc" width="20%"></td>
+                <td data-bind="text: length" width="20%"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
 
 <textarea data-bind="value: ko.toJSON($root, null, 2)" class="form-control"
     style="height: 500px"></textarea>
