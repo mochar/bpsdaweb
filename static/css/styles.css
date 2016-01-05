@@ -15,3 +15,12 @@ border:1px solid #ccc !important;
     stroke: #000;
     stroke-width: .5px;
 }
+
+#datapanel {
+    padding-top: 10px;
+}
+
+.list-group-condensed .list-group-item {
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
