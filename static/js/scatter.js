@@ -35,6 +35,7 @@ function createScatterplot(element) {
 }
 
 function updateScatterplot(element, contigs, selectedContigs) {
+    contigs = contigs.filter(function(c) { return c.gc && c.length; });
     var contigs_remove = [];
 
     var x_data = "gc",
