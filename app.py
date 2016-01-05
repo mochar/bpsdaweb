@@ -162,7 +162,7 @@ class ContigListApi(Resource):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument('items', type=int, default=50, dest='_items')
         self.reqparse.add_argument('index', type=int, default=1)
-        self.reqparse.add_argument('sort', type=str, default='gc',
+        self.reqparse.add_argument('sort', type=str, default='name',
             choices=['name', 'gc', 'length'])
         super(ContigListApi, self).__init__()
 
