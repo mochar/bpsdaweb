@@ -44,6 +44,11 @@
                 <div data-bind="chordSvg: updateChordPanel" class="col-xs-8"></div>
                 <div class="col-xs-4" style="margin-top: 8px;"
                      data-bind="if: selectedBin">
+                    <ul class="list-group scrollable" data-bind="foreach: selectedBins">
+                        <li class="list-group-item">
+                            <span data-bind="text: name"></span>
+                        </li>
+                    </ul>
                     <label>Contigset</label>
                     <p data-bind="text: "></p>
 
