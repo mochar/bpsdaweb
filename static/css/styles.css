@@ -17,6 +17,15 @@ border:1px solid #ccc !important;
     stroke-width: .5px;
 }
 
+#datapanel {
+    padding-top: 10px;
+}
+
+.list-group-condensed .list-group-item {
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
 /* Scatterplot */
 .axis path,
 .axis line {

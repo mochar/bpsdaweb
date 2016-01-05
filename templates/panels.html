@@ -42,27 +42,47 @@
 
             <div class="row">
                 <div data-bind="chordSvg: updateChordPanel" class="col-xs-8"></div>
-                <div class="col-xs-4" style="margin-top: 8px;"
-                     data-bind="if: selectedBin">
-                    <label>Contigset</label>
-                    <p data-bind="text: "></p>
-
-                    <label>Binset</label>
-                    <div class="list-group-item"
-                        data-bind="style: { 'border-left-color': selectedBin().color,
-                                            'border-left-width': '4px'}">
-                        <span data-bind="text: selectedBin().name"></span>
+                <div class="col-xs-4" style="margin-top: 8px;">
+                    <div class="row" data-bind="if: selectedBins().length > 0">
+                        <div class="col-xs-5">
+                            <ul class="list-group list-group-condensed scrollable"
+                                style="height: 200px"
+                                data-bind="foreach: selectedBins">
+                                <li class="list-group-item"
+                                    data-bind="style: { 'border-left-color': color,
+                                                        'border-left-width': '4px'}">
+                                    <span data-bind="text: name"></span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-xs-7">
+                            <button class="btn btn-danger btn-sm">
+                                <span class="glyphicon glyphicon-trash"></span>
+                                Verwijder bins
+                            </button>
+                        </div>
                     </div>
 
-                    <label>Bin</label>
-                    <div class="list-group-item"
-                         data-bind="style: { 'border-left-color': selectedBin().color,
-                                            'border-left-width': '4px'}">
-                        <span data-bind="text: selectedBin().name"></span>
+                    <div data-bind="if: selectedBin">
+                        <label>Contigset</label>
+                        <p data-bind="text: "></p>
+
+                        <label>Binset</label>
+                        <div class="list-group-item"
+                            data-bind="style: { 'border-left-color': selectedBin().color,
+                                                'border-left-width': '4px'}">
+                            <span data-bind="text: selectedBin().name"></span>
+                        </div>
+
+                        <label>Bin</label>
+                        <div class="list-group-item"
+                             data-bind="style: { 'border-left-color': selectedBin().color,
+                                                'border-left-width': '4px'}">
+                            <span data-bind="text: selectedBin().name"></span>
+                        </div>
+
+                        <label>Contigs</label>
                     </div>
-
-                    <label>Contigs</label>
-
                 </div>
             </div>
         </div>

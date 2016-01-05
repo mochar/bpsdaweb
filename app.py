@@ -28,7 +28,8 @@ class Bin(db.Model):
     __tablename__ = 'bin'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(25))
-    binset_id = db.Column(db.Integer, db.ForeignKey('binset.id'))
+    binset_id = db.Column(db.Integer, db.ForeignKey('binset.id'),
+        nullable=False)
     color = db.Column(db.String(7), default='#ffffff')
     contigs = db.relationship('Contig', secondary=bincontig,
         backref=db.backref('bins', lazy='dynamic'))
@@ -40,7 +41,8 @@ class Contig(db.Model):
     name = db.Column(db.String(120))
     sequence = db.Column(db.String)
     gc = db.Column(db.Integer)
-    contigset_id = db.Column(db.Integer, db.ForeignKey('contigset.id'))
+    contigset_id = db.Column(db.Integer, db.ForeignKey('contigset.id'),
+         nullable=False)
 
 
 class Binset(db.Model):
@@ -50,7 +52,8 @@ class Binset(db.Model):
     color = db.Column(db.String(7))
     bins = db.relationship('Bin', backref='binset', lazy='dynamic',
         cascade='all, delete')
-    contigset_id = db.Column(db.Integer, db.ForeignKey('contigset.id'))
+    contigset_id = db.Column(db.Integer, db.ForeignKey('contigset.id'),
+         nullable=False)
 
 
 class Contigset(db.Model):
@@ -173,8 +176,8 @@ class ContigListApi(Resource):
         contigs = contigs.paginate(args.index, args._items, False)
         result = []
         for contig in contigs.items:
-            gc = contig.gc if contig.gc else '-'
-            length = len(contig.sequence) if contig.sequence else '-'
+            gc = contig.gc if contig.gc is not None else '-'
+            length = len(contig.sequence) if contig.sequence is not None else '-'
             result.append({'id': contig.id, 'name': contig.name, 'gc': gc,
                 'length': length})
         return {'contigs': result, 'pages': contigs.pages}
@@ -225,10 +228,11 @@ class BinsetListApi(Resource):
 
         # Bins can contain contig names which are not present in the contigset.
         # Add these new contigs to the contigset.
+        new_contigs = []
         contig_names = [contig.name for contig in contigs]
         for contig_name in [c for c in contig_bins if c not in contig_names]:
-            contigs.append(Contig(name=contig_name))
-        contigset.contigs = contigs
+            new_contigs.append(Contig(name=contig_name))
+        contigset.contigs.extend(new_contigs)
 
         done = {}
         for contig in contigs:
