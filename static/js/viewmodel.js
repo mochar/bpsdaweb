@@ -70,8 +70,7 @@ function ContigsPanel() {
     ko.computed(function() {
         var contigsets = self.selectedContigsets();
         for(var i = 0; i < contigsets.length; i++) {
-            var data = {items: contigsets[i].length};
-            data = {};
+            var data = {items: 1000};
             var url = '/contigsets/' + contigsets[i].id + '/contigs';
             $.getJSON(url, data, function(data) {
                 self.contigs(data.contigs);

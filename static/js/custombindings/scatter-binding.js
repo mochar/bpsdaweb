@@ -1,12 +1,13 @@
 ko.bindingHandlers.scatterSvg = {
     init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-        var margin = {top: 10, right: 0, bottom: 10, left: 10},
-            width = 500 - margin.left - margin.right,
+        var margin = {top: 0, right: 20, bottom: 30, left: 40},
+            width = 550 - margin.left - margin.right,
             height = 500 - margin.top - margin.bottom,
             svg = d3.select(element).append("svg")
                 .attr("width", width)
                 .attr("height", height)
-                .append("g");
+                .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
         // add the tooltip area
         d3.select(element).append("div")
@@ -40,8 +41,8 @@ ko.bindingHandlers.scatterSvg = {
             yData = bindingContext.$data.yData(),
             colour = "#58ACFA";
 
-        var margin = {top: 10, right: 0, bottom: 10, left: 10},
-            width = 500 - margin.left - margin.right,
+        var margin = {top: 0, right: 20, bottom: 30, left: 40},
+            width = 550 - margin.left - margin.right,
             height = 500 - margin.top - margin.bottom,
             svg = d3.select(element).select("g"),
             tooltip = d3.select(element).select('.tooltip');
@@ -75,8 +76,6 @@ ko.bindingHandlers.scatterSvg = {
         dots.enter().append("circle")
             .attr("class", "dot")
             .attr("r", 4)
-            .attr("cx", xMap)
-            .attr("cy", yMap)
             .style("fill", colour)
             .style("opacity", .5)
             .on("mouseover", function(d) {
@@ -98,5 +97,9 @@ ko.bindingHandlers.scatterSvg = {
                 d3.select(this).style("opacity", newOpacity);
                 selected ? selectedContigs.push(d) : selectedContigs.remove(d);
             });
+
+        dots.transition()
+            .attr("cx", xMap)
+            .attr("cy", yMap)
     }
 };
