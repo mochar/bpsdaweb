@@ -132,6 +132,14 @@
             <div class="row">
                 <div class="col-xs-3">
                     <div class="form-group">
+                        <label>Contigs set</label>
+                        <select class="form-control"
+                                data-bind="options: $root.contigsets,
+                                           optionsText: 'name',
+                                           value: selectedContigset">
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label>x-as</label>
                         <select class="form-control" data-bind="options: plotData,
                                                                 value: xData">
@@ -141,14 +149,6 @@
                         <label>y-as</label>
                         <select class="form-control" data-bind="options: plotData,
                                                                 value: yData">
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>contigsets</label>
-                        <select class="form-control" multiple size="5"
-                                data-bind="options: $root.contigsets,
-                                       selectedOptions: selectedContigsets,
-                                       optionsText: 'name'">
                         </select>
                     </div>
                     <ul class="list-group scrollable" data-bind="foreach: selectedContigs">

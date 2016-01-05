@@ -63,19 +63,18 @@ function ContigsPanel() {
     self.plotData = ['gc', 'length'];
     self.xData = ko.observable('gc');
     self.yData = ko.observable('length');
-    self.selectedContigsets = ko.observableArray([]);
+    self.selectedContigset = ko.observable();
     self.contigs = ko.observableArray([]);
     self.selectedContigs = ko.observableArray([]);
 
     ko.computed(function() {
-        var contigsets = self.selectedContigsets();
-        for(var i = 0; i < contigsets.length; i++) {
-            var data = {items: 1000};
-            var url = '/contigsets/' + contigsets[i].id + '/contigs';
-            $.getJSON(url, data, function(data) {
-                self.contigs(data.contigs);
-            });
-        }
+        var contigset = self.selectedContigset();
+        if (!contigset) return;
+        var data = {items: 1000, length: '>5000'};
+        var url = '/contigsets/' + contigset.id + '/contigs';
+        $.getJSON(url, data, function(data) {
+            self.contigs(data.contigs);
+        });
     });
 }
 
