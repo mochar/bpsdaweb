@@ -16,18 +16,6 @@ ko.bindingHandlers.chordSvg = {
     }
 };
 
-ko.bindingHandlers.scatterSvg = {
-    init: function (element, valueAccessor, allBindings, viewModel, bindingContext) {
-        createScatterplot(element);
-    },
-    update: function (element, valueAccessor, allBindings, viewModel, bindingContext) {
-        console.log("Update scatterplot panel");
-        var contigs = bindingContext.$data.contigs();
-
-        updateScatterplot(element, contigs, bindingContext.$data.selectedContigs);
-    }
-};
-
 ko.bindingHandlers.slideVisible = {
     init: function(element, valueAccessor) {
         var visible = ko.unwrap(valueAccessor());
@@ -72,8 +60,9 @@ function BinsetPanel(binset) {
 function ContigsPanel() {
     var self = this;
     self.template = "contigsPanel";
-    self.xAxis = ko.observable();
-    self.yAxis = ko.observable();
+    self.plotData = ['gc', 'length'];
+    self.xData = ko.observable('gc');
+    self.yData = ko.observable('length');
     self.selectedContigsets = ko.observableArray([]);
     self.contigs = ko.observableArray([]);
     self.selectedContigs = ko.observableArray([]);

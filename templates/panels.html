@@ -113,16 +113,14 @@
                 <div class="col-xs-3">
                     <div class="form-group">
                         <label>x-as</label>
-                        <select class="form-control">
-                            <option>gc</option>
-                            <option>lengte</option>
+                        <select class="form-control" data-bind="options: plotData,
+                                                                value: xData">
                         </select>
                     </div>
                     <div class="form-group">
                         <label>y-as</label>
-                        <select class="form-control">
-                            <option>gc</option>
-                            <option>lengte</option>
+                        <select class="form-control" data-bind="options: plotData,
+                                                                value: yData">
                         </select>
                     </div>
                     <div class="form-group">
