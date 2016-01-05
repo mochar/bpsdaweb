@@ -99,17 +99,19 @@ function ContigSection() {
     self.showFilters = ko.observable(false);
     self.toggleFilters = function() { self.showFilters(!self.showFilters()); };
     self.view = ko.observable('table'); // Either table or plot
+    self.queryOptions = ko.observable({items: 7, index: 1, sort: 'name'});
 
-    ko.pureComputed(function() {
-        var view = self.view();
-        console.log(view);
-    });
+    self.sort = function(by) {
+        var queryOptions = self.queryOptions();
+        queryOptions.sort = by;
+        self.queryOptions(queryOptions);
+    };
 
     ko.computed(function() {
         var contigsetId = self.contigsetId();
+        var queryOptions = self.queryOptions();
         if (!contigsetId) return;
-        var data = {_items: 7};
-        $.getJSON('/contigsets/' + contigsetId + '/contigs', data, function(data) {
+        $.getJSON('/contigsets/' + contigsetId + '/contigs', queryOptions, function(data) {
             self.contigs(data.contigs);
         });
     });

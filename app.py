@@ -39,6 +39,7 @@ class Contig(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120))
     sequence = db.Column(db.String)
+    gc = db.Column(db.Integer)
     contigset_id = db.Column(db.Integer, db.ForeignKey('contigset.id'))
 
 
@@ -116,7 +117,8 @@ class ContigsetListApi(Resource):
         contigs = []
         if args.contigs:
             for header, sequence in utils.parse_fasta(args.contigs.stream):
-                contigs.append(Contig(name=header, sequence=sequence))
+                contigs.append(Contig(name=header, sequence=sequence,
+                                      gc=utils.gc_content(sequence)))
 
         contigset = Contigset(name=args.name, userid=session['uid'],
             contigs=contigs)
@@ -158,21 +160,24 @@ class ContigsetApi(Resource):
 class ContigListApi(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('_items', type=int, default=50)
+        self.reqparse.add_argument('items', type=int, default=50, dest='_items')
         self.reqparse.add_argument('index', type=int, default=1)
+        self.reqparse.add_argument('sort', type=str, default='gc',
+            choices=['name', 'gc', 'length'])
         super(ContigListApi, self).__init__()
 
     def get(self, contigset_id):
         args = self.reqparse.parse_args()
         contigset = user_contigset_or_404(contigset_id)
-        contigs = contigset.contigs.paginate(args.index, args._items, False).items
+        contigs = contigset.contigs.order_by(db.asc(args.sort))
+        contigs = contigs.paginate(args.index, args._items, False)
         result = []
-        for contig in contigs:
-            gc = utils.gc_content(contig.sequence) if contig.sequence else '-'
+        for contig in contigs.items:
+            gc = contig.gc if contig.gc else '-'
             length = len(contig.sequence) if contig.sequence else '-'
             result.append({'id': contig.id, 'name': contig.name, 'gc': gc,
                 'length': length})
-        return {'contigs': result}
+        return {'contigs': result, 'pages': contigs.pages}
 
 
 class ContigApi(Resource):

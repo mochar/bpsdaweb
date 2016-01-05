@@ -182,7 +182,7 @@ $(function() {
                 <label class="btn btn-sm btn-default"
                        data-bind="css: { active: view() === 'plot' },
                                   click: function() { view('plot') }">
-                    <span class="glyphicon glyphicon-signal" aria-hidden="true"></span>
+                    <span class="glyphicon glyphicon-stats" aria-hidden="true"></span>
                 </label>
                 <label class="btn btn-sm btn-default"
                        data-bind="css: { active: view() === 'table' },
@@ -230,11 +230,13 @@ $(function() {
         <button class="btn btn-primary">Toepassen</button>
     </div>
 
-    <table class="table table-condensed">
+    <div data-bind="histSvg: true, visible: view() === 'plot'"></div>
+
+    <table class="table table-condensed" data-bind="visible: view() === 'table'">
         <thead>
             <tr>
-                <th width="60%">Contig</th>
-                <th width="20%">GC</th>
+                <th width="60%" data-bind="click: sort('name')">Contig</th>
+                <th width="20%" data-bind="click: sort('gc')">GC</th>
                 <th width="20%">Lengte</th>
             </tr>
         </thead>
