@@ -9,8 +9,7 @@
 </div>
 
 <div class="row">
-    <div class="col-xs-4">{% include "data.html" %}</div>
-    <div class="col-xs-8">
+    <div class="col-lg-8 col-sm-12">
         {% if new_user %}
             {% include 'instructions.html' %}
         {% endif %}
@@ -20,5 +19,6 @@
         <div id="panels" data-bind="template: {name: getPanelTemplate, foreach: panels}">
         </div>
     </div>
+    <div class="col-lg-4 col-sm-12">{% include "data.html" %}</div>
 </div>
 {% endblock %}

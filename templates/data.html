@@ -19,6 +19,75 @@ $(function() {
 });
 </script>
 
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h4 class="panel-title">
+            Assembled contigs / scaffolds
+            <a href="#contigsetFormPanel" data-toggle="collapse">
+                <span class="glyphicon glyphicon-plus pull-right"></span>
+            </a>
+        </h4>
+    </div>
+
+    <div id="contigsetFormPanel" class="panel-collapse collapse">
+        <div class="panel-body well">
+            <div id="contigsetAlerts"></div>
+
+            <form id="contigsetForm" name="contigsetForm" method="post"
+                  enctype="multipart/form-data" data-bind="submit: uploadContigset">
+                <div class="form-group">
+                    <label for="contigsetName">Naam</label>
+                    <input type="text" class="form-control" id="contigsetName" name="name">
+                </div>
+
+                <div class="form-group">
+                    <label for="contigsetFile">Contig bestand</label>
+                    <input type="file" id="contigsetFile" name="contigs">
+                    <p class="help-block">Het contig bestand moet in fasta-formaat zijn.</p>
+                </div>
+
+                <button class="btn btn-default" type="submit">Voeg toe</button>
+            </form>
+        </div>
+    </div>
+
+    <ul class="list-group" data-bind="foreach: contigsetsToShow">
+        <li class="list-group-item" data-bind="slideVisible: true">
+            <span data-bind="text: name,
+                             visible: !renaming(),
+                             tooltip: { title: 'Klik om te wijzigen' },
+                             click: rename"></span>
+            <input data-bind="visible: renaming, value: name, hasFocus: renaming" />
+            <span class="pull-right">
+                <button class="btn btn-xs btn-default"
+                        data-bind="visible: !$root.selectedContigset(),
+                                   click: $root.selectedContigset">
+                    <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+                </button>
+                <button class="btn btn-xs btn-default"
+                        data-bind="visible: $root.selectedContigset,
+                                   click: function(){$root.selectedContigset(null)}">
+                    <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
+                </button>
+                <button class="btn btn-xs btn-danger" data-bind="click: toggleDelete">
+                    <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
+                </button>
+            </span>
+        </li>
+        <li class="list-group-item list-group-item-danger" data-bind="slideVisible: showDelete">
+            <span class="small">Let op: Alle binsets worden ook verwijderd</span>
+            <span class="pull-right">
+                <button class="btn btn-xs btn-default" data-bind="click: toggleDelete">Annuleer</button>
+                <button class="btn btn-xs btn-danger"
+                        data-bind="click: $root.deleteContigset">Verwijder</button>
+            </span>
+        </li>
+    </ul>
+
+</div>
+
+
 <div class="panel panel-default">
     <div class="panel-heading">
         <h4 class="panel-title">
@@ -33,15 +102,16 @@ $(function() {
     <div class="panel-body well">
         <div id="binsetAlerts"></div>
 
-        <form id="binsetForm" name="binsetForm" method="post" enctype="multipart/form-data">
+        <form id="binsetForm" name="binsetForm" method="post"
+              enctype="multipart/form-data" data-bind="submit: uploadBinset">
             <div class="form-group">
                 <label for="binsetName">Naam</label>
-                <input type="text" class="form-control" id="binsetName" name="binsetName">
+                <input type="text" class="form-control" id="binsetName" name="name">
             </div>
 
             <div class="form-group">
                 <label for="binsetFile">Bin set bestand</label>
-                <input type="file" id="binsetFile" name="binsetFile">
+                <input type="file" id="binsetFile" name="bins">
                 <p class="help-block">Een delimitergescheiden bestand met eerste kolom
                     contig en tweede kolom bin nummer.</p>
             </div>
@@ -53,74 +123,133 @@ $(function() {
 
             <div class="form-group">
                 <label for="binsetContigset">Contigset</label>
-                <select class="form-control"  name="binsetContigset" id="binsetContigset"
-                        data-bind="foreach: contigsets().concat({name: 'Nieuw'})">
-                    <option data-bind="text: name"></option>
+                <select class="form-control" name="contigset" id="binsetContigset"
+                        data-bind="foreach: contigsets">
+                    <option data-bind="text: name, attr: { value: id }"></option>
                 </select>
-                <p class="help-block">Selecteer optie "Nieuw" om een nieuwe
-                    contigset te maken van de contigs in het bin bestand.</p>
+                <p class="help-block">Voeg een nieuwe (lege) contigset toe in
+                    de panel hierboven.</p>
             </div>
 
-            <input id="contigsetSubmit" type="submit" class="btn btn-default" value="Voeg toe" />
+            <button class="btn btn-default" type="submit">Voeg toe</button>
         </form>
     </div>
     </div>
 
-    <ul class="list-group" data-bind="template: {foreach: binsets, name: 'binsetItem'}"></ul>
-    <script type="text/html" id="binsetItem">
-        <li class="list-group-item" data-bind="style: { 'border-left-color': color, 'border-left-width': '4px'}">
-            <span data-bind="text: name, visible: !editingName()"></span>
-            <input data-bind="visible: editingName, value: name, hasFocus: editingName" />
+    <ul class="list-group" data-bind="foreach: binsetsToShow">
+        <li class="list-group-item" data-bind="style: { 'border-left-color': color,
+                                                        'border-left-width': '4px'},
+                                               slideVisible: true">
+            <span data-bind="text: name,
+                             visible: !renaming(),
+                             tooltip: { title: 'Klik om te wijzigen' },
+                             click: rename"></span>
+            <input data-bind="visible: renaming, value: name, hasFocus: renaming" />
             <span class="pull-right">
-                <button class="btn btn-xs btn-default" data-bind="click: editName">
-                    <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                <button class="btn btn-xs btn-default"
+                        data-bind="visible: !$root.selectedBinset() && $root.selectedContigset,
+                                   click: $root.selectedBinset">
+                    <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
                 </button>
-                <button class="btn btn-xs btn-danger" data-bind="click: $root.removeBinset">
+                <button class="btn btn-xs btn-default"
+                        data-bind="visible: $root.selectedBinset,
+                                   click: function(){$root.selectedBinset(null)}">
+                    <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
+                </button>
+                <button class="btn btn-xs btn-danger" data-bind="click: toggleDelete">
                     <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
                 </button>
             </span>
         </li>
-    </script>
-</div>
-
-
-<div class="panel panel-default">
-    <div class="panel-heading">
-        <h4 class="panel-title">
-            Assembled contigs / scaffolds
-            <a href="#contigsetFormPanel" data-toggle="collapse">
-                <span class="glyphicon glyphicon-plus pull-right"></span>
-            </a>
-        </h4>
-    </div>
-
-    <div id="contigsetFormPanel" class="panel-collapse collapse">
-    <div class="panel-body well">
-        <div id="contigsetAlerts"></div>
-
-        <form id="contigsetForm" name="contigsetForm" method="post" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="contigsetName">Naam</label>
-                <input type="text" class="form-control" id="contigsetName" name="contigsetName">
-            </div>
-
-            <div class="form-group">
-                <label for="contigsetFile">Contig bestand</label>
-                <input type="file" id="contigsetFile" name="contigsetFile">
-                <p class="help-block">Het contig bestand moet in fasta-formaat zijn.</p>
-            </div>
-
-            <input id="contigsetSubmit" type="submit" class="btn btn-default" value="Voeg toe" />
-        </form>
-    </div>
-    </div>
-
-    <ul class="list-group" data-bind="template: {foreach: contigsets, name: 'contigsetItem'}"></ul>
-    <script type="text/html" id="contigsetItem">
-        <li class="list-group-item">
-            <span data-bind="text: name"></span>
-            <span class="badge" data-bind="text: length"></span>
+        <li class="list-group-item list-group-item-danger" data-bind="slideVisible: showDelete">
+            <span class="small">Binset verwijderen?</span>
+            <span class="pull-right">
+                <button class="btn btn-xs btn-default" data-bind="click: toggleDelete">Annuleer</button>
+                <button class="btn btn-xs btn-danger"
+                        data-bind="click: $root.deleteBinset">Verwijder</button>
+            </span>
         </li>
-    </script>
+    </ul>
 </div>
 
+
+
+<div class="panel panel-default" data-bind="with: contigSection,
+                                            slideVisible: selectedContigset">
+    <div class="panel-body">
+        <span class="pull-right">
+            <div class="btn-group" data-toggle="buttons">
+                <label class="btn btn-sm btn-default"
+                       data-bind="css: { active: view() === 'plot' },
+                                  click: function() { view('plot') }">
+                    <span class="glyphicon glyphicon-stats" aria-hidden="true"></span>
+                </label>
+                <label class="btn btn-sm btn-default"
+                       data-bind="css: { active: view() === 'table' },
+                                  click: function() { view('table') }">
+                    <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+                </label>
+            </div>
+
+            <button class="btn btn-sm btn-default"
+                    data-bind="click: toggleFilters, css: { active: showFilters }">
+                <span class="glyphicon glyphicon-filter" aria-hidden="true"></span>
+            </button>
+        </span>
+    </div>
+
+    <div class="well well-sm" data-bind="visible: showFilters">
+        <form class="form-horizontal">
+            <div class="form-group">
+                <label class="col-xs-2 control-label">GC</label>
+                <div class="col-xs-3 col-xs-offset-2">
+                    <select class="form-control" name="gcOperator">
+                        <option> > </option>
+                        <option> < </option>
+                        <option> = </option>
+                    </select>
+                </div>
+                <div class="col-xs-3">
+                    <input class="form-control" type="text" name="gcValue" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-2 control-label">Lengte</label>
+                <div class="col-xs-3 col-xs-offset-2">
+                    <select class="form-control" name="lengthOperator">
+                        <option> > </option>
+                        <option> < </option>
+                        <option> = </option>
+                    </select>
+                </div>
+                <div class="col-xs-3">
+                    <input class="form-control" type="text" name="lengthValue" />
+                </div>
+            </div>
+        </form>
+        <button class="btn btn-primary">Toepassen</button>
+    </div>
+
+    <div data-bind="histSvg: true, visible: view() === 'plot'"></div>
+
+    <table class="table table-condensed" data-bind="visible: view() === 'table'">
+        <thead>
+            <tr>
+                <th width="60%" data-bind="click: sort('name')">Contig</th>
+                <th width="20%" data-bind="click: sort('gc')">GC</th>
+                <th width="20%">Lengte</th>
+            </tr>
+        </thead>
+        <tbody data-bind="foreach: contigs">
+            <tr>
+                <td data-bind="text: name" width="60%"></td>
+                <td data-bind="text: gc" width="20%"></td>
+                <td data-bind="text: length" width="20%"></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+
+<textarea data-bind="value: ko.toJSON($root, null, 2)" class="form-control"
+    style="height: 500px"></textarea>
