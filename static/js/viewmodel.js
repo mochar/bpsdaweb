@@ -43,6 +43,15 @@ ko.bindingHandlers.slideVisible = {
     }
 };
 
+ko.bindingHandlers.tooltip = {
+    init: function(element, valueAccessor) {
+        var local = ko.utils.unwrapObservable(valueAccessor());
+        var options = {placement: 'right'};
+        ko.utils.extend(options, local);
+        $(element).tooltip(options);
+    }
+};
+
 ko.extenders.trackChange = function(target, track) {
     if (track) {
         target.isDirty = ko.observable(false);
@@ -87,7 +96,7 @@ function ChordPanel() {
     self.template = "chordPanel";
     self.selectedBinset1 = ko.observable(null).extend({trackChange: true});
     self.selectedBinset2 = ko.observable(null).extend({trackChange: true});
-    self.selectedBin = ko.observable('test');
+    self.selectedBin = ko.observable();
     self.showSettings = ko.observable(false);
 
     self.unifiedColor = ko.observable(false);
@@ -129,6 +138,31 @@ function ChordPanel() {
     };
 }
 
+function ContigSection() {
+    var self = this;
+    self.contigs = ko.observableArray([]);
+    self.contigsetId = ko.observable();
+    self.showFilters = ko.observable(false);
+    self.toggleFilters = function() { self.showFilters(!self.showFilters()); };
+    self.view = ko.observable('table'); // Either table or plot
+    self.queryOptions = ko.observable({items: 7, index: 1, sort: 'name'});
+
+    self.sort = function(by) {
+        var queryOptions = self.queryOptions();
+        queryOptions.sort = by;
+        self.queryOptions(queryOptions);
+    };
+
+    ko.computed(function() {
+        var contigsetId = self.contigsetId();
+        var queryOptions = self.queryOptions();
+        if (!contigsetId) return;
+        $.getJSON('/contigsets/' + contigsetId + '/contigs', queryOptions, function(data) {
+            self.contigs(data.contigs);
+        });
+    });
+}
+
 function Binset(data) {
     var self = this;
     self.id = data.id;
@@ -137,8 +171,20 @@ function Binset(data) {
     self.color = ko.observable(data.color);
     self.bins = ko.observableArray(data.bins);
 
-    self.editingName = ko.observable(false);
-    self.editName = function() { self.editingName(true); }
+    self.showDelete = ko.observable(false);
+    self.toggleDelete = function() { self.showDelete(!self.showDelete()); };
+
+    // Renaming
+    self.renaming = ko.observable(false);
+    self.rename = function() { self.renaming(true); };
+    ko.computed(function() {
+        var name = self.name();
+        $.ajax({
+            url: '/contigsets/' + self.contigset + '/binsets/' + self.id,
+            type: 'PUT',
+            data: {'name': name}
+        });
+    });
 }
 
 function Contigset(data) {
@@ -150,14 +196,30 @@ function Contigset(data) {
 
     $.getJSON('/contigsets/' + self.id + '/binsets', function(data) {
         self.binsets(data.binsets.map(function(bs) { return new Binset(bs); }));
-    })
+    });
+
+    self.showDelete = ko.observable(false);
+    self.toggleDelete = function() { self.showDelete(!self.showDelete()); };
+
+    // Renaming
+    self.renaming = ko.observable(false);
+    self.rename = function() { self.renaming(true); };
+    ko.computed(function() {
+        var name = self.name();
+        $.ajax({
+            url: '/contigsets/' + self.id,
+            type: 'PUT',
+            data: {'name': name}
+        });
+    });
 }
 
 function ViewModel() {
     var self = this;
     self.contigsets = ko.observableArray([]);
     self.selectedContigset = ko.observable(null);
-    self.contigs = ko.observableArray([]);
+    self.selectedBinset = ko.observable(null);
+    self.contigSection = new ContigSection();
 
     self.binsets = ko.pureComputed(function() {
         var contigsets = self.contigsets();
@@ -169,26 +231,22 @@ function ViewModel() {
     });
 
     self.contigsetsToShow = ko.pureComputed(function() {
-        var selectedContigset = self.selectedContigset();
-        return selectedContigset ? [selectedContigset] : self.contigsets();
+        var contigset = self.selectedContigset();
+        return contigset ? [contigset] : self.contigsets();
     });
 
     self.binsetsToShow = ko.pureComputed(function() {
         var contigset = self.selectedContigset();
+        var binset = self.selectedBinset();
+        if (binset) return binset;
         return contigset ? contigset.binsets() : self.binsets();
     });
 
     ko.computed(function() {
         var contigset = self.selectedContigset();
         if (!contigset) return;
-        var data = {items: 50};
-        $.getJSON('/contigsets/' + contigset.id + '/contigs', data, function(data) {
-            self.contigs(data.contigs);
-        });
+        self.contigSection.contigsetId(contigset.id);
     });
-
-    self.showFilters = ko.observable(false);
-    self.toggleFilters = function() { self.showFilters(!self.showFilters()); };
 
     self.showElement = function(elem) { if (elem.nodeType === 1) $(elem).hide().slideDown() };
     self.hideElement = function(elem) { if (elem.nodeType === 1) $(elem).slideUp(function() { $(elem).remove(); }) };
@@ -205,8 +263,35 @@ function ViewModel() {
         self.panels.unshift(new ChordPanel());
     };
 
-    self.removeBinset = function(binset) {
-        self.binsets.remove(binset);
+
+    self.contigsetFromId = function(id) {
+        for(var i = 0; i < self.contigsets().length; i++) {
+            if (self.contigsets()[i].id == id) return self.contigsets()[i];
+        }
+    };
+
+
+    self.deleteBinset = function(binset) {
+        $.ajax({
+            url: '/contigsets/' + binset.contigset + '/binsets/' + binset.id,
+            type: 'DELETE',
+            success: function(response) {
+            }
+        });
+        var contigset = self.contigsets().filter(function(cs) {
+            return cs.id === binset.contigset;
+        })[0];
+        contigset.binsets.remove(binset);
+    };
+
+    self.deleteContigset = function(contigset) {
+        $.ajax({
+            url: '/contigsets/' + contigset.id,
+            type: 'DELETE',
+            success: function(response) {
+            }
+        });
+        self.contigsets.remove(contigset);
     };
 
     // Data upload

@@ -41,9 +41,28 @@
             </div>
 
             <div class="row">
-                <div data-bind="chordSvg: updateChordPanel" class="col-xs-9"></div>
-                <div class="col-xs-3">
-                    <p data-bind="text: selectedBin().id"></p>
+                <div data-bind="chordSvg: updateChordPanel" class="col-xs-8"></div>
+                <div class="col-xs-4" style="margin-top: 8px;"
+                     data-bind="if: selectedBin">
+                    <label>Contigset</label>
+                    <p data-bind="text: "></p>
+
+                    <label>Binset</label>
+                    <div class="list-group-item"
+                        data-bind="style: { 'border-left-color': selectedBin().color,
+                                            'border-left-width': '4px'}">
+                        <span data-bind="text: selectedBin().name"></span>
+                    </div>
+
+                    <label>Bin</label>
+                    <div class="list-group-item"
+                         data-bind="style: { 'border-left-color': selectedBin().color,
+                                            'border-left-width': '4px'}">
+                        <span data-bind="text: selectedBin().name"></span>
+                    </div>
+
+                    <label>Contigs</label>
+
                 </div>
             </div>
         </div>
