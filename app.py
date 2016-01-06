@@ -147,7 +147,8 @@ class ContigsetListApi(Resource):
         contigs = []
         if args.contigs:
             for header, sequence in utils.parse_fasta(args.contigs.stream):
-                contig_coverage = coverages.get(header, [])
+                contig_coverage = coverages.get(header,
+                    [Coverage(value=0, name=x) for x in header])
                 contigs.append(Contig(name=header, sequence=sequence,
                     gc=utils.gc_content(sequence), coverages=contig_coverage))
 
