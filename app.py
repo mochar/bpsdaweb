@@ -196,10 +196,13 @@ class ContigListApi(Resource):
         self.reqparse.add_argument('index', type=int, default=1)
         self.reqparse.add_argument('sort', type=str, default='name',
             choices=['name', 'gc', 'length'])
+        self.reqparse.add_argument('fields', type=str,
+            default=['id', 'name', 'gc', 'length', 'coverages'])
         super(ContigListApi, self).__init__()
 
     def get(self, contigset_id):
         args = self.reqparse.parse_args()
+        app.logger.debug(args.fields)
         contigset = user_contigset_or_404(contigset_id)
         contigs = contigset.contigs.order_by(db.asc(args.sort))
         contigs = contigs.paginate(args.index, args._items, False)
@@ -207,9 +210,15 @@ class ContigListApi(Resource):
         for contig in contigs.items:
             gc = contig.gc if contig.gc is not None else '-'
             length = len(contig.sequence) if contig.sequence is not None else '-'
-            result.append({'id': contig.id, 'name': contig.name, 'gc': gc,
-                'length': length,
-                'coverages': {cov.name: cov.value for cov in contig.coverages.all()}})
+            coverages = {cov.name: cov.value for cov in contig.coverages.all()}
+            r = {}
+            if 'id' in args.fields: r['id'] = contig.id
+            if 'name' in args.fields: r['name'] = contig.name
+            if 'gc' in args.fields: r['gc'] = gc
+            if 'length' in args.fields: r['length'] = length
+            if 'coverages' in args.fields: r['coverages'] = coverages
+            result.append(r)
+
         return {'contigs': result, 'indices': contigs.pages, 'index': args.index,
             'count': contigset.contigs.count(), 'items': args._items}
 
