@@ -10,6 +10,7 @@ border:1px solid #ccc !important;
     overflow-y: auto;
 }
 
+/* Chord */
 #chord path {
     fill-opacity: .67;
     stroke: #000;
@@ -23,4 +24,16 @@ border:1px solid #ccc !important;
 .list-group-condensed .list-group-item {
     padding-top: 3px;
     padding-bottom: 3px;
+}
+
+/* Scatterplot */
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.dot {
+  stroke: #000;
 }

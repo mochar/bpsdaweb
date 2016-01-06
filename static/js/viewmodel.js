@@ -1,3 +1,21 @@
+ko.bindingHandlers.chordSvg = {
+    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+        createChord(element);
+    },
+    update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+        console.log("Update chord panel");
+        var matrix = bindingContext.$data.matrix();
+        var unifiedColor = bindingContext.$data.unifiedColor();
+        var bins = bindingContext.$data.bins;
+
+        updateChord(element, matrix, bins, unifiedColor);
+        d3.select(element).selectAll('#group path')
+            .on('click', function(d) {
+                bindingContext.$data.selectedBin(bins[d.index]);
+            });
+    }
+};
+
 ko.bindingHandlers.slideVisible = {
     init: function(element, valueAccessor) {
         var visible = ko.unwrap(valueAccessor());
@@ -42,7 +60,22 @@ function BinsetPanel(binset) {
 function ContigsPanel() {
     var self = this;
     self.template = "contigsPanel";
-    self.selectedContigsets = ko.observableArray([]);
+    self.plotData = ['gc', 'length'];
+    self.xData = ko.observable('gc');
+    self.yData = ko.observable('length');
+    self.selectedContigset = ko.observable();
+    self.contigs = ko.observableArray([]);
+    self.selectedContigs = ko.observableArray([]);
+
+    ko.computed(function() {
+        var contigset = self.selectedContigset();
+        if (!contigset) return;
+        var data = {items: 1000, length: '>5000'};
+        var url = '/contigsets/' + contigset.id + '/contigs';
+        $.getJSON(url, data, function(data) {
+            self.contigs(data.contigs);
+        });
+    });
 }
 
 function ChordPanel() {
@@ -210,8 +243,7 @@ function ViewModel() {
     self.hideElement = function(elem) { if (elem.nodeType === 1) $(elem).slideUp(function() { $(elem).remove(); }) };
 
     // Panels
-    self.panels = ko.observableArray([new ChordPanel(), //new BinsetPanel("kek"),
-        new ContigsPanel()]);
+    self.panels = ko.observableArray([new ContigsPanel(), new ChordPanel()]);
     self.getPanelTemplate = function(panel) {
         return panel.template;
     };

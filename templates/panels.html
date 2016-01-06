@@ -131,11 +131,31 @@
             </button>
             <div class="row">
                 <div class="col-xs-3">
-                    <select class="form-control" multiple size="5"
-                            data-bind="options: $root.contigsets,
-                                       selectedOptions: selectedContigsets,
-                                       optionsText: 'name'">
-                    </select>
+                    <div class="form-group">
+                        <label>Contigs set</label>
+                        <select class="form-control"
+                                data-bind="options: $root.contigsets,
+                                           optionsText: 'name',
+                                           value: selectedContigset">
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>x-as</label>
+                        <select class="form-control" data-bind="options: plotData,
+                                                                value: xData">
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>y-as</label>
+                        <select class="form-control" data-bind="options: plotData,
+                                                                value: yData">
+                        </select>
+                    </div>
+                    <ul class="list-group scrollable" data-bind="foreach: selectedContigs">
+                        <li class="list-group-item">
+                            <span data-bind="text: name"></span>
+                        </li>
+                    </ul>
                 </div>
                 <div class="col-xs-9" data-bind="scatterSvg: true"></div>
             </div>
