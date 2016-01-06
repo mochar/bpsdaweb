@@ -1,11 +1,11 @@
 ko.bindingHandlers.scatterSvg = {
     init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-        var margin = {top: 0, right: 20, bottom: 30, left: 40},
+        var margin = {top: 20, right: 20, bottom: 30, left: 50},
             width = 550 - margin.left - margin.right,
             height = 500 - margin.top - margin.bottom,
             svg = d3.select(element).append("svg")
-                .attr("width", width)
-                .attr("height", height)
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
                 .append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -38,10 +38,12 @@ ko.bindingHandlers.scatterSvg = {
         var contigs = bindingContext.$data.contigs(),
             selectedContigs = bindingContext.$data.selectedContigs,
             xData = bindingContext.$data.xData(),
+            xLogarithmic = bindingContext.$data.xLogarithmic(),
             yData = bindingContext.$data.yData(),
+            yLogarithmic = bindingContext.$data.yLogarithmic(),
             colour = "#58ACFA";
 
-        var margin = {top: 0, right: 20, bottom: 30, left: 40},
+        var margin = {top: 20, right: 20, bottom: 30, left: 50},
             width = 550 - margin.left - margin.right,
             height = 500 - margin.top - margin.bottom,
             svg = d3.select(element).select("g"),
@@ -50,23 +52,25 @@ ko.bindingHandlers.scatterSvg = {
 
         // setup x
         var xValue = function(d) { return d[xData];}, // data -> value
-            xScale = d3.scale.linear().range([0, width]), // value -> display
+            xScale = xLogarithmic ? d3.scale.log().range([0, width]) : // value -> display
+                                    d3.scale.linear().range([0, width]),
             xMap = function(d) { return xScale(xValue(d));}, // data -> display
             xAxis = d3.svg.axis().scale(xScale).orient("bottom");
 
         // setup y
-        var yValue = function(d) { return d[yData];}, // data -> value
-            yScale = d3.scale.linear().range([height, 0]), // value -> display
-            yMap = function(d) { return yScale(yValue(d));}, // data -> display
+        var yValue = function(d) { return d[yData];},
+            yScale = yLogarithmic ? d3.scale.log().range([height, 0]) :
+                                    d3.scale.linear().range([height, 0]),
+            yMap = function(d) { return yScale(yValue(d));},
             yAxis = d3.svg.axis().scale(yScale).orient("left");
 
         // don't want dots overlapping axis, so add in buffer to data domain
-        xScale.domain([d3.min(contigs, xValue) - 1, d3.max(contigs, xValue) + 1]);
-        yScale.domain([d3.min(contigs, yValue) - 1, d3.max(contigs, yValue) + 1]);
+        xScale.domain([d3.min(contigs, xValue), d3.max(contigs, xValue)]);
+        yScale.domain([d3.min(contigs, yValue), d3.max(contigs, yValue)]);
 
         // axes
-        svg.select('g.x').call(xAxis).select('.label').text(xData);
-        svg.select('g.y').call(yAxis).select(".label").text(yData);
+        svg.select('.x').call(xAxis).select('.label').text(xData);
+        svg.select('.y').call(yAxis).select('.label').text(yData);
 
         // draw dots
         var dots = svg.selectAll(".dot").data(contigs, function(d) { return d.id; });
@@ -102,4 +106,4 @@ ko.bindingHandlers.scatterSvg = {
             .attr("cx", xMap)
             .attr("cy", yMap)
     }
-};
+};;

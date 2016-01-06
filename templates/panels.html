@@ -153,13 +153,39 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>x-as</label>
+                        <div class="row">
+                            <div class="col-xs-6"><label>x-as</label></div>
+                            <div class="col-xs-6 text-right">
+                                <i>
+                                    <a href="#"
+                                      data-bind="click: function() { xShowOptions(!xShowOptions()) }">opties
+                                    </a>
+                                </i>
+                            </div>
+                        </div>
+                        <div data-bind="visible: xShowOptions">
+                            <input type="checkbox"
+                                   data-bind="checked: xLogarithmic"> Logaritmisch
+                        </div>
                         <select class="form-control" data-bind="options: plotOptions,
                                                                 value: xData">
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>y-as</label>
+                        <div class="row">
+                            <div class="col-xs-6"><label>y-as</label></div>
+                            <div class="col-xs-6 text-right">
+                                <i>
+                                    <a href="#"
+                                       data-bind="click: function() { yShowOptions(!yShowOptions()) }">opties
+                                    </a>
+                                </i>
+                            </div>
+                        </div>
+                        <div data-bind="visible: yShowOptions">
+                            <input type="checkbox"
+                                   data-bind="checked: yLogarithmic"> Logaritmisch
+                        </div>
                         <select class="form-control" data-bind="options: plotOptions,
                                                                 value: yData">
                         </select>

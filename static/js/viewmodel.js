@@ -43,8 +43,15 @@ function ContigsPanel() {
     var self = this;
     self.template = "contigsPanel";
     self.plotData = ko.observable('seqcomp'); // seqcomp || coverage
+
     self.xData = ko.observable('gc');
+    self.xLogarithmic = ko.observable(false);
+    self.xShowOptions = ko.observable(false);
+
     self.yData = ko.observable('length');
+    self.yLogarithmic = ko.observable(false);
+    self.yShowOptions = ko.observable(false);
+
     self.selectedContigset = ko.observable();
     self.selectedContigs = ko.observableArray([]);
     self.contigs = ko.observableArray([]);
