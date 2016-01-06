@@ -195,7 +195,8 @@ class ContigListApi(Resource):
         self.reqparse.add_argument('items', type=int, default=50, dest='_items')
         self.reqparse.add_argument('index', type=int, default=1)
         self.reqparse.add_argument('sort', type=str, default='name',
-            choices=['name', 'gc', 'length'])
+            choices=['id', 'name', 'gc', 'length',
+                     '-id', '-name', '-gc', '-length'])
         self.reqparse.add_argument('fields', type=str,
             default=['id', 'name', 'gc', 'length', 'coverages'])
         super(ContigListApi, self).__init__()
@@ -204,7 +205,8 @@ class ContigListApi(Resource):
         args = self.reqparse.parse_args()
         app.logger.debug(args.fields)
         contigset = user_contigset_or_404(contigset_id)
-        contigs = contigset.contigs.order_by(db.asc(args.sort))
+        order = db.desc(args.sort[1:]) if args.sort[0] == '-' else db.asc(args.sort)
+        contigs = contigset.contigs.order_by(order)
         contigs = contigs.paginate(args.index, args._items, False)
         result = []
         for contig in contigs.items:
