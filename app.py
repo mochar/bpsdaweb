@@ -199,7 +199,8 @@ class ContigListApi(Resource):
             result.append({'id': contig.id, 'name': contig.name, 'gc': gc,
                 'length': length,
                 'coverages': [cov.value for cov in contig.coverages.all()]})
-        return {'contigs': result, 'pages': contigs.pages}
+        return {'contigs': result, 'indices': contigs.pages, 'index': args.index,
+            'count': contigset.contigs.count(), 'items': args._items}
 
 
 class ContigApi(Resource):

@@ -257,16 +257,21 @@ $(function() {
     </table>
 
     <div class="panel-footer" style="background-color: #ffffff">
-        <select class="form-control">
-            <option>10</option>
-            <option>20</option>
-            <option>50</option>
-        </select>
-        <div class="btn-group btn-group-xs" role="toolbar">
-            <button class="btn btn-default" type="button">1</button>
-            <button class="btn btn-default" type="button">2</button>
-            <button class="btn btn-default" type="button">3</button>
+    <div class="row">
+        <div class="col-xs-4">
+            <div class="input-group input-group-sm">
+                <input class="form-control" type="text" data-bind="value: index">
+                <span class="input-group-addon">
+                    / <span data-bind="text: indices"></span>
+                </span>
+            </div>
         </div>
+
+        <div class="col-xs-3 col-xs-offset-5">
+            <p class="small">
+                <i><span data-bind="text: count"></span></i> contigs</p>
+        </div>
+    </div>
     </div>
 </div>
 

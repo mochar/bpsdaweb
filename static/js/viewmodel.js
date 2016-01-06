@@ -100,20 +100,23 @@ function ContigSection() {
     self.showFilters = ko.observable(false);
     self.toggleFilters = function() { self.showFilters(!self.showFilters()); };
     self.view = ko.observable('table'); // Either table or plot
-    self.queryOptions = ko.observable({items: 7, index: 1, sort: 'name'});
+    self.sort = ko.observable('name');
 
-    self.sort = function(by) {
-        var queryOptions = self.queryOptions();
-        queryOptions.sort = by;
-        self.queryOptions(queryOptions);
-    };
+    // pagination
+    self.index = ko.observable(1);
+    self.count = ko.observable();
+    self.indices = ko.observable();
 
     ko.computed(function() {
         var contigsetId = self.contigsetId();
-        var queryOptions = self.queryOptions();
         if (!contigsetId) return;
+        var index = self.index(),
+            sort = self.sort(),
+            queryOptions = {index: index, sort: sort, items: 7};
         $.getJSON('/contigsets/' + contigsetId + '/contigs', queryOptions, function(data) {
             self.contigs(data.contigs);
+            self.indices(data.indices);
+            self.count(data.count);
         });
     });
 }
