@@ -209,7 +209,7 @@ class ContigListApi(Resource):
             length = len(contig.sequence) if contig.sequence is not None else '-'
             result.append({'id': contig.id, 'name': contig.name, 'gc': gc,
                 'length': length,
-                'coverages': [{cov.name: cov.value for cov in contig.coverages.all()}]})
+                'coverages': {cov.name: cov.value for cov in contig.coverages.all()}})
         return {'contigs': result, 'indices': contigs.pages, 'index': args.index,
             'count': contigset.contigs.count(), 'items': args._items}
 
