@@ -43,6 +43,16 @@ class Contig(db.Model):
     gc = db.Column(db.Integer)
     contigset_id = db.Column(db.Integer, db.ForeignKey('contigset.id'),
          nullable=False)
+    coverages = db.relationship('Coverage', backref='contig', lazy='dynamic',
+        cascade='all, delete')
+
+
+class Coverage(db.Model):
+    __tablename__ = 'coverage'
+    id = db.Column(db.Integer, primary_key=True)
+    contig_id = db.Column(db.Integer, db.ForeignKey('contig.id'), nullable=False)
+    name = db.Column(db.String(60))
+    value = db.Column(db.Integer)
 
 
 class Binset(db.Model):
@@ -101,6 +111,8 @@ class ContigsetListApi(Resource):
             location='form')
         self.reqparse.add_argument('contigs', location='files',
             type=werkzeug.datastructures.FileStorage)
+        self.reqparse.add_argument('coverage', location='files',
+            type=werkzeug.datastructures.FileStorage)
         super(ContigsetListApi, self).__init__()
 
     def get(self):
@@ -117,11 +129,17 @@ class ContigsetListApi(Resource):
     def post(self):
         args = self.reqparse.parse_args()
 
+        coverages = {}
+        if args.coverage:
+            for contig_name, *_coverages in utils.parse_dsv(args.coverage.stream):
+                coverages[contig_name] = [Coverage(value=cov) for cov in _coverages]
+
         contigs = []
         if args.contigs:
             for header, sequence in utils.parse_fasta(args.contigs.stream):
+                contig_coverage = coverages.get(header, [])
                 contigs.append(Contig(name=header, sequence=sequence,
-                                      gc=utils.gc_content(sequence)))
+                    gc=utils.gc_content(sequence), coverages=contig_coverage))
 
         contigset = Contigset(name=args.name, userid=session['uid'],
             contigs=contigs)
@@ -179,7 +197,8 @@ class ContigListApi(Resource):
             gc = contig.gc if contig.gc is not None else '-'
             length = len(contig.sequence) if contig.sequence is not None else '-'
             result.append({'id': contig.id, 'name': contig.name, 'gc': gc,
-                'length': length})
+                'length': length,
+                'coverages': [cov.value for cov in contig.coverages.all()]})
         return {'contigs': result, 'pages': contigs.pages}
 
 
