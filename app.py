@@ -131,8 +131,18 @@ class ContigsetListApi(Resource):
 
         coverages = {}
         if args.coverage:
-            for contig_name, *_coverages in utils.parse_dsv(args.coverage.stream):
-                coverages[contig_name] = [Coverage(value=cov) for cov in _coverages]
+            coverage_file = utils.parse_dsv(args.coverage.stream)
+            fields = next(coverage_file)
+            if utils.is_number(fields[1]):
+                header = ['cov_{}'.format(i) for i, _ in enumerate(fields[1:], 1)]
+                contig_name, *_coverages = fields
+                coverages[contig_name] = [Coverage(value=cov, name=header[i])
+                                          for i, cov in enumerate(_coverages)]
+            else:
+                header = fields[1:]
+            for contig_name, *_coverages in coverage_file:
+                coverages[contig_name] = [Coverage(value=cov, name=header[i])
+                                          for i, cov in enumerate(_coverages)]
 
         contigs = []
         if args.contigs:
@@ -198,7 +208,7 @@ class ContigListApi(Resource):
             length = len(contig.sequence) if contig.sequence is not None else '-'
             result.append({'id': contig.id, 'name': contig.name, 'gc': gc,
                 'length': length,
-                'coverages': [cov.value for cov in contig.coverages.all()]})
+                'coverages': [{cov.name: cov.value for cov in contig.coverages.all()}]})
         return {'contigs': result, 'indices': contigs.pages, 'index': args.index,
             'count': contigset.contigs.count(), 'items': args._items}
 
