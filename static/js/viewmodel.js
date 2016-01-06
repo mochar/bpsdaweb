@@ -42,12 +42,18 @@ function BinsetPanel(binset) {
 function ContigsPanel() {
     var self = this;
     self.template = "contigsPanel";
-    self.plotData = ['gc', 'length'];
+    self.plotData = ko.observable('seqcomp'); // seqcomp || coverage
     self.xData = ko.observable('gc');
     self.yData = ko.observable('length');
     self.selectedContigset = ko.observable();
-    self.contigs = ko.observableArray([]);
     self.selectedContigs = ko.observableArray([]);
+    self.contigs = ko.observableArray([]);
+    self.covNames = [];
+
+    self.plotOptions = ko.pureComputed(function() {
+        var plotData = self.plotData();
+        return plotData === 'seqcomp' ? ['gc', 'length'] : self.covNames;
+    });
 
     ko.computed(function() {
         var contigset = self.selectedContigset();
@@ -55,7 +61,12 @@ function ContigsPanel() {
         var data = {items: 1000, length: '>5000'};
         var url = '/contigsets/' + contigset.id + '/contigs';
         $.getJSON(url, data, function(data) {
-            self.contigs(data.contigs);
+            self.covNames = Object.keys(data.contigs[0].coverages);
+            self.contigs(data.contigs.map(function(contig) {
+                $.extend(contig, contig.coverages);
+                delete contig.coverages;
+                return contig;
+            }));
         });
     });
 }

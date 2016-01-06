@@ -131,6 +131,19 @@
             </button>
             <div class="row">
                 <div class="col-xs-3">
+                    <ul class="nav nav-pills nav-stacked">
+                        <li role="presentation"
+                            data-bind="css: { active: plotData() === 'seqcomp' },
+                                       click: function() { plotData('seqcomp') }">
+                            <a href="#">Sequence composition</a>
+                        </li>
+                        <li role="presentation"
+                            data-bind="css: { active: plotData() === 'coverage' },
+                                       click: function() { plotData('coverage') }">
+                            <a href="#">Coverage</a>
+                        </li>
+                    </ul>
+
                     <div class="form-group">
                         <label>Contigs set</label>
                         <select class="form-control"
@@ -141,13 +154,13 @@
                     </div>
                     <div class="form-group">
                         <label>x-as</label>
-                        <select class="form-control" data-bind="options: plotData,
+                        <select class="form-control" data-bind="options: plotOptions,
                                                                 value: xData">
                         </select>
                     </div>
                     <div class="form-group">
                         <label>y-as</label>
-                        <select class="form-control" data-bind="options: plotData,
+                        <select class="form-control" data-bind="options: plotOptions,
                                                                 value: yData">
                         </select>
                     </div>
