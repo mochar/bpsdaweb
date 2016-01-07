@@ -131,6 +131,9 @@ class ContigsetListApi(Resource):
     def post(self):
         args = self.reqparse.parse_args()
 
+        contigset = Contigset(name=args.name, userid=session['uid'])
+        db.session.add(contigset)
+
         coverages = {}
         if args.coverage:
             coverage_file = utils.parse_dsv(args.coverage.stream)
@@ -146,23 +149,22 @@ class ContigsetListApi(Resource):
                 coverages[contig_name] = [Coverage(value=cov, name=header[i])
                                           for i, cov in enumerate(_coverages)]
 
-        contigs = []
         if args.contigs:
-            for header, sequence in utils.parse_fasta(args.contigs.stream):
+            fasta_file = utils.parse_fasta(args.contigs.stream)
+            for i, data in enumerate(fasta_file, 1):
+                header, sequence = data
                 contig_coverage = coverages.get(header,
                     [Coverage(value=0, name=x) for x in header])
-                contigs.append(Contig(name=header, sequence=sequence,
+                db.session.add(Contig(name=header, sequence=sequence,
                     gc=utils.gc_content(sequence), coverages=contig_coverage,
-                    length=len(sequence)))
-
-        contigset = Contigset(name=args.name, userid=session['uid'],
-            contigs=contigs)
-
-        db.session.add(contigset)
+                    length=len(sequence), contigset=contigset))
+                if i % 5000 == 0:
+                    print(i)
+                    db.session.flush()
         db.session.commit()
 
-        return {'id': contigset.id, 'name': args.name, 'length': len(contigs),
-            'binsets': []}
+        return {'id': contigset.id, 'name': args.name,
+                'length': contigset.contigs.count(), 'binsets': []}
 
 
 class ContigsetApi(Resource):
