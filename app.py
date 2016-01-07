@@ -199,9 +199,8 @@ class ContigListApi(Resource):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument('items', type=int, default=50, dest='_items')
         self.reqparse.add_argument('index', type=int, default=1)
-        self.reqparse.add_argument('sort', type=str, default='name',
-            choices=['id', 'name', 'gc', 'length',
-                     '-id', '-name', '-gc', '-length'])
+        self.reqparse.add_argument('sort', type=str, choices=[
+            'id', 'name', 'gc', 'length', '-id', '-name', '-gc', '-length'])
         self.reqparse.add_argument('fields', type=str,
             default=['id', 'name', 'gc', 'length', 'coverages'])
         self.reqparse.add_argument('length', type=str)
@@ -209,9 +208,13 @@ class ContigListApi(Resource):
 
     def get(self, contigset_id):
         args = self.reqparse.parse_args()
-        contigset = user_contigset_or_404(contigset_id)
-        order = db.desc(args.sort[1:]) if args.sort[0] == '-' else db.asc(args.sort)
-        contigs = contigset.contigs.order_by(order)
+        contigs = user_contigset_or_404(contigset_id).contigs
+        if args.fields:
+            columns = [Contig.__dict__[field] for field in args.fields.split(',')]
+            contigs = Contig.query.with_entities(*columns)
+        if args.sort:
+            order = db.desc(args.sort[1:]) if args.sort[0] == '-' else db.asc(args.sort)
+            contigs = contigs.order_by(order)
         if args.length and args.length.rstrip('-').rstrip('+').isnumeric():
             length = unquote(args.length)
             if length.endswith('-'):
@@ -221,22 +224,23 @@ class ContigListApi(Resource):
             else:
                 filter = Contig.length == int(length)
             contigs = contigs.filter(filter)
-        contigs = contigs.paginate(args.index, args._items, False)
+        contig_pagination = contigs.paginate(args.index, args._items, False)
         result = []
-        for contig in contigs.items:
-            gc = contig.gc if contig.gc is not None else '-'
-            length = contig.length if contig.length is not None else '-'
-            coverages = {cov.name: cov.value for cov in contig.coverages.all()}
+        for contig in contig_pagination.items:
             r = {}
             if 'id' in args.fields: r['id'] = contig.id
             if 'name' in args.fields: r['name'] = contig.name
-            if 'gc' in args.fields: r['gc'] = gc
-            if 'length' in args.fields: r['length'] = length
-            if 'coverages' in args.fields: r['coverages'] = coverages
+            if 'gc' in args.fields:
+                r['gc'] = contig.gc if contig.gc is not None else '-'
+            if 'length' in args.fields:
+                r['length'] = contig.length if contig.length is not None else '-'
+            if 'coverages' in args.fields:
+                r['coverages'] = {cov.name: cov.value
+                    for cov in contig.coverages.all()}
             result.append(r)
 
-        return {'contigs': result, 'indices': contigs.pages, 'index': args.index,
-            'count': contigset.contigs.count(), 'items': args._items}
+        return {'contigs': result, 'indices': contig_pagination.pages,
+            'index': args.index, 'count': contigs.count(), 'items': args._items}
 
 
 class ContigApi(Resource):
