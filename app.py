@@ -1,11 +1,11 @@
 import uuid
 import json
+from urllib.parse import unquote
 
 import werkzeug
 from flask import Flask, render_template, g, session, abort, request
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_restful import Api, Resource, reqparse
-from sqlalchemy.sql import func
 
 import utils
 import randomcolor
@@ -211,12 +211,13 @@ class ContigListApi(Resource):
         order = db.desc(args.sort[1:]) if args.sort[0] == '-' else db.asc(args.sort)
         contigs = contigset.contigs.order_by(order)
         if args.length and args.length.rstrip('-').rstrip('+').isnumeric():
-            if args.length.endswith('-'):
-                filter = Contig.length < int(args.length.rstrip('-'))
-            elif args.length.endswith('+'):
-                filter = Contig.length > int(args.length.rstrip('+'))
+            length = unquote(args.length)
+            if length.endswith('-'):
+                filter = Contig.length < int(length.rstrip('-'))
+            elif length.endswith('+'):
+                filter = Contig.length > int(length.rstrip('+'))
             else:
-                filter = Contig.length == int(args.length)
+                filter = Contig.length == int(length)
             contigs = contigs.filter(filter)
         contigs = contigs.paginate(args.index, args._items, False)
         result = []
