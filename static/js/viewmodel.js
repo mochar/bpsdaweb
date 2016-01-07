@@ -56,7 +56,7 @@ function ContigsPanel() {
         self.isDirty(false);
         var contigset = self.selectedContigset();
         if (!contigset) return;
-        var data = {items: 10, length: '>5000'};
+        var data = {items: 1000, length: '>5000'};
         var url = '/contigsets/' + contigset.id + '/contigs';
         $.getJSON(url, data, function(data) {
             self.covNames = Object.keys(data.contigs[0].coverages);
@@ -98,27 +98,24 @@ function ChordPanel() {
     };
 
     self.updateChordPanel = function() {
-        if (self.selectedBinset1.isDirty() || self.selectedBinset2.isDirty()) {
-            console.log('Dirty');
-            var binsets = [self.selectedBinset1(), self.selectedBinset2()];
-            var binIds = binsets[0].bins().concat(binsets[1].bins());
-            var data = {bins: binIds.join(',')};
-            var url = '/contigsets/' + binsets[0].contigset + '/binsets/';
-            $.when(
-                $.getJSON('/to_matrix', data),
-                $.getJSON(url + binsets[0].id + '/bins'),
-                $.getJSON(url + binsets[1].id + '/bins')
-            ).done(function(matrix, bins1, bins2) {
-                bins1[0].bins.forEach(function(b) {
-                    $.extend(b, {binsetColor: binsets[0].color()});
-                });
-                bins2[0].bins.forEach(function(b) {
-                    $.extend(b, {binsetColor: binsets[1].color()});
-                });
-                self.bins = bins1[0].bins.concat(bins2[0].bins);
-                self.matrix(matrix[0]);
+        var binsets = [self.selectedBinset1(), self.selectedBinset2()];
+        var binIds = binsets[0].bins().concat(binsets[1].bins());
+        var data = {bins: binIds.join(',')};
+        var url = '/contigsets/' + binsets[0].contigset + '/binsets/';
+        $.when(
+            $.getJSON('/to_matrix', data),
+            $.getJSON(url + binsets[0].id + '/bins'),
+            $.getJSON(url + binsets[1].id + '/bins')
+        ).done(function(matrix, bins1, bins2) {
+            bins1[0].bins.forEach(function(b) {
+                $.extend(b, {binsetColor: binsets[0].color()});
             });
-        }
+            bins2[0].bins.forEach(function(b) {
+                $.extend(b, {binsetColor: binsets[1].color()});
+            });
+            self.bins = bins1[0].bins.concat(bins2[0].bins);
+            self.matrix(matrix[0]);
+        });
     };
 }
 
