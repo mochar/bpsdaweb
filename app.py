@@ -5,6 +5,7 @@ import werkzeug
 from flask import Flask, render_template, g, session, abort, request
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_restful import Api, Resource, reqparse
+from sqlalchemy.sql import func
 
 import utils
 import randomcolor
@@ -40,6 +41,7 @@ class Contig(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120))
     sequence = db.Column(db.String)
+    length = db.Column(db.String)
     gc = db.Column(db.Integer)
     contigset_id = db.Column(db.Integer, db.ForeignKey('contigset.id'),
          nullable=False)
@@ -150,7 +152,8 @@ class ContigsetListApi(Resource):
                 contig_coverage = coverages.get(header,
                     [Coverage(value=0, name=x) for x in header])
                 contigs.append(Contig(name=header, sequence=sequence,
-                    gc=utils.gc_content(sequence), coverages=contig_coverage))
+                    gc=utils.gc_content(sequence), coverages=contig_coverage,
+                    length=len(sequence)))
 
         contigset = Contigset(name=args.name, userid=session['uid'],
             contigs=contigs)
@@ -199,14 +202,22 @@ class ContigListApi(Resource):
                      '-id', '-name', '-gc', '-length'])
         self.reqparse.add_argument('fields', type=str,
             default=['id', 'name', 'gc', 'length', 'coverages'])
+        self.reqparse.add_argument('length', type=str)
         super(ContigListApi, self).__init__()
 
     def get(self, contigset_id):
         args = self.reqparse.parse_args()
-        app.logger.debug(args.fields)
         contigset = user_contigset_or_404(contigset_id)
         order = db.desc(args.sort[1:]) if args.sort[0] == '-' else db.asc(args.sort)
         contigs = contigset.contigs.order_by(order)
+        if args.length and args.length.rstrip('-').rstrip('+').isnumeric():
+            if args.length.endswith('-'):
+                filter = Contig.length < int(args.length.rstrip('-'))
+            elif args.length.endswith('+'):
+                filter = Contig.length > int(args.length.rstrip('+'))
+            else:
+                filter = Contig.length == int(args.length)
+            contigs = contigs.filter(filter)
         contigs = contigs.paginate(args.index, args._items, False)
         result = []
         for contig in contigs.items:
