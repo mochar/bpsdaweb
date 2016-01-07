@@ -22,35 +22,6 @@ ko.bindingHandlers.tooltip = {
     }
 };
 
-ko.extenders.trackChange = function(target, track) {
-    if (track) {
-        target.isDirty = ko.observable(false);
-        target.originalValue = target();
-        target.subscribe(function(newValue) {
-            target.isDirty(newValue != target.originalValue);
-        })
-    }
-    return target;
-};
-
-// http://www.knockmeout.net/2011/05/creating-smart-dirty-flag-in-knockoutjs.html
-ko.dirtyFlag = function(root, isInitiallyDirty) {
-    var result = function() {},
-        _initialState = ko.observable(ko.toJSON(root)),
-        _isInitiallyDirty = ko.observable(isInitiallyDirty);
-
-    result.isDirty = ko.computed(function() {
-        return _isInitiallyDirty() || _initialState() !== ko.toJSON(root);
-    });
-
-    result.reset = function() {
-        _initialState(ko.toJSON(root));
-        _isInitiallyDirty(false);
-    };
-
-    return result;
-};
-
 function BinsetPanel(binset) {
     var self = this;
     self.template = "binsetPanel";
@@ -99,8 +70,8 @@ function ContigsPanel() {
 function ChordPanel() {
     var self = this;
     self.template = "chordPanel";
-    self.selectedBinset1 = ko.observable(null).extend({trackChange: true});
-    self.selectedBinset2 = ko.observable(null).extend({trackChange: true});
+    self.selectedBinset1 = ko.observable(null);
+    self.selectedBinset2 = ko.observable(null);
     self.selectedBin = ko.observable();
     self.selectedBins = ko.observableArray([]);
     self.showSettings = ko.observable(false);
