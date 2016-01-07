@@ -225,7 +225,7 @@ class ContigListApi(Resource):
         result = []
         for contig in contigs.items:
             gc = contig.gc if contig.gc is not None else '-'
-            length = len(contig.sequence) if contig.sequence is not None else '-'
+            length = contig.length if contig.length is not None else '-'
             coverages = {cov.name: cov.value for cov in contig.coverages.all()}
             r = {}
             if 'id' in args.fields: r['id'] = contig.id
