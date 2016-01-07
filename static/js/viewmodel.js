@@ -31,6 +31,7 @@ function BinsetPanel(binset) {
 function ContigsPanel() {
     var self = this;
     self.template = "contigsPanel";
+    self.isDirty = ko.observable(true);
     self.plotData = ko.observable('seqcomp'); // seqcomp || coverage
 
     self.xData = ko.observable('gc');
@@ -51,7 +52,8 @@ function ContigsPanel() {
         return plotData === 'seqcomp' ? ['gc', 'length'] : self.covNames;
     });
 
-    ko.computed(function() {
+    self.updatePlot = function() {
+        self.isDirty(false);
         var contigset = self.selectedContigset();
         if (!contigset) return;
         var data = {items: 10, length: '>5000'};
@@ -64,6 +66,11 @@ function ContigsPanel() {
                 return contig;
             }));
         });
+    };
+
+    ko.computed(function() {
+        var contigset = self.selectedContigset();
+        self.isDirty(true);
     });
 }
 

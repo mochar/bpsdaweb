@@ -190,6 +190,11 @@
                                                                 value: yData">
                         </select>
                     </div>
+                    <button class="btn btn-primary btn-block"
+                            data-bind="click: updatePlot,
+                                       attr: { disabled: !isDirty() }">
+                        Visualiseer
+                    </button>
                     <ul class="list-group scrollable" data-bind="foreach: selectedContigs">
                         <li class="list-group-item">
                             <span data-bind="text: name"></span>
