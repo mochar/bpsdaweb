@@ -44,3 +44,18 @@ border:1px solid #ccc !important;
   height: 28px;
   pointer-events: none;
 }
+
+/* Histogram */
+.bar rect {
+    fill: steelblue;
+    shape-rendering: crispEdges;
+}
+.bar text {
+    fill: #fff;
+}
+#contigtable {
+    margin: 10px 10px 10px 10px;
+}
+.barText {
+    font: 10px sans-serif;
+}

@@ -145,7 +145,8 @@ function ContigSection() {
         if (!contigsetId) return;
         var index = self.index(),
             sort = self.sort(),
-            queryOptions = {index: index, sort: sort, items: 7};
+            queryOptions = {index: index, sort: sort, items: 7,
+                fields: 'id,name,gc,length'};
         $.getJSON('/contigsets/' + contigsetId + '/contigs', queryOptions, function(data) {
             self.contigs(data.contigs);
             self.indices(data.indices);
