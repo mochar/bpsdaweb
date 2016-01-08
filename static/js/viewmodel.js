@@ -32,15 +32,14 @@ function ContigsPanel() {
     var self = this;
     self.template = "contigsPanel";
     self.isDirty = ko.observable(true);
+    self.showSettings = ko.observable(false);
     self.plotData = ko.observable('seqcomp'); // seqcomp || coverage
 
     self.xData = ko.observable('gc');
     self.xLogarithmic = ko.observable(false);
-    self.xShowOptions = ko.observable(false);
 
     self.yData = ko.observable('length');
     self.yLogarithmic = ko.observable(false);
-    self.yShowOptions = ko.observable(false);
 
     self.selectedContigset = ko.observable();
     self.selectedContigs = ko.observableArray([]);
@@ -50,6 +49,14 @@ function ContigsPanel() {
     self.plotOptions = ko.pureComputed(function() {
         var plotData = self.plotData();
         return plotData === 'seqcomp' ? ['gc', 'length'] : self.covNames;
+    });
+
+    self.color = ko.observable();
+    self.colorOptions = ko.computed(function() {
+        var contigset = self.selectedContigset();
+        var blue = {name: 'blue', color: '#58ACFA'};
+        if (!contigset) return blue;
+        return [blue].concat(contigset.binsets());
     });
 
     self.updatePlot = function() {

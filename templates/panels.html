@@ -152,49 +152,55 @@
                                            value: selectedContigset">
                         </select>
                     </div>
+
                     <div class="form-group">
-                        <div class="row">
-                            <div class="col-xs-6"><label>x-as</label></div>
-                            <div class="col-xs-6 text-right">
-                                <i>
-                                    <a href="#"
-                                      data-bind="click: function() { xShowOptions(!xShowOptions()) }">opties
-                                    </a>
-                                </i>
-                            </div>
-                        </div>
-                        <div data-bind="visible: xShowOptions">
-                            <input type="checkbox"
-                                   data-bind="checked: xLogarithmic"> Logaritmisch
-                        </div>
+                        <label>X-as</label>
                         <select class="form-control" data-bind="options: plotOptions,
                                                                 value: xData">
                         </select>
                     </div>
+
                     <div class="form-group">
-                        <div class="row">
-                            <div class="col-xs-6"><label>y-as</label></div>
-                            <div class="col-xs-6 text-right">
-                                <i>
-                                    <a href="#"
-                                       data-bind="click: function() { yShowOptions(!yShowOptions()) }">opties
-                                    </a>
-                                </i>
-                            </div>
-                        </div>
-                        <div data-bind="visible: yShowOptions">
-                            <input type="checkbox"
-                                   data-bind="checked: yLogarithmic"> Logaritmisch
-                        </div>
+                        <label>Y-as</label>
                         <select class="form-control" data-bind="options: plotOptions,
                                                                 value: yData">
                         </select>
                     </div>
-                    <button class="btn btn-primary btn-block"
-                            data-bind="click: updatePlot,
-                                       attr: { disabled: !isDirty() }">
-                        Visualiseer
-                    </button>
+
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <button class="btn btn-default"
+                                    data-bind="click: function() {showSettings(!showSettings())},
+                                               css: { active: showSettings }">
+                                <span class="glyphicon glyphicon-cog"></span>
+                            </button>
+                        </div>
+                        <div class="col-xs-9">
+                            <button class="btn btn-primary btn-block"
+                                    data-bind="click: updatePlot,
+                                               attr: { disabled: !isDirty() }">
+                                Visualiseer
+                            </button>
+                        </div>
+                    </div>
+
+                    <div data-bind="visible: showSettings" class="well well-sm">
+                        <label>Logaritmische assen</label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" data-bind="checked: xLogarithmic"> x-as
+                        </label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" data-bind="checked: yLogarithmic"> y-as
+                        </label>
+
+                        <label>Kleur op bins</label>
+                        <select class="form-control"
+                                data-bind="options: colorOptions,
+                                           optionsText: 'name',
+                                           value: color">
+                        </select>
+                    </div>
+
                     <ul class="list-group scrollable" data-bind="foreach: selectedContigs">
                         <li class="list-group-item">
                             <span data-bind="text: name"></span>
