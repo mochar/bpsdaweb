@@ -201,8 +201,7 @@ class ContigListApi(Resource):
         self.reqparse.add_argument('index', type=int, default=1)
         self.reqparse.add_argument('sort', type=str, choices=[
             'id', 'name', 'gc', 'length', '-id', '-name', '-gc', '-length'])
-        self.reqparse.add_argument('fields', type=str,
-            default=['id', 'name', 'gc', 'length', 'coverages'])
+        self.reqparse.add_argument('fields', type=str)
         self.reqparse.add_argument('length', type=str)
         super(ContigListApi, self).__init__()
 
@@ -210,8 +209,9 @@ class ContigListApi(Resource):
         args = self.reqparse.parse_args()
         contigs = user_contigset_or_404(contigset_id).contigs
         if args.fields:
-            columns = [Contig.__dict__[field] for field in args.fields.split(',')]
-            contigs = Contig.query.with_entities(*columns)
+            fields = args.fields.split(',')
+            columns = [Contig.__dict__[field] for field in fields]
+            contigs = contigs.with_entities(*columns)
         if args.sort:
             order = db.desc(args.sort[1:]) if args.sort[0] == '-' else db.asc(args.sort)
             contigs = contigs.order_by(order)
@@ -228,13 +228,15 @@ class ContigListApi(Resource):
         result = []
         for contig in contig_pagination.items:
             r = {}
-            if 'id' in args.fields: r['id'] = contig.id
-            if 'name' in args.fields: r['name'] = contig.name
-            if 'gc' in args.fields:
+            if args.fields is None or 'id' in fields:
+                r['id'] = contig.id
+            if args.fields is None or 'name' in fields:
+                r['name'] = contig.name
+            if args.fields is None or 'gc' in fields:
                 r['gc'] = contig.gc if contig.gc is not None else '-'
-            if 'length' in args.fields:
+            if args.fields is None or 'length' in fields:
                 r['length'] = contig.length if contig.length is not None else '-'
-            if 'coverages' in args.fields:
+            if args.fields is None or 'coverages' in fields:
                 r['coverages'] = {cov.name: cov.value
                     for cov in contig.coverages.all()}
             result.append(r)
