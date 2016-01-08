@@ -33,6 +33,7 @@ ko.bindingHandlers.chordSvg = {
 
         var binset1 = bindingContext.$data.selectedBinset1.peek();
         var binset2 = bindingContext.$data.selectedBinset2.peek();
+        var selectedBins = bindingContext.$data.selectedBins;
 
         var width = 500, height = 500,
             innerRadius = Math.min(width, height) * .41,
@@ -62,6 +63,10 @@ ko.bindingHandlers.chordSvg = {
             .on("mouseout", fade(1))
             .on('click', function(d) {
                 bindingContext.$data.selectedBin(bins[d.index]);
+                if (selectedBins.peek().indexOf(bins[d.index]) > -1)
+                    selectedBins.remove(bins[d.index]);
+                else
+                    selectedBins.push(bins[d.index]);
         });
 
         groupPaths.transition()
@@ -104,6 +109,12 @@ ko.bindingHandlers.chordSvg = {
         if (!binset1 && !binset2) return;
         svg.select('#arc').select('#arc1')
             .attr("fill", binset1.color())
+            .on("click", function(d) {
+                for(var i = 0; i < binset1.bins().length; i++) {
+                    if (selectedBins.peek().indexOf(bins[i]) === -1)
+                        selectedBins.push(bins[i]);
+                }
+            })
           .transition()
             .attr("d", arc
                 .startAngle(chord.groups()[0].startAngle)
@@ -111,7 +122,13 @@ ko.bindingHandlers.chordSvg = {
 
         svg.select('#arc').select('#arc2')
             .attr("fill", binset2.color())
-            .transition()
+            .on("click", function(d) {
+                for(var i = binset1.bins().length; i < bins.length; i++) {
+                    if (selectedBins.peek().indexOf(bins[i]) === -1)
+                        selectedBins.push(bins[i]);
+                }
+            })
+          .transition()
             .attr("d", arc
                 .startAngle(chord.groups()[binset1.bins().length].startAngle)
                 .endAngle(chord.groups()[chord.groups().length - 1].endAngle));

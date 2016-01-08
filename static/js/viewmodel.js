@@ -22,17 +22,6 @@ ko.bindingHandlers.tooltip = {
     }
 };
 
-ko.extenders.trackChange = function(target, track) {
-    if (track) {
-        target.isDirty = ko.observable(false);
-        target.originalValue = target();
-        target.subscribe(function(newValue) {
-            target.isDirty(newValue != target.originalValue);
-        })
-    }
-    return target;
-};
-
 function BinsetPanel(binset) {
     var self = this;
     self.template = "binsetPanel";
@@ -42,15 +31,63 @@ function BinsetPanel(binset) {
 function ContigsPanel() {
     var self = this;
     self.template = "contigsPanel";
-    self.selectedContigsets = ko.observableArray([]);
+    self.isDirty = ko.observable(true);
+    self.showSettings = ko.observable(false);
+    self.plotData = ko.observable('seqcomp'); // seqcomp || coverage
+
+    self.xData = ko.observable('gc');
+    self.xLogarithmic = ko.observable(false);
+
+    self.yData = ko.observable('length');
+    self.yLogarithmic = ko.observable(false);
+
+    self.selectedContigset = ko.observable();
+    self.selectedContigs = ko.observableArray([]);
+    self.contigs = ko.observableArray([]);
+    self.covNames = [];
+
+    self.plotOptions = ko.pureComputed(function() {
+        var plotData = self.plotData();
+        return plotData === 'seqcomp' ? ['gc', 'length'] : self.covNames;
+    });
+
+    self.color = ko.observable();
+    self.colorOptions = ko.computed(function() {
+        var contigset = self.selectedContigset();
+        var blue = {name: 'blue', color: '#58ACFA'};
+        if (!contigset) return blue;
+        return [blue].concat(contigset.binsets());
+    });
+
+    self.updatePlot = function() {
+        self.isDirty(false);
+        var contigset = self.selectedContigset();
+        if (!contigset) return;
+        var data = {items: 1000, length: '>5000'};
+        var url = '/contigsets/' + contigset.id + '/contigs';
+        $.getJSON(url, data, function(data) {
+            self.covNames = Object.keys(data.contigs[0].coverages);
+            self.contigs(data.contigs.map(function(contig) {
+                $.extend(contig, contig.coverages);
+                delete contig.coverages;
+                return contig;
+            }));
+        });
+    };
+
+    ko.computed(function() {
+        var contigset = self.selectedContigset();
+        self.isDirty(true);
+    });
 }
 
 function ChordPanel() {
     var self = this;
     self.template = "chordPanel";
-    self.selectedBinset1 = ko.observable(null).extend({trackChange: true});
-    self.selectedBinset2 = ko.observable(null).extend({trackChange: true});
+    self.selectedBinset1 = ko.observable(null);
+    self.selectedBinset2 = ko.observable(null);
     self.selectedBin = ko.observable();
+    self.selectedBins = ko.observableArray([]);
     self.showSettings = ko.observable(false);
 
     self.unifiedColor = ko.observable(false);
@@ -68,27 +105,24 @@ function ChordPanel() {
     };
 
     self.updateChordPanel = function() {
-        if (self.selectedBinset1.isDirty() || self.selectedBinset2.isDirty()) {
-            console.log('Dirty');
-            var binsets = [self.selectedBinset1(), self.selectedBinset2()];
-            var binIds = binsets[0].bins().concat(binsets[1].bins());
-            var data = {bins: binIds.join(',')};
-            var url = '/contigsets/' + binsets[0].contigset + '/binsets/';
-            $.when(
-                $.getJSON('/to_matrix', data),
-                $.getJSON(url + binsets[0].id + '/bins'),
-                $.getJSON(url + binsets[1].id + '/bins')
-            ).done(function(matrix, bins1, bins2) {
-                bins1[0].bins.forEach(function(b) {
-                    $.extend(b, {binsetColor: binsets[0].color()});
-                });
-                bins2[0].bins.forEach(function(b) {
-                    $.extend(b, {binsetColor: binsets[1].color()});
-                });
-                self.bins = bins1[0].bins.concat(bins2[0].bins);
-                self.matrix(matrix[0]);
+        var binsets = [self.selectedBinset1(), self.selectedBinset2()];
+        var binIds = binsets[0].bins().concat(binsets[1].bins());
+        var data = {bins: binIds.join(',')};
+        var url = '/contigsets/' + binsets[0].contigset + '/binsets/';
+        $.when(
+            $.getJSON('/to_matrix', data),
+            $.getJSON(url + binsets[0].id + '/bins'),
+            $.getJSON(url + binsets[1].id + '/bins')
+        ).done(function(matrix, bins1, bins2) {
+            bins1[0].bins.forEach(function(b) {
+                $.extend(b, {binsetColor: binsets[0].color()});
             });
-        }
+            bins2[0].bins.forEach(function(b) {
+                $.extend(b, {binsetColor: binsets[1].color()});
+            });
+            self.bins = bins1[0].bins.concat(bins2[0].bins);
+            self.matrix(matrix[0]);
+        });
     };
 }
 
@@ -99,20 +133,24 @@ function ContigSection() {
     self.showFilters = ko.observable(false);
     self.toggleFilters = function() { self.showFilters(!self.showFilters()); };
     self.view = ko.observable('table'); // Either table or plot
-    self.queryOptions = ko.observable({items: 7, index: 1, sort: 'name'});
+    self.sort = ko.observable('name');
 
-    self.sort = function(by) {
-        var queryOptions = self.queryOptions();
-        queryOptions.sort = by;
-        self.queryOptions(queryOptions);
-    };
+    // pagination
+    self.index = ko.observable(1);
+    self.count = ko.observable();
+    self.indices = ko.observable();
 
     ko.computed(function() {
         var contigsetId = self.contigsetId();
-        var queryOptions = self.queryOptions();
         if (!contigsetId) return;
+        var index = self.index(),
+            sort = self.sort(),
+            queryOptions = {index: index, sort: sort, items: 7,
+                fields: 'id,name,gc,length'};
         $.getJSON('/contigsets/' + contigsetId + '/contigs', queryOptions, function(data) {
             self.contigs(data.contigs);
+            self.indices(data.indices);
+            self.count(data.count);
         });
     });
 }
@@ -206,8 +244,7 @@ function ViewModel() {
     self.hideElement = function(elem) { if (elem.nodeType === 1) $(elem).slideUp(function() { $(elem).remove(); }) };
 
     // Panels
-    self.panels = ko.observableArray([new ChordPanel(), //new BinsetPanel("kek"),
-        new ContigsPanel()]);
+    self.panels = ko.observableArray([new ContigsPanel(), new ChordPanel()]);
     self.getPanelTemplate = function(panel) {
         return panel.template;
     };

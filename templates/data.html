@@ -23,7 +23,7 @@ $(function() {
 <div class="panel panel-default">
     <div class="panel-heading">
         <h4 class="panel-title">
-            Assembled contigs / scaffolds
+            Contigs / scaffolds
             <a href="#contigsetFormPanel" data-toggle="collapse">
                 <span class="glyphicon glyphicon-plus pull-right"></span>
             </a>
@@ -45,6 +45,13 @@ $(function() {
                     <label for="contigsetFile">Contig bestand</label>
                     <input type="file" id="contigsetFile" name="contigs">
                     <p class="help-block">Het contig bestand moet in fasta-formaat zijn.</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="coverageFile">Coverage bestand</label>
+                    <input type="file" id="coverageFile" name="coverage">
+                    <p class="help-block">Een delimiter-gescheiden bestand.
+                        Eerste kolom is de contig naam.</p>
                 </div>
 
                 <button class="btn btn-default" type="submit">Voeg toe</button>
@@ -116,7 +123,7 @@ $(function() {
                     contig en tweede kolom bin nummer.</p>
             </div>
 
-            <table class="table" id="binTable">
+            <table class="table table-condensed" id="binTable">
                 <thead><tr><th>Contig</th><th>Bin</th></tr></thead>
                 <tbody></tbody>
             </table>
@@ -200,7 +207,7 @@ $(function() {
 
     <div class="well well-sm" data-bind="visible: showFilters">
         <form class="form-horizontal">
-            <div class="form-group">
+            <div class="form-group form-group-sm">
                 <label class="col-xs-2 control-label">GC</label>
                 <div class="col-xs-3 col-xs-offset-2">
                     <select class="form-control" name="gcOperator">
@@ -227,7 +234,7 @@ $(function() {
                 </div>
             </div>
         </form>
-        <button class="btn btn-primary">Toepassen</button>
+        <button class="btn btn-primary btn-sm">Toepassen</button>
     </div>
 
     <div data-bind="histSvg: true, visible: view() === 'plot'"></div>
@@ -248,6 +255,24 @@ $(function() {
             </tr>
         </tbody>
     </table>
+
+    <div class="panel-footer" style="background-color: #ffffff">
+    <div class="row">
+        <div class="col-xs-4">
+            <div class="input-group input-group-sm">
+                <input class="form-control" type="text" data-bind="value: index">
+                <span class="input-group-addon">
+                    / <span data-bind="text: indices"></span>
+                </span>
+            </div>
+        </div>
+
+        <div class="col-xs-3 col-xs-offset-5">
+            <p class="small">
+                <i><span data-bind="text: count"></span></i> contigs</p>
+        </div>
+    </div>
+    </div>
 </div>
 
 

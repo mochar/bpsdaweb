@@ -55,3 +55,11 @@ def parse_dsv(dsv_file, delimiter=None):
     for line in dsv_file_contents.splitlines():
         if line == '': continue
         yield line.rstrip().split(delimiter)
+
+
+def is_number(string):
+    try:
+        float(string)
+        return True
+    except ValueError:
+        return False

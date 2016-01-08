@@ -1,5 +1,6 @@
 import uuid
 import json
+from urllib.parse import unquote
 
 import werkzeug
 from flask import Flask, render_template, g, session, abort, request
@@ -28,7 +29,8 @@ class Bin(db.Model):
     __tablename__ = 'bin'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(25))
-    binset_id = db.Column(db.Integer, db.ForeignKey('binset.id'))
+    binset_id = db.Column(db.Integer, db.ForeignKey('binset.id'),
+        nullable=False)
     color = db.Column(db.String(7), default='#ffffff')
     contigs = db.relationship('Contig', secondary=bincontig,
         backref=db.backref('bins', lazy='dynamic'))
@@ -39,8 +41,20 @@ class Contig(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120))
     sequence = db.Column(db.String)
+    length = db.Column(db.String)
     gc = db.Column(db.Integer)
-    contigset_id = db.Column(db.Integer, db.ForeignKey('contigset.id'))
+    contigset_id = db.Column(db.Integer, db.ForeignKey('contigset.id'),
+         nullable=False)
+    coverages = db.relationship('Coverage', backref='contig', lazy='dynamic',
+        cascade='all, delete')
+
+
+class Coverage(db.Model):
+    __tablename__ = 'coverage'
+    id = db.Column(db.Integer, primary_key=True)
+    contig_id = db.Column(db.Integer, db.ForeignKey('contig.id'), nullable=False)
+    name = db.Column(db.String(60))
+    value = db.Column(db.Integer)
 
 
 class Binset(db.Model):
@@ -50,7 +64,8 @@ class Binset(db.Model):
     color = db.Column(db.String(7))
     bins = db.relationship('Bin', backref='binset', lazy='dynamic',
         cascade='all, delete')
-    contigset_id = db.Column(db.Integer, db.ForeignKey('contigset.id'))
+    contigset_id = db.Column(db.Integer, db.ForeignKey('contigset.id'),
+         nullable=False)
 
 
 class Contigset(db.Model):
@@ -98,6 +113,8 @@ class ContigsetListApi(Resource):
             location='form')
         self.reqparse.add_argument('contigs', location='files',
             type=werkzeug.datastructures.FileStorage)
+        self.reqparse.add_argument('coverage', location='files',
+            type=werkzeug.datastructures.FileStorage)
         super(ContigsetListApi, self).__init__()
 
     def get(self):
@@ -114,20 +131,40 @@ class ContigsetListApi(Resource):
     def post(self):
         args = self.reqparse.parse_args()
 
-        contigs = []
-        if args.contigs:
-            for header, sequence in utils.parse_fasta(args.contigs.stream):
-                contigs.append(Contig(name=header, sequence=sequence,
-                                      gc=utils.gc_content(sequence)))
-
-        contigset = Contigset(name=args.name, userid=session['uid'],
-            contigs=contigs)
-
+        contigset = Contigset(name=args.name, userid=session['uid'])
         db.session.add(contigset)
+
+        coverages = {}
+        if args.coverage:
+            coverage_file = utils.parse_dsv(args.coverage.stream)
+            fields = next(coverage_file)
+            if utils.is_number(fields[1]):
+                header = ['cov_{}'.format(i) for i, _ in enumerate(fields[1:], 1)]
+                contig_name, *_coverages = fields
+                coverages[contig_name] = [Coverage(value=cov, name=header[i])
+                                          for i, cov in enumerate(_coverages)]
+            else:
+                header = fields[1:]
+            for contig_name, *_coverages in coverage_file:
+                coverages[contig_name] = [Coverage(value=cov, name=header[i])
+                                          for i, cov in enumerate(_coverages)]
+
+        if args.contigs:
+            fasta_file = utils.parse_fasta(args.contigs.stream)
+            for i, data in enumerate(fasta_file, 1):
+                header, sequence = data
+                contig_coverage = coverages.get(header,
+                    [Coverage(value=0, name=x) for x in header])
+                db.session.add(Contig(name=header, sequence=sequence,
+                    gc=utils.gc_content(sequence), coverages=contig_coverage,
+                    length=len(sequence), contigset=contigset))
+                if i % 5000 == 0:
+                    print(i)
+                    db.session.flush()
         db.session.commit()
 
-        return {'id': contigset.id, 'name': args.name, 'length': len(contigs),
-            'binsets': []}
+        return {'id': contigset.id, 'name': args.name,
+                'length': contigset.contigs.count(), 'binsets': []}
 
 
 class ContigsetApi(Resource):
@@ -162,22 +199,50 @@ class ContigListApi(Resource):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument('items', type=int, default=50, dest='_items')
         self.reqparse.add_argument('index', type=int, default=1)
-        self.reqparse.add_argument('sort', type=str, default='name',
-            choices=['name', 'gc', 'length'])
+        self.reqparse.add_argument('sort', type=str, choices=[
+            'id', 'name', 'gc', 'length', '-id', '-name', '-gc', '-length'])
+        self.reqparse.add_argument('fields', type=str)
+        self.reqparse.add_argument('length', type=str)
         super(ContigListApi, self).__init__()
 
     def get(self, contigset_id):
         args = self.reqparse.parse_args()
-        contigset = user_contigset_or_404(contigset_id)
-        contigs = contigset.contigs.order_by(db.asc(args.sort))
-        contigs = contigs.paginate(args.index, args._items, False)
+        contigs = user_contigset_or_404(contigset_id).contigs
+        if args.fields:
+            fields = args.fields.split(',')
+            columns = [Contig.__dict__[field] for field in fields]
+            contigs = contigs.with_entities(*columns)
+        if args.sort:
+            order = db.desc(args.sort[1:]) if args.sort[0] == '-' else db.asc(args.sort)
+            contigs = contigs.order_by(order)
+        if args.length and args.length.rstrip('-').rstrip('+').isnumeric():
+            length = unquote(args.length)
+            if length.endswith('-'):
+                filter = Contig.length < int(length.rstrip('-'))
+            elif length.endswith('+'):
+                filter = Contig.length > int(length.rstrip('+'))
+            else:
+                filter = Contig.length == int(length)
+            contigs = contigs.filter(filter)
+        contig_pagination = contigs.paginate(args.index, args._items, False)
         result = []
-        for contig in contigs.items:
-            gc = contig.gc if contig.gc else '-'
-            length = len(contig.sequence) if contig.sequence else '-'
-            result.append({'id': contig.id, 'name': contig.name, 'gc': gc,
-                'length': length})
-        return {'contigs': result, 'pages': contigs.pages}
+        for contig in contig_pagination.items:
+            r = {}
+            if args.fields is None or 'id' in fields:
+                r['id'] = contig.id
+            if args.fields is None or 'name' in fields:
+                r['name'] = contig.name
+            if args.fields is None or 'gc' in fields:
+                r['gc'] = contig.gc if contig.gc is not None else '-'
+            if args.fields is None or 'length' in fields:
+                r['length'] = contig.length if contig.length is not None else '-'
+            if args.fields is None or 'coverages' in fields:
+                r['coverages'] = {cov.name: cov.value
+                    for cov in contig.coverages.all()}
+            result.append(r)
+
+        return {'contigs': result, 'indices': contig_pagination.pages,
+            'index': args.index, 'count': contigs.count(), 'items': args._items}
 
 
 class ContigApi(Resource):
@@ -225,10 +290,11 @@ class BinsetListApi(Resource):
 
         # Bins can contain contig names which are not present in the contigset.
         # Add these new contigs to the contigset.
+        new_contigs = []
         contig_names = [contig.name for contig in contigs]
         for contig_name in [c for c in contig_bins if c not in contig_names]:
-            contigs.append(Contig(name=contig_name))
-        contigset.contigs = contigs
+            new_contigs.append(Contig(name=contig_name))
+        contigset.contigs.extend(new_contigs)
 
         done = {}
         for contig in contigs:
