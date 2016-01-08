@@ -140,6 +140,26 @@ function ContigSection() {
     self.count = ko.observable();
     self.indices = ko.observable();
 
+    // plot
+    self.plotData = ko.observable('length'); // Either gc or length
+    self.plotContigs = ko.observable([]);
+    ko.computed(function() {
+        var contigsetId = self.contigsetId();
+        if (!contigsetId) return;
+        var view = self.view();
+        if (view === 'table') {
+            self.plotContigs([]);
+            return;
+        }
+        var plotData = self.plotData();
+        var queryOptions = {items: 65000, fields: plotData};
+        $.getJSON('/contigsets/' + contigsetId + '/contigs', queryOptions, function(data) {
+            self.plotContigs(data.contigs.map(function(contig) {
+                return contig[plotData];
+            }));
+        });
+    });
+
     ko.computed(function() {
         var contigsetId = self.contigsetId();
         if (!contigsetId) return;

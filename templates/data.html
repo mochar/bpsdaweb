@@ -237,7 +237,23 @@ $(function() {
         <button class="btn btn-primary btn-sm">Toepassen</button>
     </div>
 
-    <div data-bind="histSvg: true, visible: view() === 'plot'"></div>
+    <div class="row" data-bind="visible: view() === 'plot'">
+        <div class="col-xs-9" data-bind="histSvg: true"></div>
+        <div class="col-xs-3">
+            <ul class="nav nav-pills nav-stacked">
+                <li role="presentation"
+                    data-bind="css: { active: plotData() === 'gc' },
+                                      click: function() { plotData('gc') }">
+                    <a href="#">GC</a>
+                </li>
+                <li role="presentation"
+                    data-bind="css: { active: plotData() === 'length' },
+                                      click: function() { plotData('length') }">
+                    <a href="#">Lengte</a>
+                </li>
+            </ul>
+        </div>
+    </div>
 
     <table class="table table-condensed" data-bind="visible: view() === 'table'">
         <thead>
