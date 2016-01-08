@@ -185,20 +185,35 @@
                     </div>
 
                     <div data-bind="visible: showSettings" class="well well-sm">
-                        <label>Logaritmische assen</label>
-                        <label class="checkbox-inline">
-                            <input type="checkbox" data-bind="checked: xLogarithmic"> x-as
-                        </label>
-                        <label class="checkbox-inline">
-                            <input type="checkbox" data-bind="checked: yLogarithmic"> y-as
-                        </label>
+                        <div class="form-group form-group-sm">
+                            <label>Logaritmische assen</label>
+                            <label class="checkbox-inline">
+                                <input type="checkbox" data-bind="checked: xLogarithmic"> x-as
+                            </label>
+                            <label class="checkbox-inline">
+                                <input type="checkbox" data-bind="checked: yLogarithmic"> y-as
+                            </label>
+                        </div>
 
-                        <label>Kleur op bins</label>
-                        <select class="form-control"
-                                data-bind="options: colorOptions,
-                                           optionsText: 'name',
-                                           value: color">
-                        </select>
+                        <div class="form-group form-group-sm">
+                            <label>Kleur</label>
+                            <div class="radio">
+                                <label>
+                                    <input type="radio" value="uniform" data-bind="checked: colorMethod">
+                                    <button data-bind="colorpicker: color"
+                                            class="btn btn-block"></button>
+                                </label>
+                            </div>
+                            <div class="radio" data-bind="if: selectedContigset">
+                                <label>
+                                    <input type="radio" value="binset" data-bind="checked: colorMethod">
+                                    <select class="form-control"
+                                            data-bind="options: selectedContigset().binsets,
+                                                       optionsText: 'name',
+                                                       value: colorBinset"></select>
+                                </label>
+                            </div>
+                        </div>
                     </div>
 
                     <ul class="list-group scrollable" data-bind="foreach: selectedContigs">
