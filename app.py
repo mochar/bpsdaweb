@@ -148,14 +148,16 @@ class ContigsetListApi(Resource):
             for contig_name, *_coverages in coverage_file:
                 coverages[contig_name] = [Coverage(value=cov, name=header[i])
                                           for i, cov in enumerate(_coverages)]
+        else:
+            header = []
 
         if args.contigs:
             fasta_file = utils.parse_fasta(args.contigs.stream)
             for i, data in enumerate(fasta_file, 1):
-                header, sequence = data
-                contig_coverage = coverages.get(header,
+                name, sequence = data
+                contig_coverage = coverages.get(name,
                     [Coverage(value=0, name=x) for x in header])
-                db.session.add(Contig(name=header, sequence=sequence,
+                db.session.add(Contig(name=name, sequence=sequence,
                     gc=utils.gc_content(sequence), coverages=contig_coverage,
                     length=len(sequence), contigset=contigset))
                 if i % 5000 == 0:
