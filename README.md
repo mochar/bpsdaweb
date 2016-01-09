@@ -1,7 +1,7 @@
 # bpsdaweb
 Evaluation of metagenomic binning
 
-Dependencies (python 3):
+Dependencies (python 3):  
 * flask
 * flask-sqlalchemy
 * flask-restful
