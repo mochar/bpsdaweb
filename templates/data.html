@@ -258,9 +258,27 @@ $(function() {
     <table class="table table-condensed" data-bind="visible: view() === 'table'">
         <thead>
             <tr>
-                <th width="60%" data-bind="click: function() { sort('name') }">Contig</th>
-                <th width="20%" data-bind="click: function() { sort('gc') }">GC</th>
-                <th width="20%">Lengte</th>
+                <th width="60%" data-bind="click: function() { sort('name') }">
+                    Contig
+                    <span class="glyphicon pull-right"
+                          data-bind="css: { 'glyphicon-chevron-up': sortBy() == 'name',
+                                            'glyphicon-chevron-down': sortBy() == '-name'}">
+                    </span>
+                </th>
+                <th width="20%" data-bind="click: function() { sort('gc') }">
+                    GC
+                    <span class="glyphicon pull-right"
+                          data-bind="css: { 'glyphicon-chevron-up': sortBy() == 'gc',
+                                            'glyphicon-chevron-down': sortBy() == '-gc'}">
+                    </span>
+                </th>
+                <th width="20%" data-bind="click: function() { sort('length') }">
+                    Lengte
+                    <span class="glyphicon pull-right"
+                          data-bind="css: { 'glyphicon-chevron-up': sortBy() == 'length',
+                                            'glyphicon-chevron-down': sortBy() == '-length'}">
+                    </span>
+                </th>
             </tr>
         </thead>
         <tbody data-bind="foreach: contigs">

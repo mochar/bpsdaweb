@@ -45,7 +45,7 @@ def parse_fasta(fasta_file):
 
 def gc_content(sequence):
     gc = sequence.lower().count('g') + sequence.lower().count('c')
-    return gc / len(sequence)
+    return float('{0:.2f}'.format(gc / len(sequence)))
 
 
 def parse_dsv(dsv_file, delimiter=None):

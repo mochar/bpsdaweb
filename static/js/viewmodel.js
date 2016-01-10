@@ -154,8 +154,14 @@ function ContigSection() {
     self.contigsetId = ko.observable();
     self.showFilters = ko.observable(false);
     self.toggleFilters = function() { self.showFilters(!self.showFilters()); };
+
+    // table
     self.view = ko.observable('table'); // Either table or plot
-    self.sort = ko.observable('name');
+    self.sortBy = ko.observable('name');
+    self.sort = function(field) {
+        var sortBy = self.sortBy();
+        field === sortBy ? self.sortBy('-' + field) : self.sortBy(field);
+    };
 
     // pagination
     self.index = ko.observable(1);
@@ -186,7 +192,7 @@ function ContigSection() {
         var contigsetId = self.contigsetId();
         if (!contigsetId) return;
         var index = self.index(),
-            sort = self.sort(),
+            sort = self.sortBy(),
             queryOptions = {index: index, sort: sort, items: 7,
                 fields: 'id,name,gc,length'};
         $.getJSON('/contigsets/' + contigsetId + '/contigs', queryOptions, function(data) {
