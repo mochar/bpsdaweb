@@ -258,8 +258,8 @@ $(function() {
     <table class="table table-condensed" data-bind="visible: view() === 'table'">
         <thead>
             <tr>
-                <th width="60%" data-bind="click: sort('name')">Contig</th>
-                <th width="20%" data-bind="click: sort('gc')">GC</th>
+                <th width="60%" data-bind="click: function() { sort('name') }">Contig</th>
+                <th width="20%" data-bind="click: function() { sort('gc') }">GC</th>
                 <th width="20%">Lengte</th>
             </tr>
         </thead>

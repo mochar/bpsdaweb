@@ -22,6 +22,17 @@ ko.bindingHandlers.tooltip = {
     }
 };
 
+ko.bindingHandlers.colorpicker = {
+    init: function(element, valueAccessor) {
+        var color = valueAccessor();
+        $(element).colpick({
+            onChange: function(hsb, hex) {
+                color('#' + hex);
+            }
+        });
+    }
+};
+
 function BinsetPanel(binset) {
     var self = this;
     self.template = "binsetPanel";
@@ -51,12 +62,23 @@ function ContigsPanel() {
         return plotData === 'seqcomp' ? ['gc', 'length'] : self.covNames;
     });
 
-    self.color = ko.observable();
-    self.colorOptions = ko.computed(function() {
-        var contigset = self.selectedContigset();
-        var blue = {name: 'blue', color: '#58ACFA'};
-        if (!contigset) return blue;
-        return [blue].concat(contigset.binsets());
+    self.color = ko.observable('#58ACFA');
+    self.colorMethod = ko.observable('uniform'); // uniform || binset
+    self.colorBinset = ko.observable();
+    self.colors = ko.observable({});
+    ko.computed(function() {
+        var colorMethod = self.colorMethod();
+        if (colorMethod === 'uniform') return [];
+        var binset = self.colorBinset();
+        $.getJSON('/contigsets/' + binset.contigset + '/binsets/' + binset.id + '/bins', function(data) {
+            var contigColors = {};
+            data.bins.forEach(function(bin) {
+                bin.contigs.forEach(function(contig) {
+                    contigColors[contig] = bin.color;
+                });
+            });
+            self.colors(contigColors);
+        });
     });
 
     self.updatePlot = function() {
