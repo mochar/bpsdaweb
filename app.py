@@ -41,7 +41,7 @@ class Contig(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120))
     sequence = db.Column(db.String)
-    length = db.Column(db.String)
+    length = db.Column(db.Integer)
     gc = db.Column(db.Integer)
     contigset_id = db.Column(db.Integer, db.ForeignKey('contigset.id'),
          nullable=False)
