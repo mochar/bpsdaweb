@@ -106,11 +106,10 @@ def create_coverage_objects(coverage_filename):
 
     # Determine if the file has a header.
     fields = next(coverage_file)
-    has_header = utils.is_number(fields[1])
+    has_header = not utils.is_number(fields[1])
 
-    if has_header:
-        header = fields[1:]
-    else:
+    header = fields[1:]
+    if not has_header:
         header = ['cov_{}'.format(i) for i, _ in enumerate(fields[1:], 1)]
         contig_name, *_coverages = fields
         coverages[contig_name] = [Coverage(value=cov, name=header[i])
