@@ -1,8 +1,10 @@
 import uuid
 import json
+import tempfile
+import os
 
 import werkzeug
-from flask import Flask, render_template, g, session, abort, request
+from flask import Flask, render_template, g, session, abort, request, jsonify
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_restful import Api, Resource, reqparse
 
@@ -78,6 +80,49 @@ class Contigset(db.Model):
         cascade='all, delete')
 
 
+def save_contigs(contigset, fasta_filename, coverage_objects=None, bulk_size=5000):
+    """
+    :param contigset: A Contigset model object in which to save the contigs.
+    :param fasta_filename: The file name of the fasta file where the contigs are stored.
+    :param coverage_objects: A dict with keys contig names and values Coverage objects.
+    :param bulk_size: How many contigs to store per bulk.
+    """
+    for i, data in enumerate(utils.parse_fasta(fasta_filename), 1):
+        name, sequence = data
+        coverages = coverage_objects.get(name, []) if coverage_objects else []
+        db.session.add(Contig(name=name, sequence=sequence, length=len(sequence),
+            gc=utils.gc_content(sequence), contigset=contigset, coverages=coverages))
+        if i % bulk_size == 0:
+            db.session.flush()
+    db.session.commit()
+
+
+def create_coverage_objects(coverage_filename):
+    """
+    :param coverage_filename: The name of the dsv file.
+    """
+    coverage_file = utils.parse_dsv(coverage_filename)
+    coverages = {} # contig_name -> list of Coverage objects
+
+    # Determine if the file has a header.
+    fields = next(coverage_file)
+    has_header = utils.is_number(fields[1])
+
+    if has_header:
+        header = fields[1:]
+    else:
+        header = ['cov_{}'.format(i) for i, _ in enumerate(fields[1:], 1)]
+        contig_name, *_coverages = fields
+        coverages[contig_name] = [Coverage(value=cov, name=header[i])
+                                  for i, cov in enumerate(_coverages)]
+
+    for contig_name, *_coverages in coverage_file:
+        coverages[contig_name] = [Coverage(value=cov, name=header[i])
+                                  for i, cov in enumerate(_coverages)]
+
+    return coverages
+
+
 ''' API '''
 def user_contigset_or_404(id):
     userid = session.get('uid')
@@ -132,40 +177,26 @@ class ContigsetListApi(Resource):
 
         contigset = Contigset(name=args.name, userid=session['uid'])
         db.session.add(contigset)
-
-        coverages = {}
-        if args.coverage:
-            coverage_file = utils.parse_dsv(args.coverage.stream)
-            fields = next(coverage_file)
-            if utils.is_number(fields[1]):
-                header = ['cov_{}'.format(i) for i, _ in enumerate(fields[1:], 1)]
-                contig_name, *_coverages = fields
-                coverages[contig_name] = [Coverage(value=cov, name=header[i])
-                                          for i, cov in enumerate(_coverages)]
-            else:
-                header = fields[1:]
-            for contig_name, *_coverages in coverage_file:
-                coverages[contig_name] = [Coverage(value=cov, name=header[i])
-                                          for i, cov in enumerate(_coverages)]
-        else:
-            header = []
-
-        if args.contigs:
-            fasta_file = utils.parse_fasta(args.contigs.stream)
-            for i, data in enumerate(fasta_file, 1):
-                name, sequence = data
-                contig_coverage = coverages.get(name,
-                    [Coverage(value=0, name=x) for x in header])
-                db.session.add(Contig(name=name, sequence=sequence,
-                    gc=utils.gc_content(sequence), coverages=contig_coverage,
-                    length=len(sequence), contigset=contigset))
-                if i % 5000 == 0:
-                    print(i)
-                    db.session.flush()
         db.session.commit()
 
-        return {'id': contigset.id, 'name': args.name,
-                'length': contigset.contigs.count(), 'binsets': []}
+        if args.contigs:
+            fasta_file = tempfile.NamedTemporaryFile(delete=False)
+            args.contigs.save(fasta_file)
+            fasta_file.close()
+            if args.coverage:
+                coverage_file = tempfile.NamedTemporaryFile(delete=False)
+                args.coverage.save(coverage_file)
+                coverage_file.close()
+                coverage_objects = create_coverage_objects(coverage_file.name)
+                os.remove(coverage_file.name)
+                save_contigs(contigset, fasta_file.name,
+                    coverage_objects=coverage_objects)
+            else:
+                save_contigs(contigset, fasta_file.name)
+            os.remove(fasta_file.name)
+
+        return {'id': contigset.id, 'name': contigset.name, 'binsets': [],
+            'size': contigset.contigs.count()}
 
 
 class ContigsetApi(Resource):
@@ -284,9 +315,13 @@ class BinsetListApi(Resource):
         contigset = user_contigset_or_404(contigset_id)
         args = self.reqparse.parse_args()
 
+        bin_file = tempfile.NamedTemporaryFile(delete=False)
+        args.bins.save(bin_file)
+        bin_file.close()
+
         # Dict: contig -> bin
         contig_bins = {}
-        for contig_name, bin_name in utils.parse_dsv(args.bins):
+        for contig_name, bin_name in utils.parse_dsv(bin_file.name):
             contig_bins[contig_name] = bin_name
 
         filter = Contig.name.in_(contig_bins)
@@ -312,6 +347,7 @@ class BinsetListApi(Resource):
         binset = Binset(name=args.name, color=randcol.generate()[0],
             bins=list(done.values()), contigset=contigset)
 
+        os.remove(bin_file.name)
         db.session.add(binset)
         db.session.commit()
         return {'id': binset.id, 'name': binset.name, 'color': binset.color,

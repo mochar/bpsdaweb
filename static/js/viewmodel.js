@@ -33,12 +33,6 @@ ko.bindingHandlers.colorpicker = {
     }
 };
 
-function BinsetPanel(binset) {
-    var self = this;
-    self.template = "binsetPanel";
-    self.binset = ko.observable(binset);
-}
-
 function ContigsPanel() {
     var self = this;
     self.template = "contigsPanel";
@@ -231,7 +225,7 @@ function Contigset(data) {
     var self = this;
     self.id = data.id;
     self.name = ko.observable(data.name);
-    self.contigs = ko.observableArray(data.contigs);
+    self.size = ko.observableArray(data.size); // amount of contigs
     self.binsets = ko.observableArray([]);
 
     $.getJSON('/contigsets/' + self.id + '/binsets', function(data) {
@@ -301,13 +295,6 @@ function ViewModel() {
     };
     self.newChordPanel = function() {
         self.panels.unshift(new ChordPanel());
-    };
-
-
-    self.contigsetFromId = function(id) {
-        for(var i = 0; i < self.contigsets().length; i++) {
-            if (self.contigsets()[i].id == id) return self.contigsets()[i];
-        }
     };
 
 

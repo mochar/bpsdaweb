@@ -30,17 +30,18 @@ def sort_bins(bins, reverse=False):
 
 
 def parse_fasta(fasta_file):
-    header, sequence = '', ''
-    for line in fasta_file:
-        line = line.decode('utf-8').rstrip()
-        if line.startswith('>'):
-            if header:
-                yield header, sequence
-            header = line.lstrip('>')
-            sequence = ''
-        else:
-            sequence += line
-    yield header, sequence
+    with open(fasta_file) as f:
+        header, sequence = '', ''
+        for line in f:
+            line = line.rstrip()
+            if line.startswith('>'):
+                if header:
+                    yield header, sequence
+                header = line.lstrip('>')
+                sequence = ''
+            else:
+                sequence += line
+        yield header, sequence
 
 
 def gc_content(sequence):
@@ -49,7 +50,11 @@ def gc_content(sequence):
 
 
 def parse_dsv(dsv_file, delimiter=None):
-    dsv_file_contents = dsv_file.read().decode('utf-8')
+    try:
+        dsv_file_contents = dsv_file.read()
+    except AttributeError:
+        with open(dsv_file, 'r') as f:
+            dsv_file_contents = f.read()
     if delimiter is None:
         delimiter = csv.Sniffer().sniff(dsv_file_contents).delimiter
     for line in dsv_file_contents.splitlines():
