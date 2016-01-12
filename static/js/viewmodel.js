@@ -85,7 +85,7 @@ function ContigsPanel() {
         self.isDirty(false);
         var contigset = self.selectedContigset();
         if (!contigset) return;
-        var data = {items: 1000, length: '>5000'};
+        var data = {items: 1000, length: '5000+'};
         var url = '/contigsets/' + contigset.id + '/contigs';
         $.getJSON(url, data, function(data) {
             self.covNames = Object.keys(data.contigs[0].coverages);

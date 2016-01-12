@@ -1,6 +1,5 @@
 import uuid
 import json
-from urllib.parse import unquote
 
 import werkzeug
 from flask import Flask, render_template, g, session, abort, request
@@ -217,14 +216,17 @@ class ContigListApi(Resource):
         if args.sort:
             order = db.desc(args.sort[1:]) if args.sort[0] == '-' else db.asc(args.sort)
             contigs = contigs.order_by(order)
-        if args.length and args.length.rstrip('-').rstrip('+').isnumeric():
-            length = unquote(args.length)
-            if length.endswith('-'):
-                filter = Contig.length < int(length.rstrip('-'))
-            elif length.endswith('+'):
-                filter = Contig.length > int(length.rstrip('+'))
+        if args.length:
+            length = args.length.rstrip('-').rstrip('+')
+            if not length.isnumeric():
+                return
+            length = int(length)
+            if args.length.endswith('-'):
+                filter = Contig.length < length
+            elif args.length.endswith('+'):
+                filter = Contig.length > length
             else:
-                filter = Contig.length == int(length)
+                filter = Contig.length == length
             contigs = contigs.filter(filter)
         contig_pagination = contigs.paginate(args.index, args._items, False)
         result = []
