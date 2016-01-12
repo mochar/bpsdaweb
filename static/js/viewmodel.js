@@ -225,7 +225,7 @@ function Contigset(data) {
     var self = this;
     self.id = data.id;
     self.name = ko.observable(data.name);
-    self.size = ko.observableArray(data.size); // amount of contigs
+    self.size = ko.observable(data.size); // amount of contigs
     self.binsets = ko.observableArray([]);
 
     $.getJSON('/contigsets/' + self.id + '/binsets', function(data) {

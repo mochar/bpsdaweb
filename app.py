@@ -168,7 +168,7 @@ class ContigsetListApi(Resource):
         result = []
         for contigset in Contigset.query.filter_by(userid=userid).all():
             result.append({'name': contigset.name, 'id': contigset.id,
-                           'length': contigset.contigs.count(),
+                           'size': contigset.contigs.count(),
                            'binsets': [binset.id for binset in contigset.binsets]})
         return {'contigsets': result}
 
