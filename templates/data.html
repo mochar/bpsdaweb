@@ -184,32 +184,36 @@ $(function() {
 
 <div class="panel panel-default" data-bind="with: binSection,
                                             slideVisible: selectedBinset">
-    <table class="table table-condensed">
+    <table class="table table-condensed" style="table-layout: fixed">
         <thead>
             <tr>
                 <th width="5%"></th>
-                <th width="40%">Bin</th>
-                <th width="25%">GC</th>
-                <th width="25%">N50</th>
-                <th width="5%"></th>
+                <th width="35%">Bin</th>
+                <th width="25%" data-bind="click: function() { sort('gc') }">GC</th>
+                <th width="25%" data-bind="click: function() { sort('n50') }">N50</th>
+                <th width="10%"></th>
             </tr>
         </thead>
-        <tbody data-bind="foreach: bins">
+    </table>
+    <div style="overflow-y: auto; max-height: 150px">
+        <table class="table table-condensed" style="table-layout: fixed">
+            <tbody data-bind="foreach: bins">
             <tr>
                 <td width="5%">
                     <input type="checkbox">
                 </td>
-                <td data-bind="text: name" width="40%"></td>
+                <td data-bind="text: name" width="35%"></td>
                 <td data-bind="text: gc" width="25%"></td>
                 <td data-bind="text: n50" width="25%"></td>
-                <td width="5%">
+                <td width="10%">
                     <button data-bind="style: { 'background-color': color },
                                         colorpicker: color"
                             class="colorBox"></button>
                 </td>
             </tr>
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 

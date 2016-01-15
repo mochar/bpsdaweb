@@ -213,6 +213,13 @@ function BinSection() {
     self.binset = ko.observable(null);
     self.bins = ko.observableArray([]);
 
+    self.sort = function(by) {
+        return self.bins.sort(function(left, right) {
+            if (left[by] == right[by]) return 0;
+            return left[by] < right[by] ? -1 : 1;
+        });
+    };
+
     ko.computed(function() {
         var binset = self.binset();
         if (!binset) return;
