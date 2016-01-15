@@ -207,6 +207,26 @@ function ContigSection() {
     });
 }
 
+
+function BinSection() {
+    var self = this;
+    self.binset = ko.observable(null);
+    self.bins = ko.observableArray([]);
+
+    ko.computed(function() {
+        var binset = self.binset();
+        if (!binset) return;
+        var url = '/contigsets/' + binset.contigset + '/binsets/' + binset.id + '/bins';
+        var queryOptions = {items: 5};
+        $.getJSON(url, queryOptions, function(data) {
+            self.contigs(data.contigs);
+            self.indices(data.indices);
+            self.count(data.count);
+        });
+    });
+}
+
+
 function Binset(data) {
     var self = this;
     self.id = data.id;
@@ -264,6 +284,7 @@ function ViewModel() {
     self.selectedContigset = ko.observable(null);
     self.selectedBinset = ko.observable(null);
     self.contigSection = new ContigSection();
+    self.binSection = new BinSection();
 
     self.binsets = ko.pureComputed(function() {
         var contigsets = self.contigsets();
@@ -286,10 +307,17 @@ function ViewModel() {
         return contigset ? contigset.binsets() : self.binsets();
     });
 
+    // Update contigs in the contig table.
     ko.computed(function() {
         var contigset = self.selectedContigset();
         if (!contigset) return;
         self.contigSection.contigsetId(contigset.id);
+    });
+
+    ko.computed(function() {
+        var binset = self.selectedBinset();
+        if (!binset) return;
+        self.binSection.binset(self.binset);
     });
 
     self.showElement = function(elem) { if (elem.nodeType === 1) $(elem).hide().slideDown() };

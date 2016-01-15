@@ -183,6 +183,28 @@ $(function() {
 
 
 
+<div class="panel panel-default" data-bind="with: binSection,
+                                            slideVisible: selectedBinset">
+    <table class="table table-condensed">
+        <thead>
+            <tr>
+                <th width="50%">Bin</th>
+                <th width="25%">GC</th>
+                <th width="25%">Lengte</th>
+            </tr>
+        </thead>
+        <tbody data-bind="foreach: bins">
+            <tr>
+                <td data-bind="text: name" width="50%"></td>
+                <td data-bind="text: gc" width="25%"></td>
+                <td data-bind="text: length" width="25%"></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+
+
 <div class="panel panel-default" data-bind="with: contigSection,
                                             slideVisible: selectedContigset">
     <div class="panel-body">
