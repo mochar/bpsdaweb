@@ -219,9 +219,7 @@ function BinSection() {
         var url = '/contigsets/' + binset.contigset + '/binsets/' + binset.id + '/bins';
         var queryOptions = {items: 5};
         $.getJSON(url, queryOptions, function(data) {
-            self.contigs(data.contigs);
-            self.indices(data.indices);
-            self.count(data.count);
+            self.bins(data.bins);
         });
     });
 }
@@ -314,10 +312,11 @@ function ViewModel() {
         self.contigSection.contigsetId(contigset.id);
     });
 
+    // Update bins in the bin table.
     ko.computed(function() {
         var binset = self.selectedBinset();
         if (!binset) return;
-        self.binSection.binset(self.binset);
+        self.binSection.binset(binset);
     });
 
     self.showElement = function(elem) { if (elem.nodeType === 1) $(elem).hide().slideDown() };

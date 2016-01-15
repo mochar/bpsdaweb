@@ -185,19 +185,19 @@ $(function() {
 
 <div class="panel panel-default" data-bind="with: binSection,
                                             slideVisible: selectedBinset">
-    <table class="table table-condensed">
+    <table class="table table-condensed scrollable">
         <thead>
             <tr>
                 <th width="50%">Bin</th>
                 <th width="25%">GC</th>
-                <th width="25%">Lengte</th>
+                <th width="25%">N50</th>
             </tr>
         </thead>
         <tbody data-bind="foreach: bins">
             <tr>
                 <td data-bind="text: name" width="50%"></td>
                 <td data-bind="text: gc" width="25%"></td>
-                <td data-bind="text: length" width="25%"></td>
+                <td data-bind="text: N50" width="25%"></td>
             </tr>
         </tbody>
     </table>
