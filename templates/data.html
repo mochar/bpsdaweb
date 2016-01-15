@@ -184,6 +184,17 @@ $(function() {
 <div class="panel panel-default" data-bind="with: contigSection,
                                             slideVisible: selectedContigset">
     <div class="panel-body">
+        <span class="pull-left">
+            <div class="dropdown">
+                <button class="btn btn-default btn-sm dropdown-toggle" type="button" data-toggle="dropdown">
+                    <span><span data-bind="text: selectedAmount"></span> geselecteerd</span>
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a href="#" data-bind="click: ">Verwijder</a></li>
+                </ul>
+            </div>
+        </span>
         <span class="pull-right">
             <div class="btn-group" data-toggle="buttons">
                 <label class="btn btn-sm btn-default"
@@ -258,7 +269,11 @@ $(function() {
     <table class="table table-condensed" data-bind="visible: view() === 'table'">
         <thead>
             <tr>
-                <th width="60%" data-bind="click: function() { sort('name') }">
+                <th width="5%">
+                    <input type="checkbox"
+                           data-bind="checked: allContigsSelected">
+                </th>
+                <th width="55%" data-bind="click: function() { sort('name') }">
                     Contig
                     <span class="glyphicon pull-right"
                           data-bind="css: { 'glyphicon-chevron-up': sortBy() == 'name',
@@ -283,7 +298,13 @@ $(function() {
         </thead>
         <tbody data-bind="foreach: contigs">
             <tr>
-                <td data-bind="text: name" width="60%"></td>
+                <td width="5%">
+                    <input type="checkbox"
+                           data-bind="checked: $parent.selectedContigIds || $parent.allContigsSelected,
+                                      checkedValue: id,
+                                      click: $root.select">
+                </td>
+                <td data-bind="text: name" width="55%"></td>
                 <td data-bind="text: gc" width="20%"></td>
                 <td data-bind="text: length" width="20%"></td>
             </tr>

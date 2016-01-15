@@ -149,6 +149,21 @@ function ContigSection() {
     self.showFilters = ko.observable(false);
     self.toggleFilters = function() { self.showFilters(!self.showFilters()); };
 
+    // contig selection
+    self.allContigsSelected = ko.observable(false);
+    self.selectedContigIds = ko.observableArray([]);
+    self.selectedAmount = ko.pureComputed(function() {
+        if (self.allContigsSelected()) return self.count();
+        return self.selectedContigIds().length;
+    });
+    ko.computed(function() {
+        var contigsetId = self.contigsetId();
+
+        // Unselect all contigs
+        self.selectedContigIds([]);
+        self.allContigsSelected(false);
+    });
+
     // table
     self.view = ko.observable('table'); // Either table or plot
     self.sortBy = ko.observable('name');
@@ -182,9 +197,12 @@ function ContigSection() {
         });
     });
 
+    // New contigset selected
     ko.computed(function() {
         var contigsetId = self.contigsetId();
         if (!contigsetId) return;
+
+        // Get new contig data
         var index = self.index(),
             sort = self.sortBy(),
             queryOptions = {index: index, sort: sort, items: 7,
