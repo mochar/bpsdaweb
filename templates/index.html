@@ -1,23 +1,14 @@
 {% extends "layout.html" %}
 
 {% block body %}
-<div class="row">
+<div class="row" style="padding-top: 10px;">
     <div class="col-lg-8 col-sm-12">
-        <div class="row">
-            <div class="col-xs-11"><hr></div>
-            <div class="col-xs-1">
-                <button type="button" class="btn btn-primary" data-bind="click: newChordPanel">+</button>
-            </div>
-        </div>
-
         {% if new_user %}
             {% include 'instructions.html' %}
         {% endif %}
 
-        {% include "panels.html" %}
-
-        <div id="panels" data-bind="template: {name: getPanelTemplate, foreach: panels}">
-        </div>
+        {% include "scatterplot.html" %}
+        {% include "chorddiagram.html" %}
     </div>
     <div class="col-lg-4 col-sm-12" id="datapanel">
         {% include "data.html" %}

@@ -33,12 +33,10 @@ ko.bindingHandlers.colorpicker = {
     }
 };
 
-function ContigsPanel() {
+function ScatterplotPanel() {
     var self = this;
-    self.template = "contigsPanel";
     self.isDirty = ko.observable(true);
     self.showSettings = ko.observable(false);
-    self.plotData = ko.observable('seqcomp'); // seqcomp || coverage
 
     self.xData = ko.observable('gc');
     self.xLogarithmic = ko.observable(false);
@@ -50,11 +48,6 @@ function ContigsPanel() {
     self.selectedContigs = ko.observableArray([]);
     self.contigs = ko.observableArray([]);
     self.covNames = [];
-
-    self.plotOptions = ko.pureComputed(function() {
-        var plotData = self.plotData();
-        return plotData === 'seqcomp' ? ['gc', 'length'] : self.covNames;
-    });
 
     self.color = ko.observable('#58ACFA');
     self.colorMethod = ko.observable('uniform'); // uniform || binset
@@ -99,7 +92,6 @@ function ContigsPanel() {
 
 function ChordPanel() {
     var self = this;
-    self.template = "chordPanel";
     self.selectedBinset1 = ko.observable(null);
     self.selectedBinset2 = ko.observable(null);
     self.selectedBin = ko.observable();
@@ -304,18 +296,10 @@ function ViewModel() {
     self.hideElement = function(elem) { if (elem.nodeType === 1) $(elem).slideUp(function() { $(elem).remove(); }) };
 
     // Panels
-    self.panels = ko.observableArray([new ContigsPanel(), new ChordPanel()]);
-    self.getPanelTemplate = function(panel) {
-        return panel.template;
-    };
-    self.removePanel = function(panel) {
-        self.panels.remove(panel);
-    };
-    self.newChordPanel = function() {
-        self.panels.unshift(new ChordPanel());
-    };
+    self.scatterplotPanel = new ScatterplotPanel();
+    self.chordPanel = new ChordPanel();
 
-
+    // Data deletion
     self.deleteBinset = function(binset) {
         $.ajax({
             url: '/contigsets/' + binset.contigset + '/binsets/' + binset.id,
