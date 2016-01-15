@@ -23,13 +23,14 @@ $(function() {
 <div class="panel panel-default">
     <div class="panel-heading">
         <h4 class="panel-title">
-            Contigs / scaffolds
+            Assembly
             <a href="#contigsetFormPanel" data-toggle="collapse">
                 <span class="glyphicon glyphicon-plus pull-right"></span>
             </a>
         </h4>
     </div>
 
+    <!-- DATA INPUT -->
     <div id="contigsetFormPanel" class="panel-collapse collapse">
         <div class="panel-body well">
             <div id="contigsetAlerts"></div>
@@ -59,6 +60,7 @@ $(function() {
         </div>
     </div>
 
+    <!-- CONTIGSETS -->
     <ul class="list-group" data-bind="foreach: contigsetsToShow">
         <li class="list-group-item" data-bind="slideVisible: true">
             <span data-bind="text: name,
@@ -70,15 +72,15 @@ $(function() {
                 <button class="btn btn-xs btn-default"
                         data-bind="visible: !$root.selectedContigset(),
                                    click: $root.selectedContigset">
-                    <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+                    <span class="glyphicon glyphicon-eye-open"></span>
                 </button>
                 <button class="btn btn-xs btn-default"
                         data-bind="visible: $root.selectedContigset,
                                    click: function(){$root.selectedContigset(null)}">
-                    <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
+                    <span class="glyphicon glyphicon-eye-close"></span>
                 </button>
                 <button class="btn btn-xs btn-danger" data-bind="click: toggleDelete">
-                    <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
+                    <span class="glyphicon glyphicon-remove-circle"></span>
                 </button>
             </span>
         </li>
@@ -156,15 +158,15 @@ $(function() {
                 <button class="btn btn-xs btn-default"
                         data-bind="visible: !$root.selectedBinset() && $root.selectedContigset,
                                    click: $root.selectedBinset">
-                    <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+                    <span class="glyphicon glyphicon-eye-open"></span>
                 </button>
                 <button class="btn btn-xs btn-default"
                         data-bind="visible: $root.selectedBinset,
                                    click: function(){$root.selectedBinset(null)}">
-                    <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
+                    <span class="glyphicon glyphicon-eye-close"></span>
                 </button>
                 <button class="btn btn-xs btn-danger" data-bind="click: toggleDelete">
-                    <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
+                    <span class="glyphicon glyphicon-remove-circle"></span>
                 </button>
             </span>
         </li>
@@ -189,18 +191,18 @@ $(function() {
                 <label class="btn btn-sm btn-default"
                        data-bind="css: { active: view() === 'plot' },
                                   click: function() { view('plot') }">
-                    <span class="glyphicon glyphicon-stats" aria-hidden="true"></span>
+                    <span class="glyphicon glyphicon-stats"></span>
                 </label>
                 <label class="btn btn-sm btn-default"
                        data-bind="css: { active: view() === 'table' },
                                   click: function() { view('table') }">
-                    <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+                    <span class="glyphicon glyphicon-list-alt"></span>
                 </label>
             </div>
 
             <button class="btn btn-sm btn-default"
                     data-bind="click: toggleFilters, css: { active: showFilters }">
-                <span class="glyphicon glyphicon-filter" aria-hidden="true"></span>
+                <span class="glyphicon glyphicon-filter"></span>
             </button>
         </span>
     </div>

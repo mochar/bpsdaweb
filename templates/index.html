@@ -7,10 +7,8 @@
             {% include 'instructions.html' %}
         {% endif %}
 
-        {% include "panels.html" %}
-
-        <div id="panels" data-bind="template: {name: getPanelTemplate, foreach: panels}">
-        </div>
+        {% include "scatterplot.html" %}
+        {% include "chorddiagram.html" %}
     </div>
     <div class="col-lg-4 col-sm-12" id="datapanel">
         {% include "data.html" %}
