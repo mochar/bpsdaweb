@@ -26,7 +26,7 @@ ko.bindingHandlers.colorpicker = {
     init: function(element, valueAccessor) {
         var color = valueAccessor();
         $(element).colpick({
-            onChange: function(hsb, hex) {
+            onSubmit: function(hsb, hex) {
                 color('#' + hex);
             }
         });
@@ -219,9 +219,21 @@ function BinSection() {
         var url = '/contigsets/' + binset.contigset + '/binsets/' + binset.id + '/bins';
         var queryOptions = {items: 5};
         $.getJSON(url, queryOptions, function(data) {
-            self.bins(data.bins);
+            self.bins(data.bins.map(function(bin) { return new Bin(bin); }));
         });
     });
+}
+
+
+function Bin(data) {
+    var self = this;
+    self.id = data.id;
+    self.name = data.name;
+    self.binset = data.binset;
+    self.color = ko.observable(data.color);
+    self.contigs = ko.observableArray(data.contigs);
+    self.gc = data.gc;
+    self.n50 = data.N50;
 }
 
 

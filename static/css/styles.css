@@ -10,6 +10,16 @@ border:1px solid #ccc !important;
     overflow-y: auto;
 }
 
+.colorBox {
+    float: left;
+    width: 15px;
+    height: 15px;
+    margin: 2px;
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgba(0,0,0,.2);
+}
+
 /* Chord */
 #chord path {
     fill-opacity: .67;
