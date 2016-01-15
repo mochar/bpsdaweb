@@ -382,6 +382,11 @@ class BinsetApi(Resource):
 
 
 class BinListApi(Resource):
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('ids', type=str)
+        super(BinListApi, self).__init__()
+
     def get(self, contigset_id, id):
         binset = binset_or_404(contigset_id, id)
         result = []
@@ -390,6 +395,15 @@ class BinListApi(Resource):
                 'binset': binset.id, 'size': len(bin.contigs),
                 'gc': utils.gc_content_bin(bin), 'N50': utils.n50(bin)})
         return {'bins': result}
+
+    def delete(self, contigset_id, id):
+        binset = binset_or_404(contigset_id, id)
+        args =  self.reqparse.parse_args()
+        if args.ids is None:
+            abort(400)
+        ids = [int(id) for id in args.ids.split(',')]
+        binset.bins.filter(Bin.id.in_(ids)).delete(synchronize_session='fetch')
+        db.session.commit()
 
 
 class BinApi(Resource):

@@ -212,12 +212,28 @@ function BinSection() {
     var self = this;
     self.binset = ko.observable(null);
     self.bins = ko.observableArray([]);
+    self.selectedBinIds = ko.observableArray([]);
 
     self.sort = function(by) {
+        if (!$.isNumeric(self.bins()[0][by])) return self.bins.sort();
         return self.bins.sort(function(left, right) {
             if (left[by] == right[by]) return 0;
             return left[by] < right[by] ? -1 : 1;
         });
+    };
+
+    self.deleteBins = function() {
+        var binset = self.binset();
+        if (!binset) return;
+        var ids = self.selectedBinIds();
+        console.log(binset.contigset);
+        $.ajax({
+            url: '/contigsets/' + binset.contigset + '/binsets/' + binset.id + '/bins',
+            type: 'DELETE',
+            data: {ids: ids.join(",")}
+        });
+        self.selectedBinIds([]);
+        self.bins.remove(function(bin) { return ids.indexOf(bin.id) > -1; });
     };
 
     ko.computed(function() {
