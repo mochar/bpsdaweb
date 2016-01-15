@@ -231,7 +231,7 @@ function Bin(data) {
     self.name = data.name;
     self.binset = data.binset;
     self.color = ko.observable(data.color);
-    self.contigs = ko.observableArray(data.contigs);
+    self.size = ko.observable(data.size);
     self.gc = data.gc;
     self.n50 = data.N50;
 }

@@ -387,7 +387,7 @@ class BinListApi(Resource):
         result = []
         for bin in binset.bins:
             result.append({'name': bin.name, 'id': bin.id, 'color': bin.color,
-                'binset': binset.id, 'contigs': [c.id for c in bin.contigs],
+                'binset': binset.id, 'size': len(bin.contigs),
                 'gc': utils.gc_content_bin(bin), 'N50': utils.n50(bin)})
         return {'bins': result}
 
