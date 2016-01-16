@@ -203,9 +203,10 @@ $(function() {
         <thead>
             <tr>
                 <th width="5%"></th>
-                <th width="35%" data-bind="click: function() { sort('name') }">Bin</th>
-                <th width="25%" data-bind="click: function() { sort('gc') }">GC</th>
-                <th width="25%" data-bind="click: function() { sort('n50') }">N50</th>
+                <th width="25%" data-bind="click: function() { sort('name') }">Bin</th>
+                <th width="20%" data-bind="click: function() { sort('size') }">Contigs</th>
+                <th width="20%" data-bind="click: function() { sort('gc') }">GC</th>
+                <th width="20%" data-bind="click: function() { sort('n50') }">N50</th>
                 <th width="10%">Color</th>
             </tr>
         </thead>
@@ -218,9 +219,10 @@ $(function() {
                     <input type="checkbox" data-bind="checkedValue: id,
                                                       checked: $parent.selectedBinIds">
                 </td>
-                <td data-bind="text: name" width="35%"></td>
-                <td data-bind="text: gc" width="25%"></td>
-                <td data-bind="text: n50" width="25%"></td>
+                <td data-bind="text: name" width="25%"></td>
+                <td data-bind="text: size" width="20%"></td>
+                <td data-bind="text: gc" width="20%"></td>
+                <td data-bind="text: n50" width="20%"></td>
                 <td width="10%">
                     <button data-bind="style: { 'background-color': color },
                                         colorpicker: color"
