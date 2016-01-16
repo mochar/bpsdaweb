@@ -37,6 +37,18 @@ class Bin(db.Model):
     contigs = db.relationship('Contig', secondary=bincontig,
         backref=db.backref('bins', lazy='dynamic'))
 
+    @property
+    def gc(self):
+        return utils.gc_content_bin(self)
+
+    @property
+    def size(self):
+        return len(self.contigs)
+
+    @property
+    def N50(self):
+        return utils.n50(self)
+
 
 class Contig(db.Model):
     __tablename__ = 'contig'
@@ -385,15 +397,21 @@ class BinListApi(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument('ids', type=str)
+        self.reqparse.add_argument('fields', type=str,
+           default='id,name,color,binset_id,size,gc,N50')
         super(BinListApi, self).__init__()
 
     def get(self, contigset_id, id):
         binset = binset_or_404(contigset_id, id)
+        args =  self.reqparse.parse_args()
+        bins = binset.bins
+        fields = args.fields.split(',')
         result = []
-        for bin in binset.bins:
-            result.append({'name': bin.name, 'id': bin.id, 'color': bin.color,
-                'binset': binset.id, 'size': len(bin.contigs),
-                'gc': utils.gc_content_bin(bin), 'N50': utils.n50(bin)})
+        for bin in bins.all():
+            r = {}
+            for field in fields:
+                r[field] = getattr(bin, field)
+            result.append(r)
         return {'bins': result}
 
     def delete(self, contigset_id, id):
