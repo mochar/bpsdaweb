@@ -44,7 +44,7 @@ function ScatterplotPanel() {
     self.yData = ko.observable('length');
     self.yLogarithmic = ko.observable(false);
 
-    self.selectedContigset = ko.observable();
+    self.selectedContigset = ko.observable(null);
     self.selectedContigs = ko.observableArray([]);
     self.contigs = ko.observableArray([]);
     self.covNames = [];
@@ -333,8 +333,10 @@ function ViewModel() {
         console.log('contigset computed called');
         var contigset = self.selectedContigset();
         if (contigset) { // A contigset has been selected
-            self.contigSection.contigsetId(contigset.id); // Update contig table
             self.crumb(self.CrumbEnum.CONTIGSET);
+            self.contigSection.contigsetId(contigset.id); // Update contig table
+            self.scatterplotPanel.selectedContigset(contigset);
+            self.scatterplotPanel.updatePlot();
 
             $.getJSON('/contigsets/' + contigset.id + '/binsets', function(data) {
                 self.binsets(data.binsets.map(function(bs) { return new Binset(bs); }));
