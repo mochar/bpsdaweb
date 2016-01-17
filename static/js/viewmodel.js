@@ -313,7 +313,7 @@ function Contigset(data) {
 function ViewModel() {
     var self = this;
     self.contigsets = ko.observableArray([]);
-    self.binsets = ko.observable([]);
+    self.binsets = ko.observableArray([]);
     self.selectedContigset = ko.observable(null);
     self.selectedBinset = ko.observable(null);
     self.contigSection = new ContigSection();
@@ -427,12 +427,10 @@ function ViewModel() {
 
     self.uploadBinset = function(formElement) {
         var formData = new FormData(formElement);
-        var contigsetId = $('#binsetContigset').val();
-        $('#binTable > tbody > tr').remove();
         formElement.reset();
 
         $.ajax({
-            url: '/contigsets/' + contigsetId + '/binsets',
+            url: '/contigsets/' + self.selectedContigset().id + '/binsets',
             type: 'POST',
             data: formData,
             async: false,

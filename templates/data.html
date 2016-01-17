@@ -1,25 +1,3 @@
-<script type="text/javascript">
-$(function() {
-    $('#binsetFile').change(function(e) {
-        var reader = new FileReader();
-        reader.onload = function() {
-            $('#binTable').find('tbody').find('tr').remove();
-            var lines = reader.result.split(/\r\n|\r|\n/);
-            for (var i = 0; i < 5; i++) {
-                var data = lines[i].split(/\t| |,|;/);
-                $('#binTable').find('tbody')
-                    .append($('<tr>')
-                            .append($('<td>').text(data[0]))
-                            .append($('<td>').text(data[1]))
-                    );
-            }
-        };
-        reader.readAsText(e.target.files.item(0));
-    });
-});
-</script>
-
-
 <!-- TODO: find a pattern here... -->
 <ol class="breadcrumb">
     <li data-bind="css: { active: crumb() == CrumbEnum.CONTIGSETS }">
@@ -101,18 +79,14 @@ $(function() {
         </div>
     </div>
     <div class="col-xs-6">
-        <form class="form" name="contigsetForm" method="post"
-              enctype="multipart/form-data" data-bind="submit: uploadContigset">
+        <form class="form" name="binsetForm" method="post"
+              enctype="multipart/form-data" data-bind="submit: uploadBinset">
             <div class="form-group form-group-sm">
                 <input type="text" class="form-control" name="name" placeholder="Name">
             </div>
 
             <div class="form-group form-group-sm">
-                <input type="file" class="form-control" name="contigs">
-            </div>
-
-            <div class="form-group form-group-sm">
-                <input type="file" class="form-control" name="coverages">
+                <input type="file" class="form-control" name="bins">
             </div>
 
             <div class="pull-right">
