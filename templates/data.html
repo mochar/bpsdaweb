@@ -20,165 +20,107 @@ $(function() {
 </script>
 
 
-<div class="panel panel-default">
-    <div class="panel-heading">
-        <h4 class="panel-title">
-            Assembly
-            <a href="#contigsetFormPanel" data-toggle="collapse">
-                <span class="glyphicon glyphicon-plus pull-right"></span>
-            </a>
-        </h4>
-    </div>
-
-    <!-- DATA INPUT -->
-    <div id="contigsetFormPanel" class="panel-collapse collapse">
-        <div class="panel-body well">
-            <div id="contigsetAlerts"></div>
-
-            <form id="contigsetForm" name="contigsetForm" method="post"
-                  enctype="multipart/form-data" data-bind="submit: uploadContigset">
-                <div class="form-group">
-                    <label for="contigsetName">Naam</label>
-                    <input type="text" class="form-control" id="contigsetName" name="name">
-                </div>
-
-                <div class="form-group">
-                    <label for="contigsetFile">Contig bestand</label>
-                    <input type="file" id="contigsetFile" name="contigs">
-                    <p class="help-block">Het contig bestand moet in fasta-formaat zijn.</p>
-                </div>
-
-                <div class="form-group">
-                    <label for="coverageFile">Coverage bestand</label>
-                    <input type="file" id="coverageFile" name="coverage">
-                    <p class="help-block">Een delimiter-gescheiden bestand.
-                        Eerste kolom is de contig naam.</p>
-                </div>
-
-                <button class="btn btn-default" type="submit">Voeg toe</button>
-            </form>
+<!-- TODO: find a pattern here... -->
+<ol class="breadcrumb">
+    <li data-bind="css: { active: crumb() == CrumbEnum.CONTIGSETS }">
+        <!-- ko if: crumb() == CrumbEnum.CONTIGSETS -->
+        Assemblies
+        <!-- /ko -->
+        <!-- ko ifnot: crumb() == CrumbEnum.CONTIGSETS -->
+        <a href="#" data-bind="click: function() { crumb(CrumbEnum.CONTIGSETS) }">
+            Assemblies</a>
+        <!-- /ko -->
+    </li>
+    <!-- ko if: selectedContigset -->
+    <li data-bind="css: { active: crumb() == CrumbEnum.CONTIGSET }">
+        <!-- ko if: crumb() == CrumbEnum.CONTIGSET -->
+        <span data-bind="text: selectedContigset().name"></span>
+        <!-- /ko -->
+        <!-- ko ifnot: crumb() == CrumbEnum.CONTIGSET -->
+        <a href="#" data-bind="click: function() { crumb(CrumbEnum.CONTIGSET) }">
+            <span data-bind="text: selectedContigset().name"></span>
+        </a>
+        <!-- /ko -->
+    </li>
+    <li data-bind="css: { active: crumb() == CrumbEnum.BINSETS }">
+        <!-- ko if: crumb() == CrumbEnum.BINSETS -->
+        Bin sets
+        <!-- /ko -->
+        <!-- ko ifnot: crumb() == CrumbEnum.BINSETS -->
+        <a href="#" data-bind="click: function() { crumb(CrumbEnum.BINSETS) }">Bin sets</a>
+        <!-- /ko -->
+    </li>
+    <!-- /ko -->
+    <!-- ko if: selectedBinset -->
+    <li data-bind="css: { active: crumb() == CrumbEnum.BINSET }">
+        <span data-bind="text: selectedBinset().name"></span>
+    </li>
+    <!-- /ko -->
+</ol>
+<div class="row" data-bind="ifnot: selectedBinset">
+    <!-- ko if: crumb() == CrumbEnum.CONTIGSETS -->
+    <div class="col-xs-6">
+        <div class="list-group" data-bind="foreach: contigsets">
+            <button type="button" class="list-group-item"
+                    data-bind="slideVisible: true, click: $root.selectedContigset">
+                <span data-bind="text: name"></span>
+            </button>
         </div>
     </div>
-
-    <!-- CONTIGSETS -->
-    <ul class="list-group" data-bind="foreach: contigsetsToShow">
-        <li class="list-group-item" data-bind="slideVisible: true">
-            <span data-bind="text: name,
-                             visible: !renaming(),
-                             tooltip: { title: 'Klik om te wijzigen' },
-                             click: rename"></span>
-            <input data-bind="visible: renaming, value: name, hasFocus: renaming" />
-            <span class="pull-right">
-                <button class="btn btn-xs btn-default"
-                        data-bind="visible: !$root.selectedContigset(),
-                                   click: $root.selectedContigset">
-                    <span class="glyphicon glyphicon-eye-open"></span>
-                </button>
-                <button class="btn btn-xs btn-default"
-                        data-bind="visible: $root.selectedContigset,
-                                   click: function(){$root.selectedContigset(null)}">
-                    <span class="glyphicon glyphicon-eye-close"></span>
-                </button>
-                <button class="btn btn-xs btn-danger" data-bind="click: toggleDelete">
-                    <span class="glyphicon glyphicon-remove-circle"></span>
-                </button>
-            </span>
-        </li>
-        <li class="list-group-item list-group-item-danger" data-bind="slideVisible: showDelete">
-            <span class="small">Let op: Alle binsets worden ook verwijderd</span>
-            <span class="pull-right">
-                <button class="btn btn-xs btn-default" data-bind="click: toggleDelete">Annuleer</button>
-                <button class="btn btn-xs btn-danger"
-                        data-bind="click: $root.deleteContigset">Verwijder</button>
-            </span>
-        </li>
-    </ul>
-
-</div>
-
-
-<div class="panel panel-default">
-    <div class="panel-heading">
-        <h4 class="panel-title">
-            Bin sets
-            <a href="#binsetFormPanel" data-toggle="collapse">
-                <span class="glyphicon glyphicon-plus pull-right"></span>
-            </a>
-        </h4>
-    </div>
-
-    <div id="binsetFormPanel" class="panel-collapse collapse">
-    <div class="panel-body well">
-        <div id="binsetAlerts"></div>
-
-        <form id="binsetForm" name="binsetForm" method="post"
-              enctype="multipart/form-data" data-bind="submit: uploadBinset">
-            <div class="form-group">
-                <label for="binsetName">Naam</label>
-                <input type="text" class="form-control" id="binsetName" name="name">
+    <div class="col-xs-6">
+        <form class="form" name="contigsetForm" method="post"
+              enctype="multipart/form-data" data-bind="submit: uploadContigset">
+            <div class="form-group form-group-sm">
+                <input type="text" class="form-control" name="name" placeholder="Name">
             </div>
 
-            <div class="form-group">
-                <label for="binsetFile">Bin set bestand</label>
-                <input type="file" id="binsetFile" name="bins">
-                <p class="help-block">Een delimitergescheiden bestand met eerste kolom
-                    contig en tweede kolom bin nummer.</p>
+            <div class="form-group form-group-sm">
+                <input type="file" class="form-control" name="contigs">
             </div>
 
-            <table class="table table-condensed" id="binTable">
-                <thead><tr><th>Contig</th><th>Bin</th></tr></thead>
-                <tbody></tbody>
-            </table>
-
-            <div class="form-group">
-                <label for="binsetContigset">Contigset</label>
-                <select class="form-control" name="contigset" id="binsetContigset"
-                        data-bind="foreach: contigsets">
-                    <option data-bind="text: name, attr: { value: id }"></option>
-                </select>
-                <p class="help-block">Voeg een nieuwe (lege) contigset toe in
-                    de panel hierboven.</p>
+            <div class="form-group form-group-sm">
+                <input type="file" class="form-control" name="coverages">
             </div>
 
-            <button class="btn btn-default" type="submit">Voeg toe</button>
+            <div class="pull-right">
+                <button class="btn btn-success btn-sm" type="submit">Add</button>
+            </div>
         </form>
     </div>
+    <!-- /ko -->
+    <!-- ko if: crumb() == CrumbEnum.BINSETS -->
+    <div class="col-xs-6">
+        <div class="list-group" data-bind="foreach: binsets">
+            <button type="button" class="list-group-item"
+                    data-bind="style: { 'border-left-color': color,
+                                        'border-left-width': '4px'},
+                               slideVisible: true,
+                               click: $root.selectedBinset">
+                <span data-bind="text: name"></span>
+            </button>
+        </div>
     </div>
+    <div class="col-xs-6">
+        <form class="form" name="contigsetForm" method="post"
+              enctype="multipart/form-data" data-bind="submit: uploadContigset">
+            <div class="form-group form-group-sm">
+                <input type="text" class="form-control" name="name" placeholder="Name">
+            </div>
 
-    <ul class="list-group" data-bind="foreach: binsetsToShow">
-        <li class="list-group-item" data-bind="style: { 'border-left-color': color,
-                                                        'border-left-width': '4px'},
-                                               slideVisible: true">
-            <span data-bind="text: name,
-                             visible: !renaming(),
-                             tooltip: { title: 'Klik om te wijzigen' },
-                             click: rename"></span>
-            <input data-bind="visible: renaming, value: name, hasFocus: renaming" />
-            <span class="pull-right">
-                <button class="btn btn-xs btn-default"
-                        data-bind="visible: !$root.selectedBinset() && $root.selectedContigset,
-                                   click: $root.selectedBinset">
-                    <span class="glyphicon glyphicon-eye-open"></span>
-                </button>
-                <button class="btn btn-xs btn-default"
-                        data-bind="visible: $root.selectedBinset,
-                                   click: function(){$root.selectedBinset(null)}">
-                    <span class="glyphicon glyphicon-eye-close"></span>
-                </button>
-                <button class="btn btn-xs btn-danger" data-bind="click: toggleDelete">
-                    <span class="glyphicon glyphicon-remove-circle"></span>
-                </button>
-            </span>
-        </li>
-        <li class="list-group-item list-group-item-danger" data-bind="slideVisible: showDelete">
-            <span class="small">Binset verwijderen?</span>
-            <span class="pull-right">
-                <button class="btn btn-xs btn-default" data-bind="click: toggleDelete">Annuleer</button>
-                <button class="btn btn-xs btn-danger"
-                        data-bind="click: $root.deleteBinset">Verwijder</button>
-            </span>
-        </li>
-    </ul>
+            <div class="form-group form-group-sm">
+                <input type="file" class="form-control" name="contigs">
+            </div>
+
+            <div class="form-group form-group-sm">
+                <input type="file" class="form-control" name="coverages">
+            </div>
+
+            <div class="pull-right">
+                <button class="btn btn-success btn-sm" type="submit">Add</button>
+            </div>
+        </form>
+    </div>
+    <!-- /ko -->
 </div>
 
 

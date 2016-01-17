@@ -238,7 +238,11 @@ function BinSection() {
 
     ko.computed(function() {
         var binset = self.binset();
-        if (!binset) return;
+        if (!binset) {
+            self.bins([]);
+            self.selectedBinIds([]);
+            return;
+        }
         var url = '/contigsets/' + binset.contigset + '/binsets/' + binset.id + '/bins';
         var queryOptions = {items: 5};
         $.getJSON(url, queryOptions, function(data) {
@@ -289,11 +293,6 @@ function Contigset(data) {
     self.id = data.id;
     self.name = ko.observable(data.name);
     self.size = ko.observable(data.size); // amount of contigs
-    self.binsets = ko.observableArray([]);
-
-    $.getJSON('/contigsets/' + self.id + '/binsets', function(data) {
-        self.binsets(data.binsets.map(function(bs) { return new Binset(bs); }));
-    });
 
     self.showDelete = ko.observable(false);
     self.toggleDelete = function() { self.showDelete(!self.showDelete()); };
@@ -314,49 +313,75 @@ function Contigset(data) {
 function ViewModel() {
     var self = this;
     self.contigsets = ko.observableArray([]);
+    self.binsets = ko.observable([]);
     self.selectedContigset = ko.observable(null);
     self.selectedBinset = ko.observable(null);
     self.contigSection = new ContigSection();
     self.binSection = new BinSection();
 
-    self.binsets = ko.pureComputed(function() {
-        var contigsets = self.contigsets();
-        var binsets = [];
-        ko.utils.arrayForEach(contigsets, function(contigset) {
-            binsets = binsets.concat(contigset.binsets());
-        });
-        return binsets;
-    });
+    // On which breadcrumb (nav bar on the top right) we are.
+    self.CrumbEnum = {
+        CONTIGSETS: 1,
+        CONTIGSET: 2,
+        BINSETS: 3,
+        BINSET: 4
+    };
+    self.crumb = ko.observable(self.CrumbEnum.CONTIGSETS);
 
-    self.contigsetsToShow = ko.pureComputed(function() {
-        var contigset = self.selectedContigset();
-        return contigset ? [contigset] : self.contigsets();
-    });
-
-    self.binsetsToShow = ko.pureComputed(function() {
-        var contigset = self.selectedContigset();
-        var binset = self.selectedBinset();
-        if (binset) return binset;
-        return contigset ? contigset.binsets() : self.binsets();
-    });
-
-    // Update contigs in the contig table.
+    // On contigset change
     ko.computed(function() {
+        console.log('contigset computed called');
         var contigset = self.selectedContigset();
-        if (!contigset) return;
-        self.contigSection.contigsetId(contigset.id);
+        if (contigset) { // A contigset has been selected
+            self.contigSection.contigsetId(contigset.id); // Update contig table
+            self.crumb(self.CrumbEnum.CONTIGSET);
+
+            $.getJSON('/contigsets/' + contigset.id + '/binsets', function(data) {
+                self.binsets(data.binsets.map(function(bs) { return new Binset(bs); }));
+            });
+        } else {
+            self.crumb(self.CrumbEnum.CONTIGSETS);
+            self.binsets([]);
+        }
     });
 
-    // Update bins in the bin table.
+    // On binset change
     ko.computed(function() {
+        console.log('binset computed called');
         var binset = self.selectedBinset();
-        if (!binset) return;
-        self.binSection.binset(binset);
+        if (binset) {
+            self.crumb(self.CrumbEnum.BINSET);
+            self.binSection.binset(binset); // Update bin table
+        } else {
+            self.binSection.binset(null); // Update bin table
+        }
+    });
+
+    // On crumb change
+    ko.computed(function() {
+        var crumb = self.crumb();
+        switch (crumb) {
+            case self.CrumbEnum.CONTIGSETS:
+                console.log('crumb: contigsets');
+                self.selectedBinset(null);
+                self.selectedContigset(null);
+                break;
+            case self.CrumbEnum.CONTIGSET:
+                console.log('crumb: contigset');
+                self.selectedBinset(null);
+                break;
+            case self.CrumbEnum.BINSETS:
+                console.log('crumb: binsets');
+                self.selectedBinset(null);
+                break;
+            case self.CrumbEnum.BINSET:
+                console.log('crumb: binset');
+        }
     });
 
     self.showElement = function(elem) { if (elem.nodeType === 1) $(elem).hide().slideDown() };
     self.hideElement = function(elem) { if (elem.nodeType === 1) $(elem).slideUp(function() { $(elem).remove(); }) };
-
+    
     // Panels
     self.scatterplotPanel = new ScatterplotPanel();
     self.chordPanel = new ChordPanel();
@@ -367,12 +392,9 @@ function ViewModel() {
             url: '/contigsets/' + binset.contigset + '/binsets/' + binset.id,
             type: 'DELETE',
             success: function(response) {
+                self.binsets.remove(binset);
             }
         });
-        var contigset = self.contigsets().filter(function(cs) {
-            return cs.id === binset.contigset;
-        })[0];
-        contigset.binsets.remove(binset);
     };
 
     self.deleteContigset = function(contigset) {
@@ -415,13 +437,7 @@ function ViewModel() {
             data: formData,
             async: false,
             success: function (data) {
-                var contigsets = self.contigsets();
-                for(var i = 0; i < contigsets.length; i++) {
-                    if (contigsets[i].id == contigsetId) {
-                        contigsets[i].binsets.push(new Binset(data));
-                        break;
-                    }
-                }
+                self.binsets.push(new Binset(data));
             },
             cache: false,
             contentType: false,
@@ -432,7 +448,6 @@ function ViewModel() {
     // Data
     $.getJSON('/contigsets', function(data) {
         self.contigsets($.map(data.contigsets, function(cs) { return new Contigset(cs); }));
-        console.log('viewmodel: got contigsets');
     });
 }
 
