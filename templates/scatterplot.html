@@ -14,12 +14,19 @@
                         </button>
                         <ul class="dropdown-menu">
                             <li class="dropdown-header">Sequence composition</li>
-                            <li><a href="#">Length</a></li>
-                            <li><a href="#">GC</a></li>
-                            <!-- ko if: covNames.length > 0 -->
+                            <li>
+                                <a href="#" data-bind="click: function() {xData('gc')}">GC</a>
+                            </li>
+                            <li>
+                                <a href="#" data-bind="click: function() {xData('length')}">Length</a>
+                            </li>
+                            <!-- ko with: contigset -->
                             <li class="dropdown-header">Coverage</li>
-                            <!-- ko foreach: covNames -->
-                            <li><a href="#" data-bind="text: $data"></a></li>
+                            <!-- ko foreach: samples -->
+                            <li>
+                                <a href="#" data-bind="text: $data,
+                                   click: function() {$parents[1].xData($data)}"></a>
+                            </li>
                             <!-- /ko -->
                             <!-- /ko -->
                         </ul>
@@ -38,65 +45,54 @@
                         </button>
                         <ul class="dropdown-menu">
                             <li class="dropdown-header">Sequence composition</li>
-                            <li><a href="#">Length</a></li>
-                            <li><a href="#">GC</a></li>
-                            <!-- ko if: covNames.length > 0 -->
+                            <li>
+                                <a href="#" data-bind="click: function() {yData('gc')}">GC</a>
+                            </li>
+                            <li>
+                                <a href="#" data-bind="click: function() {yData('length')}">Length</a>
+                            </li>
+                            <!-- ko with: contigset -->
                             <li class="dropdown-header">Coverage</li>
-                            <!-- ko foreach: covNames -->
-                            <li><a href="#" data-bind="text: $data"></a></li>
+                            <!-- ko foreach: samples -->
+                            <li>
+                                <a href="#" data-bind="text: $data,
+                                   click: function() {$parents[1].yData($data)}"></a>
+                            </li>
                             <!-- /ko -->
                             <!-- /ko -->
                         </ul>
                     </div>
                 </div>
 
-                <div class="row">
-                    <div class="col-xs-3">
-                        <button class="btn btn-default"
-                                data-bind="click: function() {showSettings(!showSettings())},
-                                               css: { active: showSettings }">
-                            <span class="glyphicon glyphicon-cog"></span>
+                <div class="form-group">
+                    <label>color</label>
+                    <div class="dropdown">
+                        <button class="btn btn-default dropdown-toggle form-control"
+                                type="button" data-toggle="dropdown">
+                            <span>Selected color</span>
+                                <span class="pull-right">
+                                    <span class="caret"></span>
+                                </span>
                         </button>
-                    </div>
-                    <div class="col-xs-9">
-                        <button class="btn btn-primary btn-block"
-                                data-bind="click: updatePlot,
-                                               attr: { disabled: !isDirty() }">
-                            Visualiseer
-                        </button>
+                        <ul class="dropdown-menu" data-bind="foreach: $root.binsets">
+                            <li>
+                                <a href="#" data-bind="borderColor: color,
+                                                       text: name,
+                                                       click: $parent.colorBinset"></a>
+                            </li>
+                        </ul>
                     </div>
                 </div>
 
-                <div data-bind="visible: showSettings" class="well well-sm">
-                    <div class="form-group form-group-sm">
-                        <label>Logaritmische assen</label>
-                        <label class="checkbox-inline">
-                            <input type="checkbox" data-bind="checked: xLogarithmic"> x-as
-                        </label>
-                        <label class="checkbox-inline">
-                            <input type="checkbox" data-bind="checked: yLogarithmic"> y-as
-                        </label>
-                    </div>
+                <div class="form-group form-group-sm" data-bind="visible: false">
+                    <label>logarithmic axes</label>
 
-                    <div class="form-group form-group-sm">
-                        <label>Kleur</label>
-                        <div class="radio">
-                            <label>
-                                <input type="radio" value="uniform" data-bind="checked: colorMethod">
-                                <button data-bind="colorpicker: color"
-                                        class="btn btn-block"></button>
-                            </label>
-                        </div>
-                        <div class="radio" data-bind="if: selectedContigset">
-                            <label>
-                                <input type="radio" value="binset" data-bind="checked: colorMethod">
-                                <select class="form-control"
-                                        data-bind="options: selectedContigset().binsets,
-                                                       optionsText: 'name',
-                                                       value: colorBinset"></select>
-                            </label>
-                        </div>
-                    </div>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" data-bind="checked: xLogarithmic"> x-axis
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" data-bind="checked: yLogarithmic"> y-axis
+                    </label>
                 </div>
 
                 <ul class="list-group scrollable" data-bind="foreach: selectedContigs">

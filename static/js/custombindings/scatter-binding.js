@@ -42,7 +42,6 @@ ko.bindingHandlers.scatterSvg = {
             yData = bindingContext.$data.yData(),
             yLogarithmic = bindingContext.$data.yLogarithmic(),
             color = bindingContext.$data.color(),
-            colors = bindingContext.$data.colors(),
             colorMethod = bindingContext.$data.colorMethod();
 
         var margin = {top: 20, right: 20, bottom: 30, left: 50},
@@ -83,8 +82,7 @@ ko.bindingHandlers.scatterSvg = {
             .attr("class", "dot")
             .attr("r", 4)
             .style("fill", function(d) {
-                return colorMethod === 'uniform' ? color : colors[d.id];
-                console.log('wat?');
+                return colorMethod === 'uniform' ? color : d.color;
             })
             .style("opacity", .5)
             .on("mouseover", function(d) {
@@ -109,9 +107,9 @@ ko.bindingHandlers.scatterSvg = {
 
         dots.transition()
             .style("fill", function(d) {
-                return colorMethod === 'uniform' ? color : colors[d.id];
+                return colorMethod === 'uniform' ? color : d.color;
             })
             .attr("cx", xMap)
-            .attr("cy", yMap)
+            .attr("cy", yMap);
     }
 };

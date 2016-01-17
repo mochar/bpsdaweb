@@ -33,10 +33,17 @@ ko.bindingHandlers.colorpicker = {
     }
 };
 
+ko.bindingHandlers.borderColor = {
+    update: function(element, valueAccessor) {
+        var color = ko.unwrap(valueAccessor());
+        $(element).css('border-left-color', color);
+        $(element).css('border-left-width', '4px');
+    }
+};
+
 function ScatterplotPanel() {
     var self = this;
-    self.isDirty = ko.observable(true);
-    self.showSettings = ko.observable(false);
+    self.contigset = ko.observable(null);
 
     self.xData = ko.observable('gc');
     self.xLogarithmic = ko.observable(false);
@@ -44,38 +51,52 @@ function ScatterplotPanel() {
     self.yData = ko.observable('length');
     self.yLogarithmic = ko.observable(false);
 
-    self.selectedContigset = ko.observable(null);
     self.selectedContigs = ko.observableArray([]);
     self.contigs = ko.observableArray([]);
-    self.covNames = [];
 
     self.color = ko.observable('#58ACFA');
     self.colorMethod = ko.observable('uniform'); // uniform || binset
     self.colorBinset = ko.observable();
-    self.colors = ko.observable({});
+
+    ko.computed(function() {
+        var binset = self.colorBinset();
+        if (!binset) return;
+        self.colorMethod('binset');
+    });
+
     ko.computed(function() {
         var colorMethod = self.colorMethod();
         if (colorMethod === 'uniform') return [];
         var binset = self.colorBinset();
-        $.getJSON('/contigsets/' + binset.contigset + '/binsets/' + binset.id + '/bins', function(data) {
+
+        var url = '/contigsets/' + binset.contigset + '/binsets/' + binset.id + '/bins';
+        var payload = {fields: 'color', contigs: true};
+        $.getJSON(url, payload, function(data) {
             var contigColors = {};
             data.bins.forEach(function(bin) {
                 bin.contigs.forEach(function(contig) {
                     contigColors[contig] = bin.color;
                 });
             });
-            self.colors(contigColors);
+            self.contigs(self.contigs().map(function(contig) {
+                contig.color = contigColors[contig.id];
+                return contig;
+            }));
         });
     });
 
     self.updatePlot = function() {
-        self.isDirty(false);
-        var contigset = self.selectedContigset();
-        if (!contigset) return;
-        var data = {items: 1000, length: '5000+'};
+        var contigset = self.contigset();
+        if (!contigset) {
+            self.contigs([]);
+            self.colorMethod('uniform');
+            return;
+        }
+        var fields = self.xData() + "," + self.yData();
+        //var data = {fields: fields};
+        var data = {items: 500, length: "5000+"};
         var url = '/contigsets/' + contigset.id + '/contigs';
         $.getJSON(url, data, function(data) {
-            self.covNames = Object.keys(data.contigs[0].coverages);
             self.contigs(data.contigs.map(function(contig) {
                 $.extend(contig, contig.coverages);
                 delete contig.coverages;
@@ -83,11 +104,6 @@ function ScatterplotPanel() {
             }));
         });
     };
-
-    ko.computed(function() {
-        var contigset = self.selectedContigset();
-        self.isDirty(true);
-    });
 }
 
 function ChordPanel() {
@@ -291,6 +307,7 @@ function Binset(data) {
 function Contigset(data) {
     var self = this;
     self.id = data.id;
+    self.samples = data.samples;
     self.name = ko.observable(data.name);
     self.size = ko.observable(data.size); // amount of contigs
 
@@ -319,6 +336,9 @@ function ViewModel() {
     self.contigSection = new ContigSection();
     self.binSection = new BinSection();
 
+    self.scatterplotPanel = new ScatterplotPanel();
+    self.chordPanel = new ChordPanel();
+
     // On which breadcrumb (nav bar on the top right) we are.
     self.CrumbEnum = {
         CONTIGSETS: 1,
@@ -332,11 +352,11 @@ function ViewModel() {
     ko.computed(function() {
         console.log('contigset computed called');
         var contigset = self.selectedContigset();
+        self.scatterplotPanel.contigset = self.selectedContigset;
+        self.scatterplotPanel.updatePlot();
         if (contigset) { // A contigset has been selected
             self.crumb(self.CrumbEnum.CONTIGSET);
             self.contigSection.contigsetId(contigset.id); // Update contig table
-            self.scatterplotPanel.selectedContigset(contigset);
-            self.scatterplotPanel.updatePlot();
 
             $.getJSON('/contigsets/' + contigset.id + '/binsets', function(data) {
                 self.binsets(data.binsets.map(function(bs) { return new Binset(bs); }));
@@ -351,11 +371,9 @@ function ViewModel() {
     ko.computed(function() {
         console.log('binset computed called');
         var binset = self.selectedBinset();
+        self.binSection.binset(binset);
         if (binset) {
             self.crumb(self.CrumbEnum.BINSET);
-            self.binSection.binset(binset); // Update bin table
-        } else {
-            self.binSection.binset(null); // Update bin table
         }
     });
 
@@ -384,10 +402,6 @@ function ViewModel() {
     self.showElement = function(elem) { if (elem.nodeType === 1) $(elem).hide().slideDown() };
     self.hideElement = function(elem) { if (elem.nodeType === 1) $(elem).slideUp(function() { $(elem).remove(); }) };
     
-    // Panels
-    self.scatterplotPanel = new ScatterplotPanel();
-    self.chordPanel = new ChordPanel();
-
     // Data deletion
     self.deleteBinset = function() {
         var binset = self.selectedBinset();

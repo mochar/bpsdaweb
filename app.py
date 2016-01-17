@@ -34,6 +34,7 @@ class Bin(db.Model):
     binset_id = db.Column(db.Integer, db.ForeignKey('binset.id'),
         nullable=False)
     color = db.Column(db.String(7), default='#ffffff')
+
     contigs = db.relationship('Contig', secondary=bincontig,
         backref=db.backref('bins', lazy='dynamic'))
 
@@ -179,9 +180,15 @@ class ContigsetListApi(Resource):
             abort(404)
         result = []
         for contigset in Contigset.query.filter_by(userid=userid).all():
+            samples = Coverage.query.join(Coverage.contig) \
+                .filter(Contig.contigset == contigset) \
+                .with_entities(Coverage.name) \
+                .distinct() \
+                .all()
             result.append({'name': contigset.name, 'id': contigset.id,
                            'size': contigset.contigs.count(),
-                           'binsets': [binset.id for binset in contigset.binsets]})
+                           'binsets': [binset.id for binset in contigset.binsets],
+                           'samples': [sample[0] for sample in samples]})
         return {'contigsets': result}
 
     def post(self):
@@ -416,6 +423,7 @@ class BinListApi(Resource):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument('ids', type=str)
         self.reqparse.add_argument('matrix', type=bool)
+        self.reqparse.add_argument('contigs', type=bool)
         self.reqparse.add_argument('fields', type=str,
            default='id,name,color,binset_id,size,gc,N50')
         super(BinListApi, self).__init__()
@@ -423,17 +431,17 @@ class BinListApi(Resource):
     def get(self, contigset_id, id):
         binset = binset_or_404(contigset_id, id)
         args =  self.reqparse.parse_args()
-        bins = binset.bins
-        fields = args.fields.split(',')
         result = []
-        for bin in bins.all():
+        for bin in binset.bins:
             r = {}
-            for field in fields:
+            for field in args.fields.split(','):
                 r[field] = getattr(bin, field)
+            if args.contigs:
+                r['contigs'] = [contig.id for contig in bin.contigs]
             result.append(r)
         response = {'bins': result}
         if args.matrix:
-            response['matrix'] = utils.to_matrix(bins)
+            response['matrix'] = utils.to_matrix(binset.bins)
         return response
 
     def delete(self, contigset_id, id):
