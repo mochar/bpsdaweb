@@ -211,6 +211,9 @@ class ContigsetListApi(Resource):
             'size': contigset.contigs.count()}
 
 
+api.add_resource(ContigsetListApi, '/contigsets')
+
+
 class ContigsetApi(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
@@ -236,6 +239,9 @@ class ContigsetApi(Resource):
         contigset = user_contigset_or_404(id)
         db.session.delete(contigset)
         db.session.commit()
+
+
+api.add_resource(ContigsetApi, '/contigsets/<int:id>')
 
 
 class ContigListApi(Resource):
@@ -292,6 +298,9 @@ class ContigListApi(Resource):
             'index': args.index, 'count': contigs.count(), 'items': args._items}
 
 
+api.add_resource(ContigListApi, '/contigsets/<int:contigset_id>/contigs')
+
+
 class ContigApi(Resource):
     def get(self, contigset_id, id):
         contigset = user_contigset_or_404(contigset_id)
@@ -303,6 +312,9 @@ class ContigApi(Resource):
             'id': contig.id,
             'sequence': contig.sequence
         }
+
+
+api.add_resource(ContigApi, '/contigsets/<int:contigset_id>/contigs/<int:id>')
 
 
 class BinsetListApi(Resource):
@@ -366,6 +378,9 @@ class BinsetListApi(Resource):
             'bins': [bin.id for bin in binset.bins], 'contigset': contigset.id}
 
 
+api.add_resource(BinsetListApi, '/contigsets/<int:contigset_id>/binsets')
+
+
 class BinsetApi(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
@@ -393,10 +408,14 @@ class BinsetApi(Resource):
         db.session.commit()
 
 
+api.add_resource(BinsetApi, '/contigsets/<int:contigset_id>/binsets/<int:id>')
+
+
 class BinListApi(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument('ids', type=str)
+        self.reqparse.add_argument('matrix', type=bool)
         self.reqparse.add_argument('fields', type=str,
            default='id,name,color,binset_id,size,gc,N50')
         super(BinListApi, self).__init__()
@@ -412,7 +431,10 @@ class BinListApi(Resource):
             for field in fields:
                 r[field] = getattr(bin, field)
             result.append(r)
-        return {'bins': result}
+        response = {'bins': result}
+        if args.matrix:
+            response['matrix'] = utils.to_matrix(bins)
+        return response
 
     def delete(self, contigset_id, id):
         binset = binset_or_404(contigset_id, id)
@@ -422,6 +444,9 @@ class BinListApi(Resource):
         ids = [int(id) for id in args.ids.split(',')]
         binset.bins.filter(Bin.id.in_(ids)).delete(synchronize_session='fetch')
         db.session.commit()
+
+
+api.add_resource(BinListApi, '/contigsets/<int:contigset_id>/binsets/<int:id>/bins')
 
 
 class BinApi(Resource):
@@ -450,16 +475,9 @@ class BinApi(Resource):
         db.session.commit()
 
 
-api.add_resource(ContigsetListApi, '/contigsets')
-api.add_resource(ContigsetApi, '/contigsets/<int:id>')
-api.add_resource(ContigListApi, '/contigsets/<int:contigset_id>/contigs')
-api.add_resource(ContigApi, '/contigsets/<int:contigset_id>/contigs/<int:id>')
-api.add_resource(BinsetListApi, '/contigsets/<int:contigset_id>/binsets')
-api.add_resource(BinsetApi, '/contigsets/<int:contigset_id>/binsets/<int:id>')
-api.add_resource(BinListApi, '/contigsets/<int:contigset_id>/binsets/<int:id>/bins')
-api.add_resource(BinApi, '/contigsets/<int:contigset_id>/binsets/'
-                             '<int:binset_id>/bins/<int:id>')
 
+api.add_resource(BinApi, '/contigsets/<int:contigset_id>/binsets/'
+                         '<int:binset_id>/bins/<int:id>')
 
 ''' Views '''
 @app.before_request
