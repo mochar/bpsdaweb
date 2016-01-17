@@ -9,7 +9,7 @@
             Assemblies</a>
         <!-- /ko -->
     </li>
-    <!-- ko if: selectedContigset -->
+    <!-- ko if: crumb() > CrumbEnum.CONTIGSETS -->
     <li data-bind="css: { active: crumb() == CrumbEnum.CONTIGSET }">
         <!-- ko if: crumb() == CrumbEnum.CONTIGSET -->
         <span data-bind="text: selectedContigset().name"></span>
@@ -34,6 +34,19 @@
         <span data-bind="text: selectedBinset().name"></span>
     </li>
     <!-- /ko -->
+
+    <span class="pull-right">
+        <!-- ko if: crumb() == CrumbEnum.CONTIGSET -->
+        <button class="btn btn-danger btn-xs" data-bind="click: deleteContigset">
+            <span class="glyphicon glyphicon-trash"></span>
+        </button>
+        <!-- /ko -->
+        <!-- ko if: crumb() == CrumbEnum.BINSET -->
+        <button class="btn btn-danger btn-xs" data-bind="click: deleteBinset">
+            <span class="glyphicon glyphicon-trash"></span>
+        </button>
+        <!-- /ko -->
+    </span>
 </ol>
 <div class="row" data-bind="ifnot: selectedBinset">
     <!-- ko if: crumb() == CrumbEnum.CONTIGSETS -->

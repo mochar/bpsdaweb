@@ -387,17 +387,21 @@ function ViewModel() {
     self.chordPanel = new ChordPanel();
 
     // Data deletion
-    self.deleteBinset = function(binset) {
+    self.deleteBinset = function() {
+        var binset = self.selectedBinset();
         $.ajax({
             url: '/contigsets/' + binset.contigset + '/binsets/' + binset.id,
             type: 'DELETE',
             success: function(response) {
-                self.binsets.remove(binset);
             }
         });
+        self.binsets.remove(binset);
+        self.selectedBinset(null);
+        self.crumb(self.CrumbEnum.BINSETS);
     };
 
-    self.deleteContigset = function(contigset) {
+    self.deleteContigset = function() {
+        var contigset = self.selectedContigset();
         $.ajax({
             url: '/contigsets/' + contigset.id,
             type: 'DELETE',
@@ -405,6 +409,7 @@ function ViewModel() {
             }
         });
         self.contigsets.remove(contigset);
+        self.selectedContigset(null);
     };
 
     // Data upload
