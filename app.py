@@ -422,7 +422,6 @@ class BinListApi(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument('ids', type=str)
-        self.reqparse.add_argument('matrix', type=bool)
         self.reqparse.add_argument('contigs', type=bool)
         self.reqparse.add_argument('fields', type=str,
            default='id,name,color,binset_id,size,gc,N50')
@@ -439,10 +438,7 @@ class BinListApi(Resource):
             if args.contigs:
                 r['contigs'] = [contig.id for contig in bin.contigs]
             result.append(r)
-        response = {'bins': result}
-        if args.matrix:
-            response['matrix'] = utils.to_matrix(binset.bins)
-        return response
+        return {'bins': result}
 
     def delete(self, contigset_id, id):
         binset = binset_or_404(contigset_id, id)
