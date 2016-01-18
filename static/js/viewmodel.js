@@ -94,7 +94,7 @@ function ScatterplotPanel() {
         }
         var fields = self.xData() + "," + self.yData();
         //var data = {fields: fields};
-        var data = {items: 500, length: "5000+"};
+        var data = {items: 100, length: "5000+"};
         var url = '/contigsets/' + contigset.id + '/contigs';
         $.getJSON(url, data, function(data) {
             self.contigs(data.contigs.map(function(contig) {
@@ -288,9 +288,6 @@ function Binset(data) {
     self.color = ko.observable(data.color);
     self.bins = ko.observableArray(data.bins);
 
-    self.showDelete = ko.observable(false);
-    self.toggleDelete = function() { self.showDelete(!self.showDelete()); };
-
     // Renaming
     self.renaming = ko.observable(false);
     self.rename = function() { self.renaming(true); };
@@ -310,9 +307,6 @@ function Contigset(data) {
     self.samples = data.samples;
     self.name = ko.observable(data.name);
     self.size = ko.observable(data.size); // amount of contigs
-
-    self.showDelete = ko.observable(false);
-    self.toggleDelete = function() { self.showDelete(!self.showDelete()); };
 
     // Renaming
     self.renaming = ko.observable(false);
@@ -352,8 +346,8 @@ function ViewModel() {
     ko.computed(function() {
         console.log('contigset computed called');
         var contigset = self.selectedContigset();
-        self.scatterplotPanel.contigset = self.selectedContigset;
-        self.scatterplotPanel.updatePlot();
+        //self.scatterplotPanel.contigset = self.selectedContigset;
+        //self.scatterplotPanel.updatePlot();
         if (contigset) { // A contigset has been selected
             self.crumb(self.CrumbEnum.CONTIGSET);
             self.contigSection.contigsetId(contigset.id); // Update contig table
@@ -383,8 +377,8 @@ function ViewModel() {
         switch (crumb) {
             case self.CrumbEnum.CONTIGSETS:
                 console.log('crumb: contigsets');
-                self.selectedBinset(null);
-                self.selectedContigset(null);
+                //self.selectedBinset(null);
+                //self.selectedContigset(null);
                 break;
             case self.CrumbEnum.CONTIGSET:
                 console.log('crumb: contigset');

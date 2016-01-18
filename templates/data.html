@@ -9,7 +9,8 @@
             Assemblies</a>
         <!-- /ko -->
     </li>
-    <!-- ko if: crumb() > CrumbEnum.CONTIGSETS -->
+
+    <!-- ko if: selectedContigset -->
     <li data-bind="css: { active: crumb() == CrumbEnum.CONTIGSET }">
         <!-- ko if: crumb() == CrumbEnum.CONTIGSET -->
         <span data-bind="text: selectedContigset().name"></span>
@@ -20,6 +21,7 @@
         </a>
         <!-- /ko -->
     </li>
+
     <li data-bind="css: { active: crumb() == CrumbEnum.BINSETS }">
         <!-- ko if: crumb() == CrumbEnum.BINSETS -->
         Bin sets
@@ -29,9 +31,17 @@
         <!-- /ko -->
     </li>
     <!-- /ko -->
+
     <!-- ko if: selectedBinset -->
     <li data-bind="css: { active: crumb() == CrumbEnum.BINSET }">
+        <!-- ko if: crumb() == CrumbEnum.BINSET -->
         <span data-bind="text: selectedBinset().name"></span>
+        <!-- /ko -->
+        <!-- ko ifnot: crumb() == CrumbEnum.BINSET -->
+        <a href="#" data-bind="click: function() { crumb(CrumbEnum.BINSET) }">
+            <span data-bind="text: selectedBinset().name"></span>
+        </a>
+        <!-- /ko -->
     </li>
     <!-- /ko -->
 
@@ -48,7 +58,9 @@
         <!-- /ko -->
     </span>
 </ol>
-<div class="row" data-bind="ifnot: selectedBinset">
+
+
+<div class="row">
     <!-- ko if: crumb() == CrumbEnum.CONTIGSETS -->
     <div class="col-xs-6">
         <div class="list-group" data-bind="foreach: contigsets">
@@ -110,8 +122,9 @@
 </div>
 
 
-<div class="panel panel-default" data-bind="with: binSection,
-                                            slideVisible: selectedBinset">
+<div class="panel panel-default"
+     data-bind="with: binSection,
+                slideVisible: selectedBinset && crumb() == CrumbEnum.BINSET">
     <div class="panel-body">
         <span class="pull-left">
             <div class="dropdown">
@@ -163,8 +176,9 @@
 </div>
 
 
-<div class="panel panel-default" data-bind="with: contigSection,
-                                            slideVisible: selectedContigset">
+<div class="panel panel-default"
+     data-bind="with: contigSection,
+                slideVisible: selectedContigset && crumb() > CrumbEnum.CONTIGSETS">
     <div class="panel-body">
         <span class="pull-left">
             <div class="dropdown">

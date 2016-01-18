@@ -35,6 +35,8 @@ ko.bindingHandlers.chordSvg = {
         var binset2 = bindingContext.$data.selectedBinset2.peek();
         var selectedBins = bindingContext.$data.selectedBins;
 
+        if (matrix.length == 0) return;
+
         var width = 500, height = 500,
             innerRadius = Math.min(width, height) * .41,
             outerRadius = innerRadius * 1.1,
