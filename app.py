@@ -260,6 +260,7 @@ class ContigListApi(Resource):
             'id', 'name', 'gc', 'length', '-id', '-name', '-gc', '-length'])
         self.reqparse.add_argument('fields', type=str)
         self.reqparse.add_argument('length', type=str)
+        self.reqparse.add_argument('bins', type=str)
         super(ContigListApi, self).__init__()
 
     def get(self, contigset_id):
@@ -284,6 +285,9 @@ class ContigListApi(Resource):
             else:
                 filter = Contig.length == length
             contigs = contigs.filter(filter)
+        if args.bins:
+            bin_ids = args.bins.split(',')
+            contigs = contigs.join((Bin, Contig.bins)).filter(Bin.id.in_(bin_ids))
         contig_pagination = contigs.paginate(args.index, args._items, False)
         result = []
         for contig in contig_pagination.items:
