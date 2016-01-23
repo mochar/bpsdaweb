@@ -1,8 +1,9 @@
 ko.bindingHandlers.histSvg = {
     init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-        var margin = {top: 10, right: 30, bottom: 30, left: 30},
-            width = 300 - margin.left - margin.right,
-            height = 200 - margin.top - margin.bottom,
+        var margin = {top: 10, right: 30, bottom: 50, left: 30},
+            width = $(element).width() - margin.left - margin.right,
+            //width = 450 - margin.left - margin.right,
+            height = 300 - margin.top - margin.bottom,
             svg = d3.select(element).append("svg")
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
@@ -15,60 +16,64 @@ ko.bindingHandlers.histSvg = {
             .attr("transform", "translate(0," + height + ")");
     },
     update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-        var contigs = bindingContext.$data.plotContigs();
+        var dirty = bindingContext.$data.plotContigsDirty();
+        if (!dirty) return;
+        bindingContext.$data.plotContigsDirty(false);
 
-        var margin = {top: 10, right: 30, bottom: 30, left: 30},
-            width = 300 - margin.left - margin.right,
-            height = 200 - margin.top - margin.bottom,
-            svg = d3.select(element).select("g");
+        var plotData = ko.unwrap(valueAccessor());
+        var contigs = bindingContext.$data.plotContigs.map(function(contig) {
+            return contig[plotData];
+        });
+        if (contigs.length == 0) return;
 
-        var xMin = d3.min(contigs),
-            xMax = d3.max(contigs);
+        var margin = {top: 10, right: 30, bottom: 50, left: 30},
+            width = $(element).width() - margin.left - margin.right,
+            //width = 300 - margin.left - margin.right,
+            height = 300 - margin.top - margin.bottom,
+            svg = d3.select(element).select('svg').attr('width', width).select("g");
+
+        var xMin = d3.min(contigs) - 1,
+            xMax = d3.max(contigs) + 1;
 
         var x = d3.scale.linear().domain([xMin, xMax]).range([0, width]);
 
         var data = d3.layout.histogram()
-            .bins(x.ticks(12));
+            .bins(x.ticks())
+            (contigs);
 
-        var histData = data(contigs);
-        bindingContext.$data.plotContigs([]);
+        bindingContext.$data.plotContigs = [];
 
         var y = d3.scale.linear()
-            .domain([0, d3.max(histData, function(d) { return d.y; })])
+            .domain([0, d3.max(data, function(d) { return d.y; })])
             .range([height, 0]);
 
         // Update x axis
         var xAxis = d3.svg.axis().scale(x).orient('bottom');
-        svg.select('.x').call(xAxis);
+        svg.select('.x').call(xAxis).selectAll('text')
+            .attr("dx", "-.8em")
+            .attr("dy", ".15em")
+            .attr('transform', 'rotate(-65)')
+            .style('text-anchor', 'end');
 
-        // update
-        var bar = svg.selectAll('.bar').data(histData);
-
-        var exiting = bar.exit();
-        exiting.select('rect')
-            .transition()
-            .attr('height', 0);
-        exiting.remove();
-
-        var barG = bar.enter().append('g')
+        var bar = svg.selectAll('.bar').data(data);
+        bar.remove();
+        bar.enter().append('g')
             .attr('class', 'bar')
             .attr('transform', function(d) {
                 return 'translate(' + x(d.x) + ',' + y(d.y) + ')';
             });
-        barG.append('rect')
-            .attr('x', 5)
-            .attr('width', 35)
-            //.attr('height', function(d) { return y(d.y); })
-            .attr('height', function(d) { return y(height); })
-            .on('click', function(d) {});
-        barG.append('text')
-            .attr('class', 'barText')
+
+        bar.append('rect')
+            .attr('x', 1)
+            .attr('width', x(data[0].dx) - 1)
+          .transition()
+            .attr('height', function(d) { return height - y(d.y); });
+
+        bar.append('text')
             .attr('dy', '.75em')
             .attr('y', 6)
-            .attr('x', 35 / 1.60)
+            .attr('x', x(data[0].dx) / 2)
             .attr('text-anchor', 'middle')
             .text(function(d) { return d.y; });
-        barG.select('rect').transition()
-            .attr('height', function(d) { return height - y(d.y); })
     }
 };

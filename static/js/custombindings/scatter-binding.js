@@ -70,17 +70,22 @@ ko.bindingHandlers.scatterSvg = {
         yScale.domain([d3.min(contigs, yValue), d3.max(contigs, yValue)]);
 
         // axes
-        svg.select('.x').call(xAxis).select('.label').text(xData);
-        svg.select('.y').call(yAxis).select('.label').text(yData);
+        svg.select('.x').transition().duration(500).call(xAxis);
+        svg.select('.x').select('.label').text(xData);
+        svg.select('.y').transition().duration(500).call(yAxis);
+        svg.select('.y').select('.label').text(yData);
 
         // draw dots
-        var dots = svg.selectAll(".dot").data(contigs, function(d) { return d.id; });
+        var dots = svg.selectAll(".dot").data(contigs, function(d) { console.log(d); return d.id; });
 
-        dots.exit().remove();
+        dots.exit()
+            .transition()
+            .attr('r', 0)
+            .remove();
 
         dots.enter().append("circle")
             .attr("class", "dot")
-            .attr("r", 4)
+            .attr("r", 0)
             .style("fill", function(d) {
                 return colorMethod === 'uniform' ? color : d.color;
             })
@@ -109,6 +114,7 @@ ko.bindingHandlers.scatterSvg = {
             .style("fill", function(d) {
                 return colorMethod === 'uniform' ? color : d.color;
             })
+            .attr("r", 4)
             .attr("cx", xMap)
             .attr("cy", yMap);
     }

@@ -41,9 +41,35 @@ ko.bindingHandlers.borderColor = {
     }
 };
 
+function ContigsetPage(contigset) {
+    var self = this;
+    self.contigset = contigset;
+
+    self.plotContigsDirty = ko.observable(false);
+    self.plotContigs = [];
+
+    ko.computed(function() {
+        var contigset = self.contigset();
+        if (!contigset) return;
+        console.log("ContigsetPage contigset update");
+
+        // reset
+        self.plotContigs = [];
+        self.plotContigsDirty(true);
+
+        //var queryOptions = {items: contigset.size(), fields: 'gc,length'};
+        var queryOptions = {items: 3500, fields: 'gc,length'};
+        $.getJSON('/contigsets/' + contigset.id + '/contigs', queryOptions, function(data) {
+            self.plotContigs = data.contigs;
+            self.plotContigsDirty(true);
+        });
+    });
+}
+
 function ScatterplotPanel() {
     var self = this;
     self.contigset = ko.observable(null);
+    self.binIds = ko.observableArray([]);
 
     self.xData = ko.observable('gc');
     self.xLogarithmic = ko.observable(false);
@@ -59,6 +85,23 @@ function ScatterplotPanel() {
     self.colorBinset = ko.observable();
 
     ko.computed(function() {
+        var binIds = self.binIds();
+        var contigset = self.contigset();
+        if (binIds.length == 0 || !contigset) {
+            self.contigs([]);
+            return;
+        }
+
+        var fields = 'id,' + self.xData() + "," + self.yData();
+        var payload = {fields: fields, bins: binIds.join(','),
+            items: contigset.size()};
+        var url = '/contigsets/' + contigset.id + '/contigs';
+        $.getJSON(url, payload, function(data) {
+            self.contigs(data.contigs);
+        });
+    });
+
+    ko.computed(function() {
         var binset = self.colorBinset();
         if (!binset) return;
         self.colorMethod('binset');
@@ -66,7 +109,7 @@ function ScatterplotPanel() {
 
     ko.computed(function() {
         var colorMethod = self.colorMethod();
-        if (colorMethod === 'uniform') return [];
+        if (colorMethod === 'uniform') return;
         var binset = self.colorBinset();
 
         var url = '/contigsets/' + binset.contigset + '/binsets/' + binset.id + '/bins';
@@ -173,7 +216,6 @@ function ContigSection() {
     });
 
     // table
-    self.view = ko.observable('table'); // Either table or plot
     self.sortBy = ko.observable('name');
     self.sort = function(field) {
         var sortBy = self.sortBy();
@@ -182,33 +224,18 @@ function ContigSection() {
 
     // pagination
     self.index = ko.observable(1);
-    self.count = ko.observable();
-    self.indices = ko.observable();
-
-    // plot
-    self.plotData = ko.observable('length'); // Either gc or length
-    self.plotContigs = ko.observable([]);
-    ko.computed(function() {
-        var contigsetId = self.contigsetId();
-        if (!contigsetId) return;
-        var view = self.view();
-        if (view === 'table') {
-            self.plotContigs([]);
-            return;
-        }
-        var plotData = self.plotData();
-        var queryOptions = {items: 65000, fields: plotData};
-        $.getJSON('/contigsets/' + contigsetId + '/contigs', queryOptions, function(data) {
-            self.plotContigs(data.contigs.map(function(contig) {
-                return contig[plotData];
-            }));
-        });
-    });
+    self.count = ko.observable(null);
+    self.indices = ko.observable(null);
 
     // New contigset selected
     ko.computed(function() {
         var contigsetId = self.contigsetId();
         if (!contigsetId) return;
+
+        // reset
+        self.contigs([]);
+        self.count(null);
+        self.indices(null);
 
         // Get new contig data
         var index = self.index(),
@@ -217,8 +244,8 @@ function ContigSection() {
                 fields: 'id,name,gc,length'};
         $.getJSON('/contigsets/' + contigsetId + '/contigs', queryOptions, function(data) {
             self.contigs(data.contigs);
-            self.indices(data.indices);
             self.count(data.count);
+            self.indices(data.indices);
         });
     });
 }
@@ -329,6 +356,7 @@ function ViewModel() {
     self.selectedBinset = ko.observable(null);
     self.contigSection = new ContigSection();
     self.binSection = new BinSection();
+    self.contigsetPage = new ContigsetPage(self.selectedContigset);
 
     self.scatterplotPanel = new ScatterplotPanel();
     self.chordPanel = new ChordPanel();
@@ -344,12 +372,10 @@ function ViewModel() {
 
     // On contigset change
     ko.computed(function() {
-        console.log('contigset computed called');
         var contigset = self.selectedContigset();
-        //self.scatterplotPanel.contigset = self.selectedContigset;
-        //self.scatterplotPanel.updatePlot();
         if (contigset) { // A contigset has been selected
             self.crumb(self.CrumbEnum.CONTIGSET);
+            self.scatterplotPanel.contigset = self.selectedContigset;
             self.contigSection.contigsetId(contigset.id); // Update contig table
 
             $.getJSON('/contigsets/' + contigset.id + '/binsets', function(data) {
@@ -363,7 +389,6 @@ function ViewModel() {
 
     // On binset change
     ko.computed(function() {
-        console.log('binset computed called');
         var binset = self.selectedBinset();
         self.binSection.binset(binset);
         if (binset) {
@@ -376,20 +401,16 @@ function ViewModel() {
         var crumb = self.crumb();
         switch (crumb) {
             case self.CrumbEnum.CONTIGSETS:
-                console.log('crumb: contigsets');
                 //self.selectedBinset(null);
                 //self.selectedContigset(null);
                 break;
             case self.CrumbEnum.CONTIGSET:
-                console.log('crumb: contigset');
                 self.selectedBinset(null);
                 break;
             case self.CrumbEnum.BINSETS:
-                console.log('crumb: binsets');
                 self.selectedBinset(null);
                 break;
             case self.CrumbEnum.BINSET:
-                console.log('crumb: binset');
         }
     });
 

@@ -65,7 +65,7 @@
     <div class="col-xs-6">
         <div class="list-group" data-bind="foreach: contigsets">
             <button type="button" class="list-group-item"
-                    data-bind="slideVisible: true, click: $root.selectedContigset">
+                    data-bind="visible: true, click: $root.selectedContigset">
                 <span data-bind="text: name"></span>
             </button>
         </div>
@@ -96,7 +96,7 @@
         <div class="list-group" data-bind="foreach: binsets">
             <button type="button" class="list-group-item"
                     data-bind="borderColor: color,
-                               slideVisible: true,
+                               visible: true,
                                click: $root.selectedBinset">
                 <span data-bind="text: name"></span>
             </button>
@@ -124,7 +124,7 @@
 
 <div class="panel panel-default"
      data-bind="with: binSection,
-                slideVisible: selectedBinset && crumb() == CrumbEnum.BINSET">
+                visible: selectedBinset && crumb() == CrumbEnum.BINSET">
     <div class="panel-body">
         <span class="pull-left">
             <div class="dropdown">
@@ -153,12 +153,14 @@
         </thead>
     </table>
     <div style="overflow-y: auto; max-height: 150px">
-        <table class="table table-condensed" style="table-layout: fixed">
+        <table class="table table-condensed table-hover" style="table-layout: fixed">
             <tbody data-bind="foreach: bins">
             <tr>
                 <td width="5%">
-                    <input type="checkbox" data-bind="checkedValue: id,
-                                                      checked: $parent.selectedBinIds">
+{#                    <input type="checkbox" data-bind="checkedValue: id,#}
+{#                                                      checked: $parent.selectedBinIds">#}
+                <input type="checkbox" data-bind="checkedValue: id,
+                                                  checked: $root.scatterplotPanel.binIds">
                 </td>
                 <td data-bind="text: name" width="25%"></td>
                 <td data-bind="text: size" width="20%"></td>
@@ -178,7 +180,7 @@
 
 <div class="panel panel-default"
      data-bind="with: contigSection,
-                slideVisible: selectedContigset && crumb() > CrumbEnum.CONTIGSETS">
+                visible: selectedContigset && crumb() == CrumbEnum.CONTIGSET">
     <div class="panel-body">
         <span class="pull-left">
             <div class="dropdown">
@@ -192,19 +194,6 @@
             </div>
         </span>
         <span class="pull-right">
-            <div class="btn-group" data-toggle="buttons">
-                <label class="btn btn-sm btn-default"
-                       data-bind="css: { active: view() === 'plot' },
-                                  click: function() { view('plot') }">
-                    <span class="glyphicon glyphicon-stats"></span>
-                </label>
-                <label class="btn btn-sm btn-default"
-                       data-bind="css: { active: view() === 'table' },
-                                  click: function() { view('table') }">
-                    <span class="glyphicon glyphicon-list-alt"></span>
-                </label>
-            </div>
-
             <button class="btn btn-sm btn-default"
                     data-bind="click: toggleFilters, css: { active: showFilters }">
                 <span class="glyphicon glyphicon-filter"></span>
@@ -244,25 +233,7 @@
         <button class="btn btn-primary btn-sm">Toepassen</button>
     </div>
 
-    <div class="row" data-bind="visible: view() === 'plot'">
-        <div class="col-xs-9" data-bind="histSvg: true"></div>
-        <div class="col-xs-3">
-            <ul class="nav nav-pills nav-stacked">
-                <li role="presentation"
-                    data-bind="css: { active: plotData() === 'gc' },
-                                      click: function() { plotData('gc') }">
-                    <a href="#">GC</a>
-                </li>
-                <li role="presentation"
-                    data-bind="css: { active: plotData() === 'length' },
-                                      click: function() { plotData('length') }">
-                    <a href="#">Lengte</a>
-                </li>
-            </ul>
-        </div>
-    </div>
-
-    <table class="table table-condensed" data-bind="visible: view() === 'table'">
+    <table class="table table-condensed">
         <thead>
             <tr>
                 <th width="5%">
