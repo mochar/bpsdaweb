@@ -123,13 +123,13 @@
 
 
 <div class="panel panel-default"
-     data-bind="with: binSection,
+     data-bind="with: binsetPage.binSection,
                 visible: selectedBinset && crumb() == CrumbEnum.BINSET">
     <div class="panel-body">
         <span class="pull-left">
             <div class="dropdown">
                 <button class="btn btn-default btn-sm dropdown-toggle" type="button" data-toggle="dropdown">
-                    <span><span data-bind="text: selectedBinIds().length"></span> selected</span>
+                    <span><span data-bind="text: binIds().length"></span> selected</span>
                     <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu">
@@ -157,10 +157,8 @@
             <tbody data-bind="foreach: bins">
             <tr>
                 <td width="5%">
-{#                    <input type="checkbox" data-bind="checkedValue: id,#}
-{#                                                      checked: $parent.selectedBinIds">#}
                 <input type="checkbox" data-bind="checkedValue: id,
-                                                  checked: $root.scatterplotPanel.binIds">
+                                                  checked: $parent.binIds">
                 </td>
                 <td data-bind="text: name" width="25%"></td>
                 <td data-bind="text: size" width="20%"></td>
@@ -175,6 +173,23 @@
             </tbody>
         </table>
     </div>
+</div>
+
+<div class="panel panel-default"
+    data-bind="with: binsetPage.binSection,
+               visible: selectedBinset && crumb() == CrumbEnum.BINSET">
+    <table class="table table-condensed">
+        <thead>
+            <tr>
+                <th>Contig</th>
+                <th>GC</th>
+                <th>Length</th>
+            </tr>
+        </thead>
+        <tbody data-bind="foreach: bins">
+            <tr><td></td></tr>
+        </tbody>
+    </table>
 </div>
 
 

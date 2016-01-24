@@ -15,7 +15,7 @@
             {% include "chorddiagram.html" %}
         </div>
 
-        <div data-bind="visible: crumb() == CrumbEnum.BINSET">
+        <div data-bind="with: binsetPage, visible: crumb() == CrumbEnum.BINSET">
             {% include "scatterplot.html" %}
         </div>
     </div>

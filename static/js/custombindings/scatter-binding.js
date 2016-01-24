@@ -40,16 +40,13 @@ ko.bindingHandlers.scatterSvg = {
             xData = bindingContext.$data.xData(),
             xLogarithmic = bindingContext.$data.xLogarithmic(),
             yData = bindingContext.$data.yData(),
-            yLogarithmic = bindingContext.$data.yLogarithmic(),
-            color = bindingContext.$data.color(),
-            colorMethod = bindingContext.$data.colorMethod();
+            yLogarithmic = bindingContext.$data.yLogarithmic();
 
         var margin = {top: 20, right: 20, bottom: 30, left: 50},
             width = 550 - margin.left - margin.right,
             height = 500 - margin.top - margin.bottom,
             svg = d3.select(element).select("g"),
             tooltip = d3.select(element).select('.tooltip');
-
 
         // setup x
         var xValue = function(d) { return d[xData];}, // data -> value
@@ -76,7 +73,7 @@ ko.bindingHandlers.scatterSvg = {
         svg.select('.y').select('.label').text(yData);
 
         // draw dots
-        var dots = svg.selectAll(".dot").data(contigs, function(d) { console.log(d); return d.id; });
+        var dots = svg.selectAll(".dot").data(contigs, function(d) { return d.id; });
 
         dots.exit()
             .transition()
@@ -86,9 +83,7 @@ ko.bindingHandlers.scatterSvg = {
         dots.enter().append("circle")
             .attr("class", "dot")
             .attr("r", 0)
-            .style("fill", function(d) {
-                return colorMethod === 'uniform' ? color : d.color;
-            })
+            .style("fill", function(d) { return d.color; })
             .style("opacity", .5)
             .on("mouseover", function(d) {
                 tooltip.transition()
@@ -111,9 +106,7 @@ ko.bindingHandlers.scatterSvg = {
             });
 
         dots.transition()
-            .style("fill", function(d) {
-                return colorMethod === 'uniform' ? color : d.color;
-            })
+            .style("fill", function(d) { return d.color; })
             .attr("r", 4)
             .attr("cx", xMap)
             .attr("cy", yMap);

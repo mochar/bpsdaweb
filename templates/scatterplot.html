@@ -69,10 +69,12 @@
                     <div class="dropdown">
                         <button class="btn btn-default dropdown-toggle form-control"
                                 type="button" data-toggle="dropdown">
-                            <span>Selected color</span>
-                                <span class="pull-right">
-                                    <span class="caret"></span>
-                                </span>
+                            <!-- ko with: colorBinset -->
+                            <span data-bind="text: name"></span>
+                            <!-- /ko -->
+                            <span class="pull-right">
+                                <span class="caret"></span>
+                            </span>
                         </button>
                         <ul class="dropdown-menu" data-bind="foreach: $root.binsets">
                             <li>

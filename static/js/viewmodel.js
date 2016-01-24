@@ -66,10 +66,32 @@ function ContigsetPage(contigset) {
     });
 }
 
-function ScatterplotPanel() {
+function BinsetPage(contigset, binset) {
     var self = this;
-    self.contigset = ko.observable(null);
+    self.contigset = contigset;
+    self.binset = binset;
     self.binIds = ko.observableArray([]);
+
+    self.binSection = new BinSection(self.binset, self.binIds);
+    self.scatterplotPanel = new ScatterplotPanel(self.contigset, self.binset, self.binIds);
+
+    ko.computed(function() {
+        var binset = self.binset();
+        if (!binset) return;
+    });
+
+    ko.computed(function() {
+        var contigset = self.contigset();
+        if (!contigset) return;
+    });
+}
+
+function ScatterplotPanel(contigset, binset, binIds) {
+    var self = this;
+    self.contigset = contigset;
+    self.binset = binset;
+    self.binIds = binIds;
+    self.colorBinset = ko.observable();
 
     self.xData = ko.observable('gc');
     self.xLogarithmic = ko.observable(false);
@@ -80,13 +102,11 @@ function ScatterplotPanel() {
     self.selectedContigs = ko.observableArray([]);
     self.contigs = ko.observableArray([]);
 
-    self.color = ko.observable('#58ACFA');
-    self.colorMethod = ko.observable('uniform'); // uniform || binset
-    self.colorBinset = ko.observable();
-
+    // Get the contigs on bin selection change
     ko.computed(function() {
         var binIds = self.binIds();
         var contigset = self.contigset();
+        var binset = self.binset();
         if (binIds.length == 0 || !contigset) {
             self.contigs([]);
             return;
@@ -98,21 +118,19 @@ function ScatterplotPanel() {
         var url = '/contigsets/' + contigset.id + '/contigs';
         $.getJSON(url, payload, function(data) {
             self.contigs(data.contigs);
+            self.colorBinset.valueHasMutated(); // trigger color update
         });
     });
 
-    ko.computed(function() {
-        var binset = self.colorBinset();
-        if (!binset) return;
-        self.colorMethod('binset');
-    });
 
+    // Color change
     ko.computed(function() {
-        var colorMethod = self.colorMethod();
-        if (colorMethod === 'uniform') return;
-        var binset = self.colorBinset();
+        var contigset = self.contigset();
+        var binset = self.binset();
+        if (!contigset || !binset) return;
+        var colorBinset = self.colorBinset() || binset;
 
-        var url = '/contigsets/' + binset.contigset + '/binsets/' + binset.id + '/bins';
+        var url = '/contigsets/' + contigset.id + '/binsets/' + colorBinset.id + '/bins';
         var payload = {fields: 'color', contigs: true};
         $.getJSON(url, payload, function(data) {
             var contigColors = {};
@@ -128,25 +146,11 @@ function ScatterplotPanel() {
         });
     });
 
-    self.updatePlot = function() {
-        var contigset = self.contigset();
-        if (!contigset) {
-            self.contigs([]);
-            self.colorMethod('uniform');
-            return;
-        }
-        var fields = self.xData() + "," + self.yData();
-        //var data = {fields: fields};
-        var data = {items: 100, length: "5000+"};
-        var url = '/contigsets/' + contigset.id + '/contigs';
-        $.getJSON(url, data, function(data) {
-            self.contigs(data.contigs.map(function(contig) {
-                $.extend(contig, contig.coverages);
-                delete contig.coverages;
-                return contig;
-            }));
-        });
-    };
+    ko.computed(function() {
+        var binset = self.binset();
+        if (!binset) return;
+        self.colorBinset(binset);
+    })
 }
 
 function ChordPanel() {
@@ -251,11 +255,11 @@ function ContigSection() {
 }
 
 
-function BinSection() {
+function BinSection(binset, binIds) {
     var self = this;
-    self.binset = ko.observable(null);
+    self.binset = binset;
     self.bins = ko.observableArray([]);
-    self.selectedBinIds = ko.observableArray([]);
+    self.binIds = binIds;
 
     self.sort = function(by) {
         if (!$.isNumeric(self.bins()[0][by])) return self.bins.sort();
@@ -275,7 +279,7 @@ function BinSection() {
             type: 'DELETE',
             data: {ids: ids.join(",")}
         });
-        self.selectedBinIds([]);
+        self.binIds([]);
         self.bins.remove(function(bin) { return ids.indexOf(bin.id) > -1; });
     };
 
@@ -283,12 +287,11 @@ function BinSection() {
         var binset = self.binset();
         if (!binset) {
             self.bins([]);
-            self.selectedBinIds([]);
+            self.binIds([]);
             return;
         }
         var url = '/contigsets/' + binset.contigset + '/binsets/' + binset.id + '/bins';
-        var queryOptions = {items: 5};
-        $.getJSON(url, queryOptions, function(data) {
+        $.getJSON(url, function(data) {
             self.bins(data.bins.map(function(bin) { return new Bin(bin); }));
         });
     });
@@ -355,10 +358,8 @@ function ViewModel() {
     self.selectedContigset = ko.observable(null);
     self.selectedBinset = ko.observable(null);
     self.contigSection = new ContigSection();
-    self.binSection = new BinSection();
     self.contigsetPage = new ContigsetPage(self.selectedContigset);
-
-    self.scatterplotPanel = new ScatterplotPanel();
+    self.binsetPage = new BinsetPage(self.selectedContigset, self.selectedBinset);
     self.chordPanel = new ChordPanel();
 
     // On which breadcrumb (nav bar on the top right) we are.
@@ -375,7 +376,6 @@ function ViewModel() {
         var contigset = self.selectedContigset();
         if (contigset) { // A contigset has been selected
             self.crumb(self.CrumbEnum.CONTIGSET);
-            self.scatterplotPanel.contigset = self.selectedContigset;
             self.contigSection.contigsetId(contigset.id); // Update contig table
 
             $.getJSON('/contigsets/' + contigset.id + '/binsets', function(data) {
@@ -390,10 +390,7 @@ function ViewModel() {
     // On binset change
     ko.computed(function() {
         var binset = self.selectedBinset();
-        self.binSection.binset(binset);
-        if (binset) {
-            self.crumb(self.CrumbEnum.BINSET);
-        }
+        if (binset) self.crumb(self.CrumbEnum.BINSET);
     });
 
     // On crumb change
@@ -411,6 +408,7 @@ function ViewModel() {
                 self.selectedBinset(null);
                 break;
             case self.CrumbEnum.BINSET:
+                break;
         }
     });
 
