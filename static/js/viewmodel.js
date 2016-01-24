@@ -272,8 +272,7 @@ function BinSection(binset, binIds) {
     self.deleteBins = function() {
         var binset = self.binset();
         if (!binset) return;
-        var ids = self.selectedBinIds();
-        console.log(binset.contigset);
+        var ids = self.binIds();
         $.ajax({
             url: '/contigsets/' + binset.contigset + '/binsets/' + binset.id + '/bins',
             type: 'DELETE',
