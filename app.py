@@ -258,9 +258,11 @@ class ContigListApi(Resource):
         self.reqparse.add_argument('index', type=int, default=1)
         self.reqparse.add_argument('sort', type=str, choices=[
             'id', 'name', 'gc', 'length', '-id', '-name', '-gc', '-length'])
-        self.reqparse.add_argument('fields', type=str)
+        self.reqparse.add_argument('fields', type=str,
+            default='id,name,length,gc,contigset_id')
         self.reqparse.add_argument('length', type=str)
         self.reqparse.add_argument('bins', type=str)
+        self.reqparse.add_argument('coverages', type=bool)
         super(ContigListApi, self).__init__()
 
     def get(self, contigset_id):
@@ -268,8 +270,7 @@ class ContigListApi(Resource):
         contigs = user_contigset_or_404(contigset_id).contigs
         if args.fields:
             fields = args.fields.split(',')
-            columns = [Contig.__dict__[field] for field in fields]
-            contigs = contigs.with_entities(*columns)
+            contigs = contigs.options(db.load_only(*fields))
         if args.sort:
             order = db.desc(args.sort[1:]) if args.sort[0] == '-' else db.asc(args.sort)
             contigs = contigs.order_by(order)
@@ -292,17 +293,12 @@ class ContigListApi(Resource):
         result = []
         for contig in contig_pagination.items:
             r = {}
-            if args.fields is None or 'id' in fields:
-                r['id'] = contig.id
-            if args.fields is None or 'name' in fields:
-                r['name'] = contig.name
-            if args.fields is None or 'gc' in fields:
-                r['gc'] = contig.gc if contig.gc is not None else '-'
-            if args.fields is None or 'length' in fields:
-                r['length'] = contig.length if contig.length is not None else '-'
-            if args.fields is None or 'coverages' in fields:
-                r['coverages'] = {cov.name: cov.value
-                    for cov in contig.coverages.all()}
+            if args.fields:
+                for field in fields:
+                    r[field] = getattr(contig, field)
+            if args.coverages:
+                for cov in contig.coverages:
+                    r[cov.name] = cov.value
             result.append(r)
 
         return {'contigs': result, 'indices': contig_pagination.pages,
@@ -501,7 +497,8 @@ def to_matrix():
     if bins is None:
         abort(400)
     bins = Bin.query.filter(Bin.id.in_(bins.split(','))).all()
-    return json.dumps(utils.to_matrix(bins))
+    matrix = utils.to_matrix(bins)
+    return json.dumps(matrix)
 
 
 @app.route('/')
@@ -514,4 +511,4 @@ def home():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
