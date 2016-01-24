@@ -359,8 +359,7 @@ class BinsetListApi(Resource):
         for contig_name, bin_name in utils.parse_dsv(bin_file.name):
             contig_bins[contig_name] = bin_name
 
-        filter = Contig.name.in_(contig_bins)
-        contigs = contigset.contigs.filter(filter).all()
+        contigs = [contig for contig in contigset.contigs if contig.name in contig_bins]
 
         # Bins can contain contig names which are not present in the contigset.
         # Add these new contigs to the contigset.
