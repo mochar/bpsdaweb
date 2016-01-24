@@ -7,7 +7,7 @@ import time
 import werkzeug
 from flask import Flask, render_template, g, session, abort, request, jsonify
 from flask.ext.sqlalchemy import SQLAlchemy
-from flask_restful import Api, Resource, reqparse
+from flask_restful import Api, Resource, reqparse, inputs
 
 import utils
 import randomcolor
@@ -262,7 +262,7 @@ class ContigListApi(Resource):
             default='id,name,length,gc,contigset_id')
         self.reqparse.add_argument('length', type=str)
         self.reqparse.add_argument('bins', type=str)
-        self.reqparse.add_argument('coverages', type=bool)
+        self.reqparse.add_argument('coverages', type=inputs.boolean)
         super(ContigListApi, self).__init__()
 
     def get(self, contigset_id):
