@@ -102,6 +102,18 @@ function ScatterplotPanel(contigset, binset, binIds) {
     self.selectedContigs = ko.observableArray([]);
     self.contigs = ko.observableArray([]);
 
+    function isSample(name) {
+        return self.contigset().samples.indexOf(name) > -1;
+    }
+
+    function createFields() {
+        var xData = self.xData(), yData = self.yData();
+        var fields = ['id'];
+        if (!isSample(xData)) fields.push(xData);
+        if (!isSample(yData)) fields.push(yData);
+        return fields;
+    }
+
     // Get the contigs on bin selection change
     ko.computed(function() {
         var binIds = self.binIds();
@@ -112,9 +124,9 @@ function ScatterplotPanel(contigset, binset, binIds) {
             return;
         }
 
-        var fields = 'id,' + self.xData() + "," + self.yData();
-        var payload = {fields: fields, bins: binIds.join(','),
-            items: contigset.size()};
+        var fields = createFields();
+        var payload = {fields: fields.join(','), bins: binIds.join(','),
+            items: contigset.size(), coverages: fields.length < 3};
         var url = '/contigsets/' + contigset.id + '/contigs';
         $.getJSON(url, payload, function(data) {
             self.contigs(data.contigs);
