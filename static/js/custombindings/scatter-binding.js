@@ -83,8 +83,10 @@ ko.bindingHandlers.scatterSvg = {
         dots.enter().append("circle")
             .attr("class", "dot")
             .attr("r", 0)
+            .style('fill-opacity', 0)
             .style("fill", function(d) { return d.color; })
-            .style("opacity", .5)
+            .style('stroke', function(d) { return d.color; })
+            .style('stoke-width', '3px')
             .on("mouseover", function(d) {
                 tooltip.transition()
                     .duration(200)
@@ -99,13 +101,13 @@ ko.bindingHandlers.scatterSvg = {
                     .style("opacity", 0);
             })
             .on("click", function(d) {
-                var selected = selectedContigIds().indexOf(d.id) === -1,
-                    newOpacity = selected ? 1 : 0.5;
-                d3.select(this).style("opacity", newOpacity);
+                var selected = selectedContigIds().indexOf(d.id) === -1;
+                d3.select(this).style("fill-opacity", selected ? 1 : 0);
                 selected ? selectedContigIds.push(d.id) : selectedContigIds.remove(d.id);
             });
 
         dots.transition()
+            .style('stroke', function(d) { return d.color; })
             .style("fill", function(d) { return d.color; })
             .attr("r", 4)
             .attr("cx", xMap)
