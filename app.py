@@ -60,7 +60,7 @@ class Contig(db.Model):
     gc = db.Column(db.Integer)
     contigset_id = db.Column(db.Integer, db.ForeignKey('contigset.id'),
          nullable=False)
-    coverages = db.relationship('Coverage', backref='contig', lazy='dynamic',
+    coverages = db.relationship('Coverage', backref='contig',
         cascade='all, delete')
 
 
@@ -92,6 +92,15 @@ class Contigset(db.Model):
         cascade='all, delete')
     binsets = db.relationship('Binset', backref='contigset', lazy='dynamic',
         cascade='all, delete')
+
+    @property
+    def samples(self):
+        samples = Coverage.query.join(Coverage.contig) \
+            .filter(Contig.contigset == self) \
+            .with_entities(Coverage.name) \
+            .distinct() \
+            .all()
+        return [sample[0] for sample in samples]
 
 
 def save_contigs(contigset, fasta_filename, coverage_objects=None, bulk_size=5000):
@@ -180,15 +189,10 @@ class ContigsetListApi(Resource):
             abort(404)
         result = []
         for contigset in Contigset.query.filter_by(userid=userid).all():
-            samples = Coverage.query.join(Coverage.contig) \
-                .filter(Contig.contigset == contigset) \
-                .with_entities(Coverage.name) \
-                .distinct() \
-                .all()
             result.append({'name': contigset.name, 'id': contigset.id,
                            'size': contigset.contigs.count(),
                            'binsets': [binset.id for binset in contigset.binsets],
-                           'samples': [sample[0] for sample in samples]})
+                           'samples': contigset.samples})
         return {'contigsets': result}
 
     def post(self):
@@ -215,7 +219,7 @@ class ContigsetListApi(Resource):
             os.remove(fasta_file.name)
 
         return {'id': contigset.id, 'name': contigset.name, 'binsets': [],
-            'size': contigset.contigs.count()}
+            'size': contigset.contigs.count(), 'samples': contigset.samples}
 
 
 api.add_resource(ContigsetListApi, '/contigsets')
@@ -289,6 +293,8 @@ class ContigListApi(Resource):
         if args.bins:
             bin_ids = args.bins.split(',')
             contigs = contigs.join((Bin, Contig.bins)).filter(Bin.id.in_(bin_ids))
+        if args.coverages:
+            contigs = contigs.options(db.joinedload('coverages'))
         contig_pagination = contigs.paginate(args.index, args._items, False)
         result = []
         for contig in contig_pagination.items:
