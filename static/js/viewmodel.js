@@ -70,28 +70,69 @@ function BinsetPage(contigset, binset) {
     var self = this;
     self.contigset = contigset;
     self.binset = binset;
-    self.binIds = ko.observableArray([]);
+    self.colorBinset = ko.observable(null);
+    self.binIds = ko.observableArray([]); // selected bins
+    self.contigs = ko.observableArray([]);
+    self.contigIds = ko.observableArray([]); // selected contigs
 
     self.binSection = new BinSection(self.binset, self.binIds);
-    self.scatterplotPanel = new ScatterplotPanel(self.contigset, self.binset, self.binIds);
+    self.scatterplotPanel = new ScatterplotPanel(self.contigset, self.binset,
+        self.contigs, self.colorBinset);
 
     ko.computed(function() {
         var binset = self.binset();
-        if (!binset) return;
+        self.binIds([]);
+        self.contigs([]);
+        self.contigIds([]);
     });
 
-    ko.computed(function() {
-        var contigset = self.contigset();
-        if (!contigset) return;
-    });
+    // Get the contigs on bin selection change
+    self.binIds.subscribe(function(changes) {
+        changes.forEach(function(change) {
+            if (change.status === 'added') getContigs(change.value);
+            if (change.status === 'deleted')
+                self.contigs.remove(function(contig) {
+                    return contig.bin == change.value;
+                });
+        });
+    }, null, 'arrayChange');
+
+    function getContigs(binId) {
+        var contigset = self.contigset(),
+            binset = self.binset(),
+            colorBinset = self.colorBinset.peek() || binset;
+
+        var contigsUrl = '/contigsets/' + contigset.id + '/contigs',
+            contigsPayload = {fields: 'id,length,gc,name', bins: binId,
+                items: contigset.size(), coverages: true},
+            binsUrl = '/contigsets/' + contigset.id + '/binsets/' + colorBinset.id + '/bins',
+            binsPayload = {fields: 'color', contigs: true};
+        $.when(
+            $.getJSON(contigsUrl, contigsPayload),
+            $.getJSON(binsUrl, binsPayload)
+        ).done(function(contigs, bins) {
+            var contigColors = {};
+            bins[0].bins.forEach(function(bin) {
+                bin.contigs.forEach(function(contig) {
+                    contigColors[contig] = bin.color;
+                });
+            });
+
+            ko.utils.arrayPushAll(self.contigs, contigs[0].contigs.map(function(contig) {
+                contig.color = contigColors[contig.id];
+                contig.bin = binId;
+                return contig;
+            }));
+        });
+    }
 }
 
-function ScatterplotPanel(contigset, binset, binIds) {
+function ScatterplotPanel(contigset, binset, contigs, colorBinset) {
     var self = this;
     self.contigset = contigset;
     self.binset = binset;
-    self.binIds = binIds;
-    self.colorBinset = ko.observable();
+    self.contigs = contigs;
+    self.colorBinset = colorBinset;
 
     self.xData = ko.observable('gc');
     self.xLogarithmic = ko.observable(false);
@@ -99,69 +140,33 @@ function ScatterplotPanel(contigset, binset, binIds) {
     self.yData = ko.observable('length');
     self.yLogarithmic = ko.observable(false);
 
-    self.selectedContigs = ko.observableArray([]);
-    self.contigs = ko.observableArray([]);
-
-    function isSample(name) {
-        return self.contigset().samples.indexOf(name) > -1;
-    }
-
-    function createFields() {
-        var xData = self.xData(), yData = self.yData();
-        var fields = ['id'];
-        if (!isSample(xData)) fields.push(xData);
-        if (!isSample(yData)) fields.push(yData);
-        return fields;
-    }
-
-    // Get the contigs on bin selection change
     ko.computed(function() {
-        var binIds = self.binIds();
-        var contigset = self.contigset();
         var binset = self.binset();
-        if (binIds.length == 0 || !contigset) {
-            self.contigs([]);
-            return;
-        }
-
-        var fields = createFields();
-        var payload = {fields: fields.join(','), bins: binIds.join(','),
-            items: contigset.size(), coverages: fields.length < 3};
-        var url = '/contigsets/' + contigset.id + '/contigs';
-        $.getJSON(url, payload, function(data) {
-            self.contigs(data.contigs);
-            self.colorBinset.valueHasMutated(); // trigger color update
-        });
+        if (!binset) return;
+        self.colorBinset(binset);
     });
 
-
-    // Color change
     ko.computed(function() {
-        var contigset = self.contigset();
-        var binset = self.binset();
-        if (!contigset || !binset) return;
-        var colorBinset = self.colorBinset() || binset;
+        var colorBinset = self.colorBinset() || self.binset(),
+            binset = self.binset(),
+            contigset = self.contigset();
+        if (!colorBinset || !binset || !contigset) return;
 
-        var url = '/contigsets/' + contigset.id + '/binsets/' + colorBinset.id + '/bins';
-        var payload = {fields: 'color', contigs: true};
-        $.getJSON(url, payload, function(data) {
+        var binsUrl = '/contigsets/' + contigset.id + '/binsets/' + colorBinset.id + '/bins',
+            binsPayload = {fields: 'color', contigs: true};
+        $.getJSON(binsUrl, binsPayload, function(data) {
             var contigColors = {};
             data.bins.forEach(function(bin) {
                 bin.contigs.forEach(function(contig) {
                     contigColors[contig] = bin.color;
                 });
             });
+
             self.contigs(self.contigs().map(function(contig) {
-                contig.color = contigColors[contig.id];
+                contig.color = contigColors[contig.id] || '#000000';
                 return contig;
             }));
         });
-    });
-
-    ko.computed(function() {
-        var binset = self.binset();
-        if (!binset) return;
-        self.colorBinset(binset);
     })
 }
 
@@ -296,11 +301,8 @@ function BinSection(binset, binIds) {
 
     ko.computed(function() {
         var binset = self.binset();
-        if (!binset) {
-            self.bins([]);
-            self.binIds([]);
-            return;
-        }
+        self.bins([]);
+        if (!binset) return;
         var url = '/contigsets/' + binset.contigset + '/binsets/' + binset.id + '/bins';
         $.getJSON(url, function(data) {
             self.bins(data.bins.map(function(bin) { return new Bin(bin); }));
@@ -416,7 +418,7 @@ function ViewModel() {
                 self.selectedBinset(null);
                 break;
             case self.CrumbEnum.BINSETS:
-                self.selectedBinset(null);
+                //self.selectedBinset(null);
                 break;
             case self.CrumbEnum.BINSET:
                 break;

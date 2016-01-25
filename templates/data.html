@@ -175,22 +175,37 @@
     </div>
 </div>
 
-<div class="panel panel-default"
-    data-bind="with: binsetPage.binSection,
-               visible: selectedBinset && crumb() == CrumbEnum.BINSET">
-    <table class="table table-condensed">
-        <thead>
-            <tr>
-                <th>Contig</th>
-                <th>GC</th>
-                <th>Length</th>
-            </tr>
-        </thead>
-        <tbody data-bind="foreach: bins">
-            <tr><td></td></tr>
-        </tbody>
-    </table>
-</div>
+{#<div class="panel panel-default"#}
+{#     data-bind="with: binsetPage,#}
+{#                visible: selectedBinset && crumb() == CrumbEnum.BINSET">#}
+{#    <div class="panel-body"></div>#}
+{##}
+{#    <table class="table table-condensed" style="table-layout: fixed">#}
+{#        <thead>#}
+{#        <tr>#}
+{#            <th width="5%"></th>#}
+{#            <th width="55%">Contig</th>#}
+{#            <th width="20%">GC</th>#}
+{#            <th width="20%">Length</th>#}
+{#        </tr>#}
+{#        </thead>#}
+{#    </table>#}
+{#    <div style="overflow-y: auto; max-height: 150px">#}
+{#        <table class="table table-condensed table-hover" style="table-layout: fixed">#}
+{#            <tbody data-bind="foreach: contigs">#}
+{#            <tr>#}
+{#                <td width="5%">#}
+{#                    <input type="checkbox" data-bind="checkedValue: id,#}
+{#                                                  checked: $parent.scatterplotPanel.selectedContigIds">#}
+{#                </td>#}
+{#                <td data-bind="text: name" width="55%"></td>#}
+{#                <td data-bind="text: gc" width="20%"></td>#}
+{#                <td data-bind="text: length" width="20%"></td>#}
+{#            </tr>#}
+{#            </tbody>#}
+{#        </table>#}
+{#    </div>#}
+{#</div>#}
 
 
 <div class="panel panel-default"

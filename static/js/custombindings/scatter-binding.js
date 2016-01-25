@@ -35,8 +35,8 @@ ko.bindingHandlers.scatterSvg = {
     },
     update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
         console.log('update scatter plot');
-        var contigs = bindingContext.$data.contigs(),
-            selectedContigs = bindingContext.$data.selectedContigs,
+        var contigs = bindingContext.$parent.contigs(),
+            selectedContigIds = bindingContext.$parent.contigIds,
             xData = bindingContext.$data.xData(),
             xLogarithmic = bindingContext.$data.xLogarithmic(),
             yData = bindingContext.$data.yData(),
@@ -99,10 +99,10 @@ ko.bindingHandlers.scatterSvg = {
                     .style("opacity", 0);
             })
             .on("click", function(d) {
-                var selected = selectedContigs().indexOf(d) === -1,
+                var selected = selectedContigIds().indexOf(d.id) === -1,
                     newOpacity = selected ? 1 : 0.5;
                 d3.select(this).style("opacity", newOpacity);
-                selected ? selectedContigs.push(d) : selectedContigs.remove(d);
+                selected ? selectedContigIds.push(d.id) : selectedContigIds.remove(d.id);
             });
 
         dots.transition()
