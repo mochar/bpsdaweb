@@ -1,8 +1,8 @@
 import uuid
-import json
 import tempfile
 import os
 import time
+import collections
 
 import werkzeug
 from flask import Flask, render_template, g, session, abort, request, jsonify
@@ -393,6 +393,39 @@ class BinsetListApi(Resource):
 api.add_resource(BinsetListApi, '/contigsets/<int:contigset_id>/binsets')
 
 
+class MatrixApi(Resource):
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('binset1', type=int, required=True)
+        self.reqparse.add_argument('binset2', type=int, required=True)
+
+    def get(self, contigset_id):
+        args = self.reqparse.parse_args()
+
+        # contigset = user_contigset_or_404(contigset_id)
+        # ids = [x[0] for x in contigset.contigs.with_entities(Contig.id).all()]
+
+        binset1 = binset_or_404(contigset_id, args.binset1)
+        binset2 = binset_or_404(contigset_id, args.binset2)
+        bins1 = [bin.id for bin in sorted(binset1.bins.options(db.load_only('id')).all(), key=lambda x: x.gc)]
+        bins2 = [bin.id for bin in sorted(binset2.bins.options(db.load_only('id')).all(), key=lambda x: x.gc, reverse=True)]
+        bins = bins1 + bins2
+
+        data = db.session.query(bincontig). \
+            filter(bincontig.c.bin_id.in_(bins)). \
+            order_by('bin_id'). \
+            all()
+        bins = collections.defaultdict(list)
+        for bin, contig in data:
+            bins[bin].append(contig)
+
+        matrix = utils.to_matrix(bins)
+        return {'matrix': matrix, 'bins1': bins1, 'bins2': bins2}
+
+
+api.add_resource(MatrixApi, '/contigsets/<int:contigset_id>/matrix')
+
+
 class BinsetApi(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
@@ -492,19 +525,6 @@ api.add_resource(BinApi, '/contigsets/<int:contigset_id>/binsets/'
 @app.before_request
 def make_session_permanent():
     session.permanent = True
-
-
-@app.route('/to_matrix')
-def to_matrix():
-    userid = session.get('uid')
-    if userid is None:
-        abort(404)
-    bins = request.args.get('bins')
-    if bins is None:
-        abort(400)
-    bins = Bin.query.filter(Bin.id.in_(bins.split(','))).all()
-    matrix = utils.to_matrix(bins)
-    return json.dumps(matrix)
 
 
 @app.route('/')
