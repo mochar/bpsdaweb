@@ -79,7 +79,6 @@ function BinsetPage(contigset, binset) {
     self.binSection = new BinSection(self.binset, self.binIds, self.bins);
     self.scatterplotPanel = new ScatterplotPanel(self.contigset, self.binset,
         self.contigs, self.colorBinset);
-    self.chordPanel = new ChordPanel(self.bins);
 
     ko.computed(function() {
         var binset = self.binset();
@@ -172,11 +171,9 @@ function ScatterplotPanel(contigset, binset, contigs, colorBinset) {
     })
 }
 
-function ChordPanel(binset, bins) {
+function ChordPanel(binset) {
     var self = this;
     self.binset = binset;
-    self.bins = bins;
-
     self.selectedBinset1 = ko.observable(null);
     self.selectedBinset2 = ko.observable(null);
 
@@ -391,6 +388,7 @@ function ViewModel() {
     self.contigSection = new ContigSection();
     self.contigsetPage = new ContigsetPage(self.selectedContigset);
     self.binsetPage = new BinsetPage(self.selectedContigset, self.selectedBinset);
+    self.chordPanel = new ChordPanel(self.selectedBinset);
 
     // On which breadcrumb (nav bar on the top right) we are.
     self.CrumbEnum = {

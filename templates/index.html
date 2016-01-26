@@ -12,11 +12,11 @@
         </div>
 
         <div data-bind="visible: crumb() == CrumbEnum.BINSETS">
+            {% include "chorddiagram.html" %}
         </div>
 
         <div data-bind="with: binsetPage, visible: crumb() == CrumbEnum.BINSET">
             {% include "scatterplot.html" %}
-            {% include "chorddiagram.html" %}
         </div>
     </div>
     <div class="col-lg-4 col-sm-12" id="datapanel">
