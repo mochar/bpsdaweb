@@ -71,13 +71,15 @@ function BinsetPage(contigset, binset) {
     self.contigset = contigset;
     self.binset = binset;
     self.colorBinset = ko.observable(null);
+    self.bins = ko.observableArray([]);
     self.binIds = ko.observableArray([]); // selected bins
     self.contigs = ko.observableArray([]);
     self.contigIds = ko.observableArray([]); // selected contigs
 
-    self.binSection = new BinSection(self.binset, self.binIds);
+    self.binSection = new BinSection(self.binset, self.binIds, self.bins);
     self.scatterplotPanel = new ScatterplotPanel(self.contigset, self.binset,
         self.contigs, self.colorBinset);
+    self.chordPanel = new ChordPanel(self.bins);
 
     ko.computed(function() {
         var binset = self.binset();
@@ -170,48 +172,64 @@ function ScatterplotPanel(contigset, binset, contigs, colorBinset) {
     })
 }
 
-function ChordPanel() {
+function ChordPanel(binset, bins) {
     var self = this;
+    self.binset = binset;
+    self.bins = bins;
+
     self.selectedBinset1 = ko.observable(null);
     self.selectedBinset2 = ko.observable(null);
+
     self.selectedBin = ko.observable();
     self.selectedBins = ko.observableArray([]);
-    self.showSettings = ko.observable(false);
 
     self.unifiedColor = ko.observable(false);
-    self.matrix = ko.observable([]);
-    self.bins = [];
+    self.matrix = [];
+    self.dirty = ko.observable(false);
 
-    self.switchSelectedBinsets = function() {
-        var tmp = self.selectedBinset1();
-        self.selectedBinset1(self.selectedBinset2());
-        self.selectedBinset2(tmp);
-    };
-
-    self.toggleSettings = function() {
-        self.showSettings(!self.showSettings());
-    };
+    self.bins1 = [];
+    self.bins2 = [];
 
     self.updateChordPanel = function() {
-        var binsets = [self.selectedBinset1(), self.selectedBinset2()];
-        var binIds = binsets[0].bins().concat(binsets[1].bins());
-        var data = {bins: binIds.join(',')};
-        var url = '/contigsets/' + binsets[0].contigset + '/binsets/';
-        $.when(
-            $.getJSON('/to_matrix', data),
-            $.getJSON(url + binsets[0].id + '/bins'),
-            $.getJSON(url + binsets[1].id + '/bins')
-        ).done(function(matrix, bins1, bins2) {
-            bins1[0].bins.forEach(function(b) {
-                $.extend(b, {binsetColor: binsets[0].color()});
+        var binsets = [self.selectedBinset1(), self.selectedBinset2()],
+            data = {binset1: binsets[0].id, binset2: binsets[1].id},
+            url = '/contigsets/' + binsets[0].contigset + '/binsets/';
+
+        // Create the matrix
+        $.getJSON('/contigsets/' + binsets[0].contigset + '/matrix', data, function(data) {
+            self.bins1 = data.bins1;
+            self.bins2 = data.bins2;
+            self.matrix = data.matrix;
+
+            $.when(
+                $.getJSON(url + binsets[0].id + '/bins', {fields: 'id,color'}),
+                $.getJSON(url + binsets[1].id + '/bins', {fields: 'id,color'})
+            ).done(function(bins1, bins2) {
+                bins1[0].bins.forEach(function(bin) {
+                    self.bins1[self.bins1.indexOf(bin.id)] = bin;
+                });
+                bins2[0].bins.forEach(function(bin) {
+                    self.bins2[self.bins2.indexOf(bin.id)] = bin;
+                });
+
+                self.dirty(true);
             });
-            bins2[0].bins.forEach(function(b) {
-                $.extend(b, {binsetColor: binsets[1].color()});
-            });
-            self.bins = bins1[0].bins.concat(bins2[0].bins);
-            self.matrix(matrix[0]);
         });
     };
+
+    ko.computed(function() {
+        self.unifiedColor();
+        self.dirty(true);
+    });
+
+    ko.computed(function() {
+        self.binset();
+        self.matrix = [];
+        self.bins1 = [];
+        self.bins2 = [];
+        self.unifiedColor(false);
+        self.dirty(true);
+    });
 }
 
 function ContigSection() {
@@ -272,10 +290,10 @@ function ContigSection() {
 }
 
 
-function BinSection(binset, binIds) {
+function BinSection(binset, binIds, bins) {
     var self = this;
     self.binset = binset;
-    self.bins = ko.observableArray([]);
+    self.bins = bins;
     self.binIds = binIds;
 
     self.sort = function(by) {
@@ -315,7 +333,7 @@ function Bin(data) {
     var self = this;
     self.id = data.id;
     self.name = data.name;
-    self.binset = data.binset;
+    self.binset = data.binset_id;
     self.color = ko.observable(data.color);
     self.size = data.size;
     self.gc = data.gc;
@@ -373,7 +391,6 @@ function ViewModel() {
     self.contigSection = new ContigSection();
     self.contigsetPage = new ContigsetPage(self.selectedContigset);
     self.binsetPage = new BinsetPage(self.selectedContigset, self.selectedBinset);
-    self.chordPanel = new ChordPanel();
 
     // On which breadcrumb (nav bar on the top right) we are.
     self.CrumbEnum = {
@@ -386,6 +403,7 @@ function ViewModel() {
 
     // On contigset change
     ko.computed(function() {
+        self.selectedBinset(null);
         var contigset = self.selectedContigset();
         if (contigset) { // A contigset has been selected
             self.crumb(self.CrumbEnum.CONTIGSET);
@@ -415,7 +433,7 @@ function ViewModel() {
                 //self.selectedContigset(null);
                 break;
             case self.CrumbEnum.CONTIGSET:
-                self.selectedBinset(null);
+                //self.selectedBinset(null);
                 break;
             case self.CrumbEnum.BINSETS:
                 //self.selectedBinset(null);

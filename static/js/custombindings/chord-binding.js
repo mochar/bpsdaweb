@@ -27,9 +27,15 @@ ko.bindingHandlers.chordSvg = {
             .attr("d", arc);
     },
     update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-        var matrix = bindingContext.$data.matrix();
+        var dirty = bindingContext.$data.dirty();
+        if (!dirty) return;
+        bindingContext.$data.dirty(false);
+
+        var matrix = bindingContext.$data.matrix;
         var unifiedColor = bindingContext.$data.unifiedColor();
-        var bins = bindingContext.$data.bins;
+        var bins1 = bindingContext.$data.bins1;
+        var bins2 = bindingContext.$data.bins2;
+        var bins = bins1.concat(bins2);
 
         var binset1 = bindingContext.$data.selectedBinset1.peek();
         var binset2 = bindingContext.$data.selectedBinset2.peek();
@@ -65,10 +71,14 @@ ko.bindingHandlers.chordSvg = {
             .on("mouseout", fade(1))
             .on('click', function(d) {
                 bindingContext.$data.selectedBin(bins[d.index]);
-                if (selectedBins.peek().indexOf(bins[d.index]) > -1)
+
+                if (selectedBins.peek().indexOf(bins[d.index]) > -1) {
+                    d3.select(this).transition().attr('d', d3.svg.arc().innerRadius(innerRadius).outerRadius(outerRadius));
                     selectedBins.remove(bins[d.index]);
-                else
+                } else {
+                    d3.select(this).transition().attr('d', d3.svg.arc().innerRadius(innerRadius * 1.02).outerRadius(outerRadius * 1.02));
                     selectedBins.push(bins[d.index]);
+                }
         });
 
         groupPaths.transition()
@@ -85,11 +95,12 @@ ko.bindingHandlers.chordSvg = {
 
         // Update chords
         var chordPaths = svg.select('#chord').selectAll('path')
-            .data(chord.chords(), function(d) {
-                if (d.source.index < d.target.index)
-                    return d.source.index + "-" + d.target.index;
-                return d.target.index + "-" + d.source.index;
-            });
+            .data(chord.chords());
+            //.data(chord.chords(), function(d) {
+            //    if (d.source.index < d.target.index)
+            //        return d.source.index + "-" + d.target.index;
+            //    return d.target.index + "-" + d.source.index;
+            //});
 
         chordPaths.enter()
             .append("path")
@@ -120,7 +131,7 @@ ko.bindingHandlers.chordSvg = {
           .transition()
             .attr("d", arc
                 .startAngle(chord.groups()[0].startAngle)
-                .endAngle(chord.groups()[binset1.bins().length - 1].endAngle));
+                .endAngle(chord.groups()[bins1.length - 1].endAngle));
 
         svg.select('#arc').select('#arc2')
             .attr("fill", binset2.color())

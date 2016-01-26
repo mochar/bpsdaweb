@@ -3,15 +3,16 @@ import csv
 
 def to_matrix(bins):
     matrix = []
-    for i, bin1 in enumerate(bins):
+    for i, bin1 in enumerate(bins.items()):
+        bin1, bin1_contigs = bin1
         matching = []
-        for bin2 in bins:
+        for bin2, bin2_contigs in bins.items():
             if bin1 == bin2:
                 matching.append(0)
             else:
-                matching.append(len([c for c in bin1.contigs
-                                     if c in bin2.contigs]))
-        matching[i] = len(bin1.contigs) - sum(matching)
+                matches = [c for c in bin1_contigs if c in bin2_contigs]
+                matching.append(len(matches))
+        matching[i] = len(bin1_contigs) - sum(matching)
         matrix.append(matching)
     return matrix
 
