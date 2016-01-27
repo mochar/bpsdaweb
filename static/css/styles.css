@@ -65,3 +65,20 @@ border:1px solid #ccc !important;
 .barText {
     font: 10px sans-serif;
 }
+
+/* Barplot */
+.y.axisRight text {
+    fill: #F91826;
+}
+
+.y.axisLeft text {
+    fill: #5E809C;
+}
+
+.bar1 {
+  fill: #5E809C;
+}
+
+.bar2 {
+  fill: #F91826;
+}

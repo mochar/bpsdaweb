@@ -335,6 +335,10 @@ function Bin(data) {
     self.size = data.size;
     self.gc = data.gc;
     self.n50 = data.N50;
+    //self.contamination = data.contamination;
+    //self.completeness = data.completeness;
+    self.contamination = Math.floor(Math.random() * 100);
+    self.completeness = Math.floor(Math.random() * 100);
 }
 
 
