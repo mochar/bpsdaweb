@@ -5,10 +5,9 @@ Dependencies (python 3):
 * flask
 * flask-sqlalchemy
 * flask-restful
+* flask-script
 
-Instructies:  
-1. Maak de database aan met `python3 create_db.py`  
-2. Start de applicatie met `python3 app.py`  
-3. Open een webbrowser en ga naar 127.0.0.1:5000  
-
-![Screenshot](/../screenshots/website.png?raw=true)
+Instructions:
+1. Create the database with `python3 manage.py createdb`
+2. Start the application with `python3 manage.py runserver`
+3. Open your webbrowser en navigate to 127.0.0.1:5000
