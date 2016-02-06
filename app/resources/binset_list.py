@@ -1,5 +1,6 @@
 import tempfile
 import os
+from collections import defaultdict
 
 import werkzeug
 from flask.ext.restful import Resource, reqparse
@@ -36,32 +37,27 @@ class BinsetListApi(Resource):
         args.bins.save(bin_file)
         bin_file.close()
 
-        # Dict: contig -> bin
-        contig_bins = {}
+        # Dict: bin -> contigs
+        bins = defaultdict(list)
         for contig_name, bin_name in utils.parse_dsv(bin_file.name):
-            contig_bins[contig_name] = bin_name
+            bins[bin_name].append(contig_name)
 
-        contigs = [contig for contig in contigset.contigs if contig.name in contig_bins]
+        bin_objects = []
+        contigs = {c.name: c for c in contigset.contigs}
+        for bin_name, bin_contigs in bins.items():
+            bin_contigs = [contigs.pop(c) for c in bin_contigs]
+            bin = Bin(name=bin_name, color=self.randcol.generate()[0],
+                      contigs=bin_contigs)
+            bin_objects.append(bin)
 
-        # Bins can contain contig names which are not present in the contigset.
-        # Add these new contigs to the contigset.
-        new_contigs = []
-        contig_names = [contig.name for contig in contigs]
-        for contig_name in [c for c in contig_bins if c not in contig_names]:
-            new_contigs.append(Contig(name=contig_name))
-        contigset.contigs.extend(new_contigs)
-
-        done = {}
-        for contig in contigs:
-            bin_name = contig_bins[contig.name]
-            bin = done.get(bin_name)
-            if bin is None:
-                bin = Bin(name=bin_name, color=self.randcol.generate()[0])
-                done[bin_name] = bin
-            bin.contigs.append(contig)
+        # Create a bin for the unbinned contigs.
+        if len(contigs) > 0:
+            bin = Bin(name='unbinned', color='#939393',
+                      contigs=list(contigs.values()))
+            bin_objects.append(bin)
 
         binset = Binset(name=args.name, color=self.randcol.generate()[0],
-                        bins=list(done.values()), contigset=contigset)
+                        bins=bin_objects, contigset=contigset)
 
         os.remove(bin_file.name)
         db.session.add(binset)
