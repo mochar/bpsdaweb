@@ -394,6 +394,8 @@ function ViewModel() {
     self.binsetPage = new BinsetPage(self.selectedContigset, self.selectedBinset);
     self.chordPanel = new ChordPanel(self.selectedBinset);
 
+    self.debug = ko.observable(false);
+
     // On which breadcrumb (nav bar on the top right) we are.
     self.CrumbEnum = {
         CONTIGSETS: 1,
