@@ -123,7 +123,7 @@
 
 
 <div class="panel panel-default"
-     data-bind="with: binsetPage.binSection,
+     data-bind="with: binsetPage.binTable,
                 visible: selectedBinset && crumb() == CrumbEnum.BINSET">
     <div class="panel-body">
         <span class="pull-left">
@@ -175,37 +175,59 @@
     </div>
 </div>
 
-<div class="panel panel-default"
-     data-bind="with: binsetPage,
-                visible: selectedBinset && crumb() == CrumbEnum.BINSET">
-    <div class="panel-body"></div>
+<!-- ko if: crumb() == CrumbEnum.BINSET -->
+<!-- ko with: binsetPage.contigTable -->
+<div class="panel panel-default" data-bind="visible: contigs().length > 0">
+    <div class="panel-body">
+        <div class="col-xs-4 form-group-sm">
+            <select class="form-control" data-bind="optionsCaption: 'Action...',
+                                                    value: action">
+                <option value="move">Move</option>
+                <option value="remove">Remove</option>
+                <option value="copy">Copy</option>
+            </select>
+        </div>
 
-    <table class="table table-condensed" style="table-layout: fixed">
+        <!-- ko if: action() == 'move' -->
+        <div class="col-xs-4 form-group-sm">
+            <select class="form-control" data-bind="options: $root.binsetPage.bins,
+                                                    optionsText: 'name',
+                                                    optionsCaption: 'Bin',
+                                                    optionsValue: 'name',
+                                                    value: bin">
+            </select>
+        </div>
+
+        <button class="btn btn-sm btn-primary pull-right"
+                data-bind="click: move">Move</button>
+        <!-- /ko -->
+    </div>
+
+    <table class="table table-condensed table-hover">
         <thead>
-        <tr>
-            <th width="5%"></th>
-            <th width="55%">Contig</th>
-            <th width="20%">GC</th>
-            <th width="20%">Length</th>
-        </tr>
-        </thead>
-    </table>
-    <div style="overflow-y: auto; max-height: 150px">
-        <table class="table table-condensed table-hover" style="table-layout: fixed">
-            <tbody data-bind="foreach: contigs">
             <tr>
-                <td width="5%">
-                    <input type="checkbox" data-bind="checkedValue: id,
-                                                  checked: $parent.scatterplotPanel.selectedContigIds">
-                </td>
-                <td data-bind="text: name" width="55%"></td>
+                <th width="60%">Contig</th>
+                <th width="20%">GC</th>
+                <th width="20%">Length</th>
+            </tr>
+        </thead>
+        <tbody data-bind="foreach: contigs">
+            <tr>
+                <td data-bind="text: name" width="60%"></td>
                 <td data-bind="text: gc" width="20%"></td>
                 <td data-bind="text: length" width="20%"></td>
             </tr>
-            </tbody>
-        </table>
-    </div>
+        </tbody>
+    </table>
 </div>
+
+<div class="well" data-bind="visible: contigs().length == 0">
+    <small class="text-center">
+        Select the contigs you want to delete or move to another bin.
+    </small>
+</div>
+<!-- /ko -->
+<!-- /ko -->
 
 
 <div class="panel panel-default"
@@ -328,5 +350,12 @@
 </div>
 
 
-<textarea data-bind="value: ko.toJSON($root, null, 2)" class="form-control"
-    style="height: 500px"></textarea>
+<div style="padding-top: 40px;">
+    <a href="#" data-bind="ifnot: debug, click: function() { debug(true) }"
+       class="pull-right">Debug</a>
+
+    <!-- ko if: debug -->
+    <textarea data-bind="value: ko.toJSON($root, null, 2)"
+              class="form-control" style="height: 500px"></textarea>
+    <!-- /ko -->
+</div>

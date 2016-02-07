@@ -66,6 +66,15 @@ function ContigsetPage(contigset) {
     });
 }
 
+
+/*
+* PAGE FOR BINSET(refinement)
+*   - BinsetPage
+*   - ScatterplotPanel
+*   - ContigTable
+*   - BinTable
+* */
+
 function BinsetPage(contigset, binset) {
     var self = this;
     self.contigset = contigset;
@@ -74,18 +83,12 @@ function BinsetPage(contigset, binset) {
     self.bins = ko.observableArray([]);
     self.binIds = ko.observableArray([]); // selected bins
     self.contigs = ko.observableArray([]);
-    self.contigIds = ko.observableArray([]); // selected contigs
+    self.selectedContigs = ko.observableArray([]);
 
-    self.binSection = new BinSection(self.binset, self.binIds, self.bins);
+    self.binTable = new BinTable(self.binset, self.binIds, self.bins);
+    self.contigTable = new ContigTable(self.selectedContigs);
     self.scatterplotPanel = new ScatterplotPanel(self.contigset, self.binset,
         self.contigs, self.colorBinset);
-
-    ko.computed(function() {
-        var binset = self.binset();
-        self.binIds([]);
-        self.contigs([]);
-        self.contigIds([]);
-    });
 
     // Get the contigs on bin selection change
     self.binIds.subscribe(function(changes) {
@@ -97,6 +100,13 @@ function BinsetPage(contigset, binset) {
                 });
         });
     }, null, 'arrayChange');
+
+    ko.computed(function() {
+        var binset = self.binset();
+        self.bins([]);
+        self.binIds([]);
+        self.contigs([]);
+    });
 
     function getContigs(binId) {
         var contigset = self.contigset(),
@@ -170,6 +180,70 @@ function ScatterplotPanel(contigset, binset, contigs, colorBinset) {
         });
     })
 }
+
+function ContigTable(contigs) {
+    var self = this;
+    self.contigs = contigs;
+    self.action = ko.observable('move'); // move || remove || copy
+    self.bin = ko.observable(); // The bin the contig should be moved to.
+
+    self.move = function() {
+        console.log('move contigs');
+    };
+
+    self.remove = function() {
+        console.log('remove contigs');
+    };
+
+    self.copy = function() {
+        console.log('copy contigs');
+    };
+}
+
+function BinTable(binset, binIds, bins) {
+    var self = this;
+    self.binset = binset;
+    self.binIds = binIds;
+    self.bins = bins;
+
+    self.sort = function(by) {
+        //if (!$.isNumeric(self.bins()[0][by])) return self.bins.sort();
+        return self.bins.sort(function(left, right) {
+            if (left[by] == right[by]) return 0;
+            return left[by] < right[by] ? -1 : 1;
+        });
+    };
+
+    self.deleteBins = function() {
+        var binset = self.binset();
+        if (!binset) return;
+        var ids = self.binIds();
+        $.ajax({
+            url: '/contigsets/' + binset.contigset + '/binsets/' + binset.id + '/bins',
+            type: 'DELETE',
+            data: {ids: ids.join(",")}
+        });
+        self.binIds([]);
+        self.bins.remove(function(bin) { return ids.indexOf(bin.id) > -1; });
+    };
+
+    ko.computed(function() {
+        var binset = self.binset();
+        self.bins([]);
+        if (!binset) return;
+        var url = '/contigsets/' + binset.contigset + '/binsets/' + binset.id + '/bins';
+        $.getJSON(url, function(data) {
+            self.bins(data.bins.map(function(bin) { return new Bin(bin); }));
+        });
+    });
+}
+
+
+
+/*
+ * PAGE FOR BINSETS
+ *  - ChordPanel
+ * */
 
 function ChordPanel(binset) {
     var self = this;
@@ -285,46 +359,6 @@ function ContigSection() {
         });
     });
 }
-
-
-function BinSection(binset, binIds, bins) {
-    var self = this;
-    self.binset = binset;
-    self.bins = bins;
-    self.binIds = binIds;
-
-    self.sort = function(by) {
-        if (!$.isNumeric(self.bins()[0][by])) return self.bins.sort();
-        return self.bins.sort(function(left, right) {
-            if (left[by] == right[by]) return 0;
-            return left[by] < right[by] ? -1 : 1;
-        });
-    };
-
-    self.deleteBins = function() {
-        var binset = self.binset();
-        if (!binset) return;
-        var ids = self.binIds();
-        $.ajax({
-            url: '/contigsets/' + binset.contigset + '/binsets/' + binset.id + '/bins',
-            type: 'DELETE',
-            data: {ids: ids.join(",")}
-        });
-        self.binIds([]);
-        self.bins.remove(function(bin) { return ids.indexOf(bin.id) > -1; });
-    };
-
-    ko.computed(function() {
-        var binset = self.binset();
-        self.bins([]);
-        if (!binset) return;
-        var url = '/contigsets/' + binset.contigset + '/binsets/' + binset.id + '/bins';
-        $.getJSON(url, function(data) {
-            self.bins(data.bins.map(function(bin) { return new Bin(bin); }));
-        });
-    });
-}
-
 
 function Bin(data) {
     var self = this;

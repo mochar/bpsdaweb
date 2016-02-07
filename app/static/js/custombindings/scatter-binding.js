@@ -36,7 +36,7 @@ ko.bindingHandlers.scatterSvg = {
     update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
         console.log('update scatter plot');
         var contigs = bindingContext.$parent.contigs(),
-            selectedContigIds = bindingContext.$parent.contigIds,
+            selectedContigs = bindingContext.$parent.selectedContigs,
             xData = bindingContext.$data.xData(),
             xLogarithmic = bindingContext.$data.xLogarithmic(),
             yData = bindingContext.$data.yData(),
@@ -83,14 +83,12 @@ ko.bindingHandlers.scatterSvg = {
         dots.enter().append("circle")
             .attr("class", "dot")
             .attr("r", 0)
-            .style('fill-opacity', 0)
+            .style('opacity', 0.5)
             .style("fill", function(d) { return d.color; })
-            .style('stroke', function(d) { return d.color; })
-            .style('stoke-width', '3px')
             .on("mouseover", function(d) {
                 tooltip.transition()
                     .duration(200)
-                    .style("opacity", .9);
+                    .style("opacity", 0.9);
                 tooltip.html(d.name)
                     .style("left", (d3.event.pageX + 5) + "px")
                     .style("top", (d3.event.pageY - 28) + "px");
@@ -101,13 +99,12 @@ ko.bindingHandlers.scatterSvg = {
                     .style("opacity", 0);
             })
             .on("click", function(d) {
-                var selected = selectedContigIds().indexOf(d.id) === -1;
-                d3.select(this).style("fill-opacity", selected ? 1 : 0);
-                selected ? selectedContigIds.push(d.id) : selectedContigIds.remove(d.id);
+                var isSelected = selectedContigs.indexOf(d) > -1;
+                d3.select(this).style("opacity", isSelected ? 0.5 : 1);
+                isSelected ? selectedContigs.remove(d) : selectedContigs.push(d);
             });
 
         dots.transition()
-            .style('stroke', function(d) { return d.color; })
             .style("fill", function(d) { return d.color; })
             .attr("r", 4)
             .attr("cx", xMap)
