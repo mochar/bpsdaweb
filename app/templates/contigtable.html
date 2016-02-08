@@ -1,0 +1,64 @@
+<!-- ko with: contigTable -->
+
+<div class="panel-body" data-bind="visible: contigs().length > 0">
+    <div class="row">
+    <div class="col-xs-4 form-group-sm">
+        <select class="form-control" data-bind="optionsCaption: 'Action...',
+                                                options: actions,
+                                                optionsText: 'name',
+                                                optionsValue: 'value',
+                                                value: action">
+            <option value="move">Move</option>
+            <option value="remove">Remove</option>
+        </select>
+    </div>
+
+    <!-- ko if: action() == 'move' -->
+    <div class="col-xs-4 form-group-sm">
+        <select class="form-control" data-bind="options: $root.binsetPage.bins,
+                                                optionsText: 'name',
+                                                optionsCaption: 'To bin:',
+                                                optionsValue: 'id',
+                                                value: bin">
+        </select>
+    </div>
+
+    <button class="btn btn-sm btn-primary col-xs-offset-1 col-xs-2"
+            data-bind="click: move">Move</button>
+    <!-- /ko -->
+
+    <!-- ko if: action() == 'remove' -->
+    <button class="btn btn-sm btn-danger col-xs-offset-5 col-xs-2"
+            data-bind="click: remove">Remove</button>
+    <!-- /ko -->
+
+    </div>
+</div>
+
+<table class="table table-condensed table-hover"
+       data-bind="visible: contigs().length > 0">
+    <thead>
+    <tr>
+        <th width="60%">Contig</th>
+        <th width="20%">GC</th>
+        <th width="20%">Length</th>
+    </tr>
+    </thead>
+    <tbody data-bind="foreach: contigs">
+    <tr>
+        <td data-bind="text: name" width="60%"></td>
+        <td data-bind="text: gc" width="20%"></td>
+        <td data-bind="text: length" width="20%"></td>
+    </tr>
+    </tbody>
+</table>
+
+<div data-bind="visible: contigs().length == 0" id="nocontigs-message">
+    <p class="text-center">
+        <small>
+            Select the contigs you want to delete or move to another bin.
+        </small>
+    </p>
+</div>
+
+<!-- /ko -->

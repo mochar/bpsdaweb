@@ -41,6 +41,16 @@ ko.bindingHandlers.borderColor = {
     }
 };
 
+ko.bindingHandlers.toggleClick = {
+    init: function (element, valueAccessor) {
+        var value = valueAccessor();
+
+        ko.utils.registerEventHandler(element, "click", function () {
+            value(!value());
+        });
+    }
+};
+
 function ContigsetPage(contigset) {
     var self = this;
     self.contigset = contigset;
@@ -89,6 +99,10 @@ function BinsetPage(contigset, binset) {
     self.contigTable = new ContigTable(self.selectedContigs);
     self.scatterplotPanel = new ScatterplotPanel(self.contigset, self.binset,
         self.contigs, self.colorBinset);
+
+    // Whether to show the bins table or the contigs table. This is a boolean
+    // because it's easier to work with than using a flag.
+    self.showBinsTab = ko.observable(true);
 
     // Get the contigs on bin selection change
     self.binIds.subscribe(function(changes) {
@@ -184,19 +198,30 @@ function ScatterplotPanel(contigset, binset, contigs, colorBinset) {
 function ContigTable(contigs) {
     var self = this;
     self.contigs = contigs;
-    self.action = ko.observable('move'); // move || remove || copy
+    self.actions = [
+        {name: 'Move', value: 'move'},
+        {name: 'Remove', value: 'remove'}];
+    self.action = ko.observable(); // move || remove || copy
     self.bin = ko.observable(); // The bin the contig should be moved to.
+
+    self.contigIds = ko.pureComputed(function() {
+        return self.contigs().map(function(contig) { return contig.id });
+    });
 
     self.move = function() {
         console.log('move contigs');
+        $.ajax({
+            url: '/contigsets/',
+            type: 'PUT',
+            data: {contigs: self.contigIds(), action: 'remove'},
+            success: function(data, textStatus) {
+                console.log('removed');
+            }
+        });
     };
 
     self.remove = function() {
         console.log('remove contigs');
-    };
-
-    self.copy = function() {
-        console.log('copy contigs');
     };
 }
 

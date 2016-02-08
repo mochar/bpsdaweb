@@ -122,112 +122,33 @@
 </div>
 
 
-<div class="panel panel-default"
-     data-bind="with: binsetPage.binTable,
-                visible: selectedBinset && crumb() == CrumbEnum.BINSET">
-    <div class="panel-body">
-        <span class="pull-left">
-            <div class="dropdown">
-                <button class="btn btn-default btn-sm dropdown-toggle" type="button" data-toggle="dropdown">
-                    <span><span data-bind="text: binIds().length"></span> selected</span>
-                    <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
-                    <li><a href="#" data-bind="click: deleteBins">Delete</a></li>
-                    <li><a href="#" data-bind="click: ">Merge</a></li>
-                </ul>
-            </div>
-        </span>
-    </div>
 
-    <table class="table table-condensed" style="table-layout: fixed">
-        <thead>
-            <tr>
-                <th width="5%"></th>
-                <th width="25%" data-bind="click: function() { sort('name') }">Bin</th>
-                <th width="20%" data-bind="click: function() { sort('size') }">Contigs</th>
-                <th width="20%" data-bind="click: function() { sort('gc') }">GC</th>
-                <th width="20%" data-bind="click: function() { sort('n50') }">N50</th>
-                <th width="10%">Color</th>
-            </tr>
-        </thead>
-    </table>
-    <div style="overflow-y: auto; max-height: 150px">
-        <table class="table table-condensed table-hover" style="table-layout: fixed">
-            <tbody data-bind="foreach: bins">
-            <tr>
-                <td width="5%">
-                <input type="checkbox" data-bind="checkedValue: id,
-                                                  checked: $parent.binIds">
-                </td>
-                <td data-bind="text: name" width="25%"></td>
-                <td data-bind="text: size" width="20%"></td>
-                <td data-bind="text: gc" width="20%"></td>
-                <td data-bind="text: n50" width="20%"></td>
-                <td width="10%">
-                    <button data-bind="style: { 'background-color': color },
-                                       colorpicker: color"
-                            class="colorBox"></button>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
+<!-- BINSET PAGE -->
 
 <!-- ko if: crumb() == CrumbEnum.BINSET -->
-<!-- ko with: binsetPage.contigTable -->
-<div class="panel panel-default" data-bind="visible: contigs().length > 0">
-    <div class="panel-body">
-        <div class="col-xs-4 form-group-sm">
-            <select class="form-control" data-bind="optionsCaption: 'Action...',
-                                                    value: action">
-                <option value="move">Move</option>
-                <option value="remove">Remove</option>
-                <option value="copy">Copy</option>
-            </select>
-        </div>
+<div class="panel panel-default" data-bind="with: binsetPage">
+    <ul class="nav nav-tabs nav-justified" role="tablist">
+        <li role="presentation" data-bind="css: { active: showBinsTab }">
+            <a href="#" data-bind="toggleClick: showBinsTab">
+                <strong>Bins</strong>
+            </a>
+        </li>
+        <li role="presentation" data-bind="css: { active: !showBinsTab() }">
+            <a href="#" data-bind="toggleClick: showBinsTab">
+                <strong>Contigs</strong>
+            </a>
+        </li>
+    </ul>
 
-        <!-- ko if: action() == 'move' -->
-        <div class="col-xs-4 form-group-sm">
-            <select class="form-control" data-bind="options: $root.binsetPage.bins,
-                                                    optionsText: 'name',
-                                                    optionsCaption: 'Bin',
-                                                    optionsValue: 'name',
-                                                    value: bin">
-            </select>
-        </div>
-
-        <button class="btn btn-sm btn-primary pull-right"
-                data-bind="click: move">Move</button>
-        <!-- /ko -->
-    </div>
-
-    <table class="table table-condensed table-hover">
-        <thead>
-            <tr>
-                <th width="60%">Contig</th>
-                <th width="20%">GC</th>
-                <th width="20%">Length</th>
-            </tr>
-        </thead>
-        <tbody data-bind="foreach: contigs">
-            <tr>
-                <td data-bind="text: name" width="60%"></td>
-                <td data-bind="text: gc" width="20%"></td>
-                <td data-bind="text: length" width="20%"></td>
-            </tr>
-        </tbody>
-    </table>
-</div>
-
-<div class="well" data-bind="visible: contigs().length == 0">
-    <small class="text-center">
-        Select the contigs you want to delete or move to another bin.
-    </small>
+    <!-- ko if: showBinsTab -->
+        {% include "bintable.html" %}
+    <!-- /ko -->
+    <!-- ko ifnot: showBinsTab -->
+        {% include "contigtable.html" %}
+    <!-- /ko -->
 </div>
 <!-- /ko -->
-<!-- /ko -->
+
 
 
 <div class="panel panel-default"

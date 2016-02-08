@@ -1,0 +1,48 @@
+<!-- ko with: binTable -->
+
+<div class="panel-body">
+    <span class="pull-left">
+        <div class="dropdown">
+            <button class="btn btn-default btn-sm dropdown-toggle" type="button" data-toggle="dropdown">
+                <span><span data-bind="text: binIds().length"></span> selected</span>
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+                <li><a href="#" data-bind="click: deleteBins">Delete</a></li>
+                <li><a href="#" data-bind="click: ">Merge</a></li>
+            </ul>
+        </div>
+    </span>
+</div>
+
+<table class="table table-condensed table-hover">
+    <thead>
+        <tr>
+            <th width="5%"></th>
+            <th width="25%" data-bind="click: function() { sort('name') }">Bin</th>
+            <th width="20%" data-bind="click: function() { sort('size') }">Contigs</th>
+            <th width="20%" data-bind="click: function() { sort('gc') }">GC</th>
+            <th width="20%" data-bind="click: function() { sort('n50') }">N50</th>
+            <th width="10%">Color</th>
+        </tr>
+    </thead>
+    <tbody data-bind="foreach: bins">
+        <tr>
+            <td width="5%">
+                <input type="checkbox" data-bind="checkedValue: id,
+                                                      checked: $parent.binIds">
+            </td>
+            <td data-bind="text: name" width="25%"></td>
+            <td data-bind="text: size" width="20%"></td>
+            <td data-bind="text: gc" width="20%"></td>
+            <td data-bind="text: n50" width="20%"></td>
+            <td width="10%">
+                <button data-bind="style: { 'background-color': color },
+                                   colorpicker: color"
+                        class="colorBox"></button>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- /ko -->
