@@ -51,10 +51,12 @@ border:1px solid #ccc !important;
 }
 
 .tooltip {
-  position: absolute;
-  width: 200px;
-  height: 28px;
-  pointer-events: none;
+    position: absolute;
+    width: 200px;
+    height: 28px;
+    pointer-events: none;
+    border: 1px solid black;
+    background-color: white;
 }
 
 /* Histogram */

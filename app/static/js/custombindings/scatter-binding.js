@@ -6,11 +6,11 @@ ko.bindingHandlers.scatterSvg = {
             svg = d3.select(element).append("svg")
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
-                .append("g")
+               .append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
         // add the tooltip area
-        d3.select(element).append("div")
+        d3.select('body').append("div")
             .attr("class", "tooltip")
             .style("opacity", 0);
 
@@ -46,7 +46,7 @@ ko.bindingHandlers.scatterSvg = {
             width = 550 - margin.left - margin.right,
             height = 500 - margin.top - margin.bottom,
             svg = d3.select(element).select("g"),
-            tooltip = d3.select(element).select('.tooltip');
+            tooltip = d3.select('body').select('.tooltip');
 
         // setup x
         var xValue = function(d) { return d[xData];}, // data -> value
