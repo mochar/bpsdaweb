@@ -71,7 +71,6 @@ ko.bindingHandlers.barSvg = {
         svg.select('.axisLeft').call(yAxisLeft);
         svg.select('.axisRight').call(yAxisRight);
 
-        console.log(bins);
         var bars = svg.selectAll('.rects')
             .data(bins, function(d) { return d.id; });
 
