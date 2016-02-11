@@ -126,20 +126,20 @@
 <!-- BINSET PAGE -->
 
 <!-- ko if: crumb() == CrumbEnum.BINSET -->
-<div class="panel panel-default" data-bind="with: binsetPage">
-    <ul class="nav nav-tabs nav-justified" role="tablist">
-        <li role="presentation" data-bind="css: { active: showBinsTab }">
-            <a href="#" data-bind="toggleClick: showBinsTab">
-                <strong>Bins</strong>
-            </a>
-        </li>
-        <li role="presentation" data-bind="css: { active: !showBinsTab() }">
-            <a href="#" data-bind="toggleClick: showBinsTab">
-                <strong>Contigs</strong>
-            </a>
-        </li>
-    </ul>
+<ul class="nav nav-tabs nav-tabs-justified" role="tablist" data-bind="with: binsetPage">
+    <li role="presentation" data-bind="css: { active: showBinsTab }">
+        <a href="#" data-bind="toggleClick: showBinsTab">
+            <strong>Bins</strong>
+        </a>
+    </li>
+    <li role="presentation" data-bind="css: { active: !showBinsTab() }">
+        <a href="#" data-bind="toggleClick: showBinsTab">
+            <strong>Contigs</strong>
+        </a>
+    </li>
+</ul>
 
+<div class="panel panel-default" data-bind="with: binsetPage">
     <!-- ko if: showBinsTab -->
         {% include "bintable.html" %}
     <!-- /ko -->

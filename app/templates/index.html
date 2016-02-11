@@ -2,7 +2,7 @@
 
 {% block body %}
 <div class="row" style="padding-top: 10px;">
-    <div class="col-lg-8 col-sm-12">
+    <div class="col-sm-8 col-xs-12">
         <div data-bind="visible: crumb() == CrumbEnum.CONTIGSETS">
             {% include 'instructions.html' %}
         </div>
@@ -16,13 +16,10 @@
         </div>
 
         <div data-bind="with: binsetPage, visible: crumb() == CrumbEnum.BINSET">
-            {% include "scatterplot.html" %}
-            <div class="row">
-                <div class="col-xs-6">{% include "barplot.html" %}</div>
-            </div>
+            {% include "binset.html" %}
         </div>
     </div>
-    <div class="col-lg-4 col-sm-12" id="datapanel">
+    <div class="col-sm-4 col-xs-12" id="datapanel">
         {% include "data.html" %}
     </div>
 </div>

@@ -1,0 +1,25 @@
+<ul class="nav nav-tabs nav-tabs-justified" role="tablist">
+  <li class="active">
+      <a href="#refine" role="tab" data-toggle="tab">
+          <i class="fa fa-cog"></i> Refine
+      </a>
+  </li>
+  <li>
+      <a href="#analyse" role="tab" data-toggle="tab">
+          <i class="fa fa-bar-chart"></i> Analyze
+      </a>
+  </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane active" id="refine">
+        {% include "scatterplot.html" %}
+    </div>
+    <div class="tab-pane" id="analyse">
+{#        <div class="row">#}
+{#            <div class="col-xs-6">{% include "barplot.html" %}</div>#}
+{#        </div>#}
+        {% include "barplot.html" %}
+    </div>
+</div>
+
