@@ -5,6 +5,12 @@ box-shadow:none !important;
 border:1px solid #ccc !important;
 }
 
+* {
+    -webkit-border-radius: 0 !important;
+    -moz-border-radius: 0 !important;
+    border-radius: 0 !important;
+}
+
 .scrollable {
     max-height: 200px;
     overflow-y: auto;
