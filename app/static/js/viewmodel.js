@@ -95,8 +95,14 @@ function BinsetPage(contigset, binset) {
     self.contigs = ko.observableArray([]);
     self.selectedContigs = ko.observableArray([]);
 
+    // Contigs can be manipulated one bin at a time - for now.
+    self.fromBin = ko.computed(function() {
+        var binIds = self.binIds();
+        return binIds.length == 1 ? binIds[0] : null;
+    });
+
     self.binTable = new BinTable(self.binset, self.binIds, self.bins);
-    self.contigTable = new ContigTable(self.selectedContigs);
+    self.contigTable = new ContigTable(self.binset, self.fromBin, self.selectedContigs);
     self.scatterplotPanel = new ScatterplotPanel(self.contigset, self.binset,
         self.contigs, self.colorBinset);
 
@@ -195,28 +201,47 @@ function ScatterplotPanel(contigset, binset, contigs, colorBinset) {
     })
 }
 
-function ContigTable(contigs) {
+function ContigTable(binset, fromBin, contigs) {
     var self = this;
+    self.binset = binset;
     self.contigs = contigs;
-    self.actions = [
+    self.actions = ko.observableArray([
         {name: 'Move', value: 'move'},
-        {name: 'Remove', value: 'remove'}];
-    self.action = ko.observable(); // move || remove || copy
-    self.bin = ko.observable(); // The bin the contig should be moved to.
+        {name: 'Remove', value: 'remove'}]);
+    self.action = ko.observable(); // move || remove
+    self.fromBin = fromBin; // The selected bin.
+    self.toBin = ko.observable(); // The bin the contigs should be moved to.
 
     self.contigIds = ko.pureComputed(function() {
         return self.contigs().map(function(contig) { return contig.id });
     });
 
     self.move = function() {
-        console.log('move contigs');
-        $.ajax({
-            url: '/contigsets/',
-            type: 'PUT',
-            data: {contigs: self.contigIds(), action: 'remove'},
-            success: function(data, textStatus) {
-                console.log('removed');
-            }
+        console.log('Moving contigs:');
+        var binset = self.binset();
+        var url = '/contigsets/' + binset.contigset + '/binsets/' + binset.id + '/bins/';
+        var contigs = self.contigIds().join(',');
+        $.when(
+            $.ajax({
+                url: url + self.fromBin(),
+                type: 'PUT',
+                data: {contigs: contigs, action: 'remove'}
+            }),
+            $.ajax({
+                url: url + self.toBin(),
+                type: 'PUT',
+                data: {contigs: contigs, action: 'add'}
+            })
+        ).done(function(from, to) {
+            if (from[1] == 'success')
+                console.log('--- Successfully removed contigs from bin.');
+            else
+                console.log('--- Failed to remove contigs from bin.');
+
+            if (to[1] == 'success')
+                console.log('--- Successfully moved contigs to bin.');
+            else
+                console.log('--- Failed to move contigs to bin.')
         });
     };
 
