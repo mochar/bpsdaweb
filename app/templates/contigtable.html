@@ -6,14 +6,14 @@
         <select class="form-control" data-bind="optionsCaption: 'Action...',
                                                 options: actions,
                                                 optionsText: 'name',
-                                                optionsValue: 'value',
                                                 value: action">
             <option value="move">Move</option>
             <option value="remove">Remove</option>
         </select>
     </div>
 
-    <!-- ko if: action() == 'move' -->
+    <!-- ko if: action -->
+    <!-- ko if: action().value == 'move' -->
     <div class="col-xs-4 form-group-sm">
         <select class="form-control" data-bind="options: $root.binsetPage.bins,
                                                 optionsText: 'name',
@@ -24,12 +24,13 @@
     </div>
 
     <button class="btn btn-sm btn-primary col-xs-offset-1 col-xs-2"
-            data-bind="click: move, enable: fromBin">Move</button>
+            data-bind="click: move, enable: action().enable">Move</button>
     <!-- /ko -->
 
-    <!-- ko if: action() == 'remove' -->
+    <!-- ko if: action().value == 'remove' -->
     <button class="btn btn-sm btn-danger col-xs-offset-5 col-xs-2"
-            data-bind="click: remove">Remove</button>
+            data-bind="click: remove, enable: action().enable">Remove</button>
+    <!-- /ko -->
     <!-- /ko -->
 
     </div>
