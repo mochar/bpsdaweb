@@ -13,13 +13,20 @@ class BinApi(Resource):
         self.reqparse.add_argument('contigs', type=str, location='form')
         self.reqparse.add_argument('action', type=str, location='form',
                                    choices=['add', 'remove'])
+        self.reqparse.add_argument('fields', type=str,
+                                    default='id,name,color,binset_id,size,gc,'
+                                            'N50,contigs')
 
     def get(self, contigset_id, binset_id, id):
+        args = self.reqparse.parse_args()
         bin = bin_or_404(contigset_id, binset_id, id)
-        return {
-            'id': bin.id, 'name': bin.name, 'color': bin.color,
-            'binset': bin.binset_id, 'contigs': [c.id for c in bin.contigs]
-        }
+        result = {}
+        for field in args.fields.split(','):
+            if field == 'contigs':
+                result['contigs'] = [contig.id for contig in bin.contigs]
+            else:
+                result[field] = getattr(bin, field)
+        return result
 
     def put(self, contigset_id, binset_id, id):
         args = self.reqparse.parse_args()
