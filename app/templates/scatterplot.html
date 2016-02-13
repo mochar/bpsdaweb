@@ -20,7 +20,7 @@
                             <li>
                                 <a href="#" data-bind="click: function() {xData('length')}">Length</a>
                             </li>
-                            <!-- ko with: contigset -->
+                            <!-- ko with: $parent.contigset -->
                             <li class="dropdown-header">Coverage</li>
                             <!-- ko foreach: samples -->
                             <li>
@@ -51,7 +51,7 @@
                             <li>
                                 <a href="#" data-bind="click: function() {yData('length')}">Length</a>
                             </li>
-                            <!-- ko with: contigset -->
+                            <!-- ko with: $parent.contigset -->
                             <li class="dropdown-header">Coverage</li>
                             <!-- ko foreach: samples -->
                             <li>

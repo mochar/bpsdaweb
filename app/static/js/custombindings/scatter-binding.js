@@ -34,13 +34,15 @@ ko.bindingHandlers.scatterSvg = {
             .style("text-anchor", "end");
     },
     update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-        console.log('update scatter plot');
-        var contigs = bindingContext.$parent.contigs(),
+        var contigs = bindingContext.$parent.contigs,
             selectedContigs = bindingContext.$parent.selectedContigs,
             xData = bindingContext.$data.xData(),
             xLogarithmic = bindingContext.$data.xLogarithmic(),
             yData = bindingContext.$data.yData(),
-            yLogarithmic = bindingContext.$data.yLogarithmic();
+            yLogarithmic = bindingContext.$data.yLogarithmic(),
+            dirty = bindingContext.$parent.dirty();
+
+        bindingContext.$data.dirty(false);
 
         var margin = {top: 20, right: 20, bottom: 30, left: 50},
             width = 550 - margin.left - margin.right,
