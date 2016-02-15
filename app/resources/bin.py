@@ -49,6 +49,8 @@ class BinApi(Resource):
         if args.name is not None:
             bin.name = args.name
         db.session.commit()
+        return {field: getattr(bin, field) for field in
+                'id,name,color,binset_id,size,gc,N50'.split(',')}
 
     def delete(self, contigset_id, binset_id, id):
         bin = bin_or_404(contigset_id, binset_id, id)

@@ -97,7 +97,9 @@ function BinsetPage(contigset, binset) {
     self.selectedContigs = ko.observableArray([]);
 
     self.binTable = new BinTable(self.binset, self.binIds, self.bins);
-    self.contigTable = new ContigTable(self.binset, self.binIds, self.selectedContigs);
+    //self.contigTable = new ContigTable(self.binset, self.bins, self.binIds,
+    //    self.selectedContigs);
+    self.contigTable = new ContigTable(self);
     self.scatterplotPanel = new ScatterplotPanel(self.binset, self.contigs,
         self.colorBinset, self.dirty);
 
@@ -205,16 +207,20 @@ function ScatterplotPanel(binset, contigs, colorBinset, dirty) {
     });
 }
 
-function ContigTable(binset, binIds, contigs) {
+function ContigTable(parent) {
     var self = this;
-    self.binset = binset;
-    self.contigs = contigs;
     self.actions = ko.observableArray([
         {name: 'Move', value: 'move', enable: true},
         {name: 'Remove', value: 'remove', enable: true}]);
     self.action = ko.observable();
-    self.binIds = binIds; // The selected bin.
     self.toBin = ko.observable(); // The bin the contigs should be moved to.
+
+    // Parent properties
+    self.binIds = parent.binIds;
+    self.binset = parent.binset;
+    self.bins = parent.bins;
+    self.contigs = parent.selectedContigs;
+    self.parent = parent;
 
     self.contigIds = ko.pureComputed(function() {
         return self.contigs().map(function(contig) { return contig.id });
@@ -231,35 +237,47 @@ function ContigTable(binset, binIds, contigs) {
         return oneSelected ? binIds[0] : null;
     });
 
+    self.updateBin = function(binId, newBin) {
+        var bin = self.bins().filter(function(bin) { return bin.id == binId})[0];
+        self.bins()[self.bins.indexOf(bin)] = newBin;
+    };
+
+    self.updateParent = function() {
+        var contigsToRemove = self.contigs();
+        self.parent.contigs = self.parent.contigs.filter(function(contig) {
+            return contigsToRemove.indexOf(contig) == -1;
+        });
+        self.parent.dirty(true);
+    };
+
     self.move = function() {
         console.log('Moving contigs:');
-        var binset = self.binset();
-        var url = '/contigsets/' + binset.contigset + '/binsets/' + binset.id + '/bins/';
-        var contigs = self.contigIds().join(',');
+        var binset = self.binset(),
+            url = '/contigsets/' + binset.contigset + '/binsets/' + binset.id + '/bins/',
+            contigs = self.contigIds().join(','),
+            fromBin = self.fromBin(),
+            toBin = self.toBin();
         self.action(self.action().enable = false);
         $.when(
             $.ajax({
-                url: url + self.fromBin(),
+                url: url + fromBin,
                 type: 'PUT',
                 data: {contigs: contigs, action: 'remove'}
             }),
             $.ajax({
-                url: url + self.toBin(),
+                url: url + toBin,
                 type: 'PUT',
                 data: {contigs: contigs, action: 'add'}
             })
         ).done(function(from, to) {
-            self.action(self.action().enable = true);
+            self.updateParent();
             self.contigs([]);
-            if (from[1] == 'success')
-                console.log('--- Successfully removed contigs from bin.');
-            else
-                console.log('--- Failed to remove contigs from bin.');
 
-            if (to[1] == 'success')
-                console.log('--- Successfully moved contigs to bin.');
-            else
-                console.log('--- Failed to move contigs to bin.')
+            self.updateBin(fromBin, new Bin(from[0]));
+            self.updateBin(toBin, new Bin(to[0]));
+            self.bins.valueHasMutated();
+
+            self.action(self.action().enable = true);
         });
     };
 
