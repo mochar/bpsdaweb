@@ -62,7 +62,7 @@
 
 <div class="row">
     <!-- ko if: crumb() == CrumbEnum.CONTIGSETS -->
-    <div class="col-xs-6">
+    <div class="col-xs-5">
         <div class="list-group" data-bind="foreach: contigsets">
             <button type="button" class="list-group-item"
                     data-bind="visible: true, click: $root.selectedContigset">
@@ -70,18 +70,24 @@
             </button>
         </div>
     </div>
-    <div class="col-xs-6">
+    <div class="col-xs-7">
+        <div class="panel panel-default">
+        <div class="panel-body">
+
         <form class="form" name="contigsetForm" method="post"
               enctype="multipart/form-data" data-bind="submit: uploadContigset">
             <div class="form-group form-group-sm">
-                <input type="text" class="form-control" name="name" placeholder="Name">
+                <label for="name" class="small">Name</label>
+                <input type="text" class="form-control" name="name">
             </div>
 
             <div class="form-group form-group-sm">
+                <label for="contigs" class="small">Contigs (fasta)</label>
                 <input type="file" class="form-control" name="contigs">
             </div>
 
             <div class="form-group form-group-sm">
+                <label for="coverage" class="small">Coverage</label>
                 <input type="file" class="form-control" name="coverage">
             </div>
 
@@ -89,10 +95,13 @@
                 <button class="btn btn-success btn-sm" type="submit">Add</button>
             </div>
         </form>
+
+        </div>
+        </div>
     </div>
     <!-- /ko -->
     <!-- ko if: crumb() == CrumbEnum.BINSETS -->
-    <div class="col-xs-6">
+    <div class="col-xs-5">
         <div class="list-group" data-bind="foreach: binsets">
             <button type="button" class="list-group-item"
                     data-bind="borderColor: color,
@@ -102,14 +111,19 @@
             </button>
         </div>
     </div>
-    <div class="col-xs-6">
+    <div class="col-xs-7">
+        <div class="panel panel-default">
+        <div class="panel-body">
+
         <form class="form" name="binsetForm" method="post"
               enctype="multipart/form-data" data-bind="submit: uploadBinset">
             <div class="form-group form-group-sm">
-                <input type="text" class="form-control" name="name" placeholder="Name">
+                <label for="name" class="small">Name</label>
+                <input type="text" class="form-control" name="name">
             </div>
 
             <div class="form-group form-group-sm">
+                <label for="bins" class="small">Bins</label>
                 <input type="file" class="form-control" name="bins">
             </div>
 
@@ -117,6 +131,9 @@
                 <button class="btn btn-success btn-sm" type="submit">Add</button>
             </div>
         </form>
+
+        </div>
+        </div>
     </div>
     <!-- /ko -->
 </div>
