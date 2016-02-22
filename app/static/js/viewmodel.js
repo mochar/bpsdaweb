@@ -331,14 +331,15 @@ function BinTable(binset, binIds, bins) {
  *  - ChordPanel
  * */
 
-function ChordPanel(binset) {
+function ChordPanel(contigset) {
     var self = this;
-    self.binset = binset;
-    self.selectedBinset1 = ko.observable(null);
-    self.selectedBinset2 = ko.observable(null);
+    self.contigset = contigset;
+    self.binset1 = ko.observable(null);
+    self.binset2 = ko.observable(null);
 
     self.selectedBin = ko.observable();
-    self.selectedBins = ko.observableArray([]);
+    self.selectedBinInfo = ko.observable();
+    self.hoveredBin = ko.observable();
 
     self.unifiedColor = ko.observable(false);
     self.matrix = [];
@@ -347,8 +348,54 @@ function ChordPanel(binset) {
     self.bins1 = [];
     self.bins2 = [];
 
+    // Update bin set info with delay.
+    ko.computed(function() {
+        var bin = self.selectedBin();
+        if (!bin) return;
+
+        var contigset = self.contigset(),
+            url = '/contigsets/' + contigset.id + '/binsets/';
+        url += self.bins1.indexOf(bin) > -1 ? self.binset1().id : self.binset2().id;
+        url += '/bins/' + bin.id;
+        $.getJSON(url, self.selectedBinInfo);
+    });
+
+    // Empty binset info when a new bin is selected
+    ko.computed(function() {
+        var bin = self.selectedBin();
+        if (!bin) return;
+        self.selectedBinInfo(null);
+    });
+
+    self.connectedBins = ko.computed(function() {
+        var bin = self.hoveredBin();
+        if (!bin) bin = self.selectedBin();
+        if (!bin) return;
+
+        var bins = self.bins1.concat(self.bins2);
+        var matrixRow = self.matrixRowByBinId(bin.id);
+        var connectedWith = [];
+        for (var i = 0; i < bins.length; i++) {
+            if (matrixRow[i] == 0) continue;
+            var b = bins[i];
+            b.percentage = (matrixRow[i] / bin.size) * 100;
+            b.percentage = +b.percentage.toFixed(2); // round to 2 decimals
+            connectedWith.push(b);
+        }
+        connectedWith.sort(function(a, b) { return a.percentage < b.percentage; });
+        return connectedWith;
+    });
+
+    self.matrixRowByBinId = function(binId) {
+        var bins = self.bins1.concat(self.bins2);
+        for (var i = 0; i < bins.length; i++) {
+            if (bins[i].id == binId) break;
+        }
+        return self.matrix[i];
+    };
+
     self.updateChordPanel = function() {
-        var binsets = [self.selectedBinset1(), self.selectedBinset2()],
+        var binsets = [self.binset1(), self.binset2()],
             data = {binset1: binsets[0].id, binset2: binsets[1].id},
             url = '/contigsets/' + binsets[0].contigset + '/binsets/';
 
@@ -359,13 +406,15 @@ function ChordPanel(binset) {
             self.matrix = data.matrix;
 
             $.when(
-                $.getJSON(url + binsets[0].id + '/bins', {fields: 'id,color'}),
-                $.getJSON(url + binsets[1].id + '/bins', {fields: 'id,color'})
+                $.getJSON(url + binsets[0].id + '/bins', {fields: 'id,name,color,size'}),
+                $.getJSON(url + binsets[1].id + '/bins', {fields: 'id,name,color,size'})
             ).done(function(bins1, bins2) {
                 bins1[0].bins.forEach(function(bin) {
+                    bin.binsetColor = binsets[0].color();
                     self.bins1[self.bins1.indexOf(bin.id)] = bin;
                 });
                 bins2[0].bins.forEach(function(bin) {
+                    bin.binsetColor = binsets[1].color();
                     self.bins2[self.bins2.indexOf(bin.id)] = bin;
                 });
 
@@ -380,12 +429,15 @@ function ChordPanel(binset) {
     });
 
     ko.computed(function() {
-        self.binset();
+        self.contigset();
         self.matrix = [];
         self.bins1 = [];
         self.bins2 = [];
         self.unifiedColor(false);
         self.dirty(true);
+        self.selectedBin(null);
+        self.selectedBinInfo(null);
+        self.hoveredBin(null);
     });
 }
 
@@ -512,7 +564,7 @@ function ViewModel() {
     self.contigSection = new ContigSection();
     self.contigsetPage = new ContigsetPage(self.selectedContigset);
     self.binsetPage = new BinsetPage(self.selectedContigset, self.selectedBinset);
-    self.chordPanel = new ChordPanel(self.selectedBinset);
+    self.chordPanel = new ChordPanel(self.selectedContigset);
 
     self.debug = ko.observable(false);
 

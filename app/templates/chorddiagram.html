@@ -7,7 +7,7 @@
                     <select class="form-control"
                             data-bind="options: $root.binsets,
                                            optionsText: 'name',
-                                           value: selectedBinset1">
+                                           value: binset1">
                     </select>
                 </div>
 
@@ -15,24 +15,63 @@
                     <select class="form-control"
                             data-bind="options: $root.binsets,
                                            optionsText: 'name',
-                                           value: selectedBinset2">
+                                           value: binset2">
                     </select>
                 </div>
+            </div>
 
+            <div class="col-xs-6">
                 <div class="form-group">
                     <label>Options</label> <br>
-                    <input type="checkbox" data-bind="checked: unifiedColor" /> Uniforme kleur
+                    <input type="checkbox" data-bind="checked: unifiedColor" /> Color by bin set
                 </div>
+            </div>
 
+            <div class="col-xs-2">
                 <button class="btn btn-primary btn-block" data-bind="click: updateChordPanel,
-                        enable: selectedBinset1 && selectedBinset2">
+                        enable: binset1 && binset2">
                     Visualise
                 </button>
             </div>
-
+        </div>
+        <div class="well"><div class="row">
             <div class="col-xs-9">
                 <div data-bind="chordSvg: updateChordPanel"></div>
             </div>
-        </div>
+
+            <div class="col-xs-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <!-- ko if: hoveredBin -->
+                            Bin <span data-bind="text: hoveredBin().name"></span>
+                        <!-- /ko -->
+                        <!-- ko if: !hoveredBin() && selectedBin -->
+                            Bin <span data-bind="text: selectedBin().name"></span>
+                        <!-- /ko -->
+                    </div>
+
+                    <!-- ko ifnot: hoveredBin -->
+                    <div class="panel-body small" data-bind="with: selectedBinInfo">
+                        <p><strong>Contigs</strong>: <span data-bind="text: size"></span></p>
+                        <p><strong>GC</strong>: <span data-bind="text: gc"></span></p>
+                        <p><strong>N50</strong>: <span data-bind="text: N50"></span></p>
+                    </div>
+                    <!-- /ko -->
+
+                    <!-- ko if: hoveredBin -->
+                    <div class="panel-body">
+                        <p class="text-center"><small>Click to select.</small></p>
+                    </div>
+                    <!-- /ko -->
+                </div>
+
+                <ul class="list-group" data-bind="foreach: connectedBins">
+                    <li class="list-group-item" data-bind="borderColor: color">
+                        <span data-bind="text: name"></span>
+                        <span data-bind="text: percentage + '%'"></span>
+                    </li>
+                </ul>
+            </div>
+        </div></div>
     </div>
 </div>

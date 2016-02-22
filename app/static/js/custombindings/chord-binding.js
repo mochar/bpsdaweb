@@ -37,9 +37,8 @@ ko.bindingHandlers.chordSvg = {
         var bins2 = bindingContext.$data.bins2;
         var bins = bins1.concat(bins2);
 
-        var binset1 = bindingContext.$data.selectedBinset1.peek();
-        var binset2 = bindingContext.$data.selectedBinset2.peek();
-        var selectedBins = bindingContext.$data.selectedBins;
+        var binset1 = bindingContext.$data.binset1.peek();
+        var binset2 = bindingContext.$data.binset2.peek();
 
         if (matrix.length == 0) return;
 
@@ -67,19 +66,19 @@ ko.bindingHandlers.chordSvg = {
         groupPaths.enter().append("path")
             .style("stroke", '#000000')
             .style('opacity', 0)
-            .on("mouseover", fade(.1))
-            .on("mouseout", fade(1))
-            .on('click', function(d) {
+            .on("mouseover", function(d, i) {
+                fade(.1)(d, i);
+                bindingContext.$data.hoveredBin(bins[d.index]);
+            })
+            .on("mouseout", function(d, i) {
+                fade(1)(d, i);
+                bindingContext.$data.hoveredBin(null);
+            })
+            .on('click', function(d, i) {
+                fade(.1)(d, i);
+                bindingContext.$data.hoveredBin(null);
                 bindingContext.$data.selectedBin(bins[d.index]);
-
-                if (selectedBins.peek().indexOf(bins[d.index]) > -1) {
-                    d3.select(this).transition().attr('d', d3.svg.arc().innerRadius(innerRadius).outerRadius(outerRadius));
-                    selectedBins.remove(bins[d.index]);
-                } else {
-                    d3.select(this).transition().attr('d', d3.svg.arc().innerRadius(innerRadius * 1.02).outerRadius(outerRadius * 1.02));
-                    selectedBins.push(bins[d.index]);
-                }
-        });
+            });
 
         groupPaths.transition()
             .style("fill", function(d) {
@@ -114,15 +113,14 @@ ko.bindingHandlers.chordSvg = {
             .remove();
 
         // Update arcs
-        if (!binset1 && !binset2) return;
+        if (matrix.length == 0) {
+            svg.select('#arc').select('#arc1').attr('d', arc.startAngle(0).endAngle(0));
+            svg.select('#arc').select('#arc2').attr('d', arc.startAngle(0).endAngle(0));
+            return;
+        }
+
         svg.select('#arc').select('#arc1')
             .attr("fill", binset1.color())
-            .on("click", function(d) {
-                for(var i = 0; i < binset1.bins().length; i++) {
-                    if (selectedBins.peek().indexOf(bins[i]) === -1)
-                        selectedBins.push(bins[i]);
-                }
-            })
           .transition()
             .attr("d", arc
                 .startAngle(chord.groups()[0].startAngle)
@@ -130,15 +128,9 @@ ko.bindingHandlers.chordSvg = {
 
         svg.select('#arc').select('#arc2')
             .attr("fill", binset2.color())
-            .on("click", function(d) {
-                for(var i = binset1.bins().length; i < bins.length; i++) {
-                    if (selectedBins.peek().indexOf(bins[i]) === -1)
-                        selectedBins.push(bins[i]);
-                }
-            })
           .transition()
             .attr("d", arc
-                .startAngle(chord.groups()[binset1.bins().length].startAngle)
-                .endAngle(chord.groups()[chord.groups().length - 1].endAngle));
+                .startAngle(chord.groups()[bins1.length].startAngle)
+                .endAngle(chord.groups()[bins.length - 1].endAngle));
     }
 };

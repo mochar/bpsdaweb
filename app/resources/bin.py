@@ -15,7 +15,7 @@ class BinApi(Resource):
                                    choices=['add', 'remove'])
         self.reqparse.add_argument('fields', type=str,
                                     default='id,name,color,binset_id,size,gc,'
-                                            'N50,contigs')
+                                            'N50')
 
     def get(self, contigset_id, binset_id, id):
         args = self.reqparse.parse_args()
