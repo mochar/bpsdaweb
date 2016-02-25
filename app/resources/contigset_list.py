@@ -9,25 +9,26 @@ from app import db, utils
 from app.models import Coverage, Contig, Contigset
 
 
-def save_contigs(contigset, fasta_filename, coverage_objects=None, bulk_size=5000):
+def save_contigs(contigset, fasta_filename, bulk_size=5000):
     """
     :param contigset: A Contigset model object in which to save the contigs.
     :param fasta_filename: The file name of the fasta file where the contigs are stored.
-    :param coverage_objects: A dict with keys contig names and values Coverage objects.
     :param bulk_size: How many contigs to store per bulk.
     """
     for i, data in enumerate(utils.parse_fasta(fasta_filename), 1):
         name, sequence = data
-        coverages = coverage_objects.get(name, []) if coverage_objects else []
         db.session.add(Contig(name=name, sequence=sequence, length=len(sequence),
-                              gc=utils.gc_content(sequence), contigset=contigset, coverages=coverages))
+                              gc=utils.gc_content(sequence), contigset=contigset))
         if i % bulk_size == 0:
             db.session.flush()
     db.session.commit()
+    contigs = {contig.name: contig.id for contig in contigset.contigs}
+    return contigs
 
 
-def create_coverage_objects(coverage_filename):
+def save_coverages(contigs, coverage_filename):
     """
+    :param contigs: A dict contig_name -> contig_id.
     :param coverage_filename: The name of the dsv file.
     """
     coverage_file = utils.parse_dsv(coverage_filename)
@@ -37,18 +38,24 @@ def create_coverage_objects(coverage_filename):
     fields = next(coverage_file)
     has_header = not utils.is_number(fields[1])
 
+    def add_coverages(contig_name, _coverages):
+        try:
+            contig_id = contigs.pop(contig_name)
+        except KeyError:
+            return
+        for i, cov in enumerate(_coverages):
+            db.session.add(Coverage(value=cov, name=header[i], contig_id=contig_id))
+
     header = fields[1:]
     if not has_header:
         header = ['cov_{}'.format(i) for i, _ in enumerate(fields[1:], 1)]
         contig_name, *_coverages = fields
-        coverages[contig_name] = [Coverage(value=cov, name=header[i])
-                                  for i, cov in enumerate(_coverages)]
+        add_coverages(contig_name, _coverages)
 
     for contig_name, *_coverages in coverage_file:
-        coverages[contig_name] = [Coverage(value=cov, name=header[i])
-                                  for i, cov in enumerate(_coverages)]
+        add_coverages(contig_name, _coverages)
 
-    return coverages
+    db.session.commit()
 
 
 class ContigsetListApi(Resource):
@@ -89,10 +96,10 @@ class ContigsetListApi(Resource):
                 coverage_file = tempfile.NamedTemporaryFile(delete=False)
                 args.coverage.save(coverage_file)
                 coverage_file.close()
-                coverage_objects = create_coverage_objects(coverage_file.name)
+
+                contigs = save_contigs(contigset, fasta_file.name)
+                save_coverages(contigs, coverage_file.name)
                 os.remove(coverage_file.name)
-                save_contigs(contigset, fasta_file.name,
-                             coverage_objects=coverage_objects)
             else:
                 save_contigs(contigset, fasta_file.name)
             os.remove(fasta_file.name)
