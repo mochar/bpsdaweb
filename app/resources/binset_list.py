@@ -51,10 +51,9 @@ class BinsetListApi(Resource):
             bin_objects.append(bin)
 
         # Create a bin for the unbinned contigs.
-        if len(contigs) > 0:
-            bin = Bin(name='unbinned', color='#939393',
-                      contigs=list(contigs.values()))
-            bin_objects.append(bin)
+        bin = Bin(name='unbinned', color='#939393',
+                  contigs=list(contigs.values()))
+        bin_objects.append(bin)
 
         binset = Binset(name=args.name, color=self.randcol.generate()[0],
                         bins=bin_objects, contigset=contigset)
