@@ -13,8 +13,10 @@ class ContigsetApi(Resource):
     def get(self, id):
         contigset = user_contigset_or_404(id)
         return {
+            'id': contigset.id,
             'name': contigset.name,
-            'contigs': [c.id for c in contigset.contigs],
+            'size': contigset.contigs.count(),
+            'samples': contigset.samples,
             'binsets': [binset.id for binset in contigset.binsets]
         }
 
