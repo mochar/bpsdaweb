@@ -38,6 +38,7 @@ class Contig(db.Model):
     sequence = db.Column(db.String)
     length = db.Column(db.Integer)
     gc = db.Column(db.Integer)
+    fourmerfreqs = db.Column(db.String)
     contigset_id = db.Column(db.Integer, db.ForeignKey('contigset.id'),
                              nullable=False)
     coverages = db.relationship('Coverage', backref='contig',

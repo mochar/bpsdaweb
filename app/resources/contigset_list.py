@@ -1,25 +1,35 @@
 import tempfile
 import os
+from itertools import product
 
 import werkzeug
 from flask import session, abort
 from flask.ext.restful import Resource, reqparse
 
-from app import db, utils
+from app import db, utils, app
 from app.models import Coverage, Contig, Contigset
 
 
-def save_contigs(contigset, fasta_filename, bulk_size=5000):
+def save_contigs(contigset, fasta_filename, calculate_fourmers, bulk_size=5000):
     """
     :param contigset: A Contigset model object in which to save the contigs.
     :param fasta_filename: The file name of the fasta file where the contigs are stored.
     :param bulk_size: How many contigs to store per bulk.
     """
+    fourmers = [''.join(fourmer) for fourmer in product('atcg', repeat=4)]
     for i, data in enumerate(utils.parse_fasta(fasta_filename), 1):
         name, sequence = data
-        db.session.add(Contig(name=name, sequence=sequence, length=len(sequence),
-                              gc=utils.gc_content(sequence), contigset=contigset))
+        sequence = sequence.lower()
+        contig = Contig(name=name, sequence=sequence, length=len(sequence),
+                        gc=utils.gc_content(sequence), contigset=contigset)
+        if calculate_fourmers:
+            fourmer_count = len(sequence) - 4 + 1
+            frequencies = ','.join(str(sequence.count(fourmer) / fourmer_count)
+                                   for fourmer in fourmers)
+            contig.fourmerfreqs = frequencies
+        db.session.add(contig)
         if i % bulk_size == 0:
+            app.logger.debug('At: ' + str(i))
             db.session.flush()
     db.session.commit()
     contigs = {contig.name: contig.id for contig in contigset.contigs}
@@ -32,7 +42,6 @@ def save_coverages(contigs, coverage_filename):
     :param coverage_filename: The name of the dsv file.
     """
     coverage_file = utils.parse_dsv(coverage_filename)
-    coverages = {} # contig_name -> list of Coverage objects
 
     # Determine if the file has a header.
     fields = next(coverage_file)
@@ -62,6 +71,8 @@ class ContigsetListApi(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument('name', type=str, default='contigset',
+                                   location='form')
+        self.reqparse.add_argument('fourmers', type=bool, default=False,
                                    location='form')
         self.reqparse.add_argument('contigs', location='files',
                                    type=werkzeug.datastructures.FileStorage)
@@ -97,11 +108,11 @@ class ContigsetListApi(Resource):
                 args.coverage.save(coverage_file)
                 coverage_file.close()
 
-                contigs = save_contigs(contigset, fasta_file.name)
+                contigs = save_contigs(contigset, fasta_file.name, args.fourmers)
                 save_coverages(contigs, coverage_file.name)
                 os.remove(coverage_file.name)
             else:
-                save_contigs(contigset, fasta_file.name)
+                save_contigs(contigset, fasta_file.name, args.fourmers)
             os.remove(fasta_file.name)
 
         return {'id': contigset.id, 'name': contigset.name, 'binsets': [],
