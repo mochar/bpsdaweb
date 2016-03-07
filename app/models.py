@@ -14,21 +14,19 @@ class Bin(db.Model):
     binset_id = db.Column(db.Integer, db.ForeignKey('binset.id'),
                           nullable=False)
     color = db.Column(db.String(7), default='#ffffff')
+    gc = db.Column(db.Integer)
+    N50 = db.Column(db.Integer)
 
     contigs = db.relationship('Contig', secondary=bincontig,
                               backref=db.backref('bins', lazy='dynamic'))
 
-    @property
-    def gc(self):
-        return utils.gc_content_bin(self)
+    def recalculate_values(self):
+        self.gc = utils.gc_content_bin(self)
+        self.N50 = utils.n50(self)
 
     @property
     def size(self):
         return len(self.contigs)
-
-    @property
-    def N50(self):
-        return utils.n50(self)
 
 
 class Contig(db.Model):

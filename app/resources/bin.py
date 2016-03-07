@@ -46,6 +46,7 @@ class BinApi(Resource):
                     filter(Contig.id.in_(contig_ids)). \
                     all()
                 bin.contigs = contigs
+            bin.recalculate_values()
         if args.name is not None:
             bin.name = args.name
         db.session.commit()

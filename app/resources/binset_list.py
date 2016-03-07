@@ -48,11 +48,13 @@ class BinsetListApi(Resource):
             bin_contigs = [contigs.pop(c) for c in bin_contigs]
             bin = Bin(name=bin_name, color=self.randcol.generate()[0],
                       contigs=bin_contigs)
+            bin.recalculate_values()
             bin_objects.append(bin)
 
         # Create a bin for the unbinned contigs.
         bin = Bin(name='unbinned', color='#939393',
                   contigs=list(contigs.values()))
+        bin.recalculate_values()
         bin_objects.append(bin)
 
         binset = Binset(name=args.name, color=self.randcol.generate()[0],
