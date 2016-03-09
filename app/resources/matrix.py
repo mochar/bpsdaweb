@@ -33,10 +33,10 @@ class MatrixApi(Resource):
 
         binset1 = binset_or_404(contigset_id, args.binset1)
         binset2 = binset_or_404(contigset_id, args.binset2)
-        bins1 = [bin.id for bin in sorted(binset1.bins.options(db.load_only('id')).all(), key=lambda x: x.gc)]
-        bins2 = [bin.id for bin in sorted(binset2.bins.options(db.load_only('id')).all(), key=lambda x: x.gc, reverse=True)]
-        # bins1 = [bin.id for bin in binset1.bins.options(db.load_only('id')).all()]
-        # bins2 = [bin.id for bin in binset2.bins.options(db.load_only('id')).all()]
+        # bins1 = [bin.id for bin in sorted(binset1.bins.options(db.load_only('id')).all(), key=lambda x: x.gc)]
+        # bins2 = [bin.id for bin in sorted(binset2.bins.options(db.load_only('id')).all(), key=lambda x: x.gc, reverse=True)]
+        bins1 = [bin.id for bin in sorted(binset1.without_unbinned.all(), key=lambda x: x.gc)]
+        bins2 = [bin.id for bin in sorted(binset2.without_unbinned.all(), key=lambda x: x.gc, reverse=True)]
         all_bins = bins1 + bins2
 
         data = db.session.query(bincontig). \

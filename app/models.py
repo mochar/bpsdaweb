@@ -61,6 +61,10 @@ class Binset(db.Model):
     contigset_id = db.Column(db.Integer, db.ForeignKey('contigset.id'),
                              nullable=False)
 
+    @property
+    def without_unbinned(self):
+        return self.bins.filter(Bin.name != 'unbinned')
+
 
 class Contigset(db.Model):
     __tablename__ = 'contigset'

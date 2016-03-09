@@ -19,7 +19,7 @@ class BinListApi(Resource):
         binset = binset_or_404(contigset_id, id)
         args =  self.reqparse.parse_args()
         result = []
-        for bin in binset.bins:
+        for bin in binset.without_unbinned:
             r = {}
             for field in args.fields.split(','):
                 r[field] = getattr(bin, field)
