@@ -12,24 +12,34 @@
         <div data-spy="scroll" data-target="#home-navbar" style="position: relative">
             <h4 id="info">Info</h4>
             <p>
-                CoReBIN is a user-friendly web-based tool to compare the results of different binning methods and to aid the refinement of the bins. The overall binning result of two different methods can be visually compared in a chord diagram. Individual bins can be inspected using GC%, coverage and tetranucleotide frequencies. Duis posuere, dolor quis tempor porttitor, augue sapien fermentum diam, sed sollicitudin augue neque at tortor.
-
-                Suspendisse rhoncus tincidunt lorem, at cursus nisi accumsan sit amet. Aenean efficitur vitae nunc blandit ultrices. Pellentesque luctus pulvinar ante, et ornare velit blandit eget. Cras ultrices turpis ac nunc placerat, ut tristique lacus congue. Morbi gravida pellentesque risus, at aliquet mi. Interdum et malesuada fames ac ante ipsum primis in faucibus. In et diam faucibus, placerat sem id, commodo nunc. Nulla ac ipsum sed tellus imperdiet iaculis ut et ipsum.                
+                CoReBIN is a user-friendly web-based tool to compare the results of different binning methods and to aid manual refinement of the bins. The overall binning result of two different methods can be visually compared in a chord diagram. Individual bins can be inspected using GC%, coverage and tetranucleotide frequencies. Duis posuere, dolor quis tempor porttitor, augue sapien fermentum diam, sed sollicitudin augue neque at tortor.              
             </p>
             
         	<h4 id="data">Input data</h4>
         	<p>
                 <ul>
                 <li>Metagenomic assembly (fasta format)</li>
-                <li>One or more bin sets (see format details below)</li>
                 <li>Coverage (see format details below) <i>not required</i>
+                <li>One or more bin sets (see format details below)</li>
                 </ul>
             </p>
 
-            <h4 id="instructions">Instructions</h4>
-            <p>
-                Suspendisse at tempus turpis. Pellentesque eget commodo dui, consequat aliquam purus. Quisque aliquam enim justo, vitae lacinia purus auctor a. Ut ac augue ac tortor convallis malesuada. Nam eget lectus mattis, eleifend erat sagittis, ullamcorper eros. Nunc et purus at magna elementum luctus a eu elit. Fusce eu massa vitae felis efficitur dapibus at eget sapien. Aenean suscipit nulla eget feugiat lobortis. Vestibulum pulvinar felis ac volutpat bibendum. Fusce tristique condimentum tempus. Cras venenatis erat augue. Suspendisse iaculis placerat diam, id tincidunt lectus maximus in. Donec sed leo lorem. Etiam cursus non sem vitae varius. Mauris congue lorem ultrices libero pulvinar, at rhoncus ligula tempus.
+            <h4 id="instructions">Usage</h4>
+            <p>First, upload your metagenomic assembly. It is advised to also upload a table with coverage information on your assembly. Next you can upload the result of your binning. To do so, you need a file in which the contig ID if followed by the bin number.
             </p>
+            
+         	<h4 id="data">Metagenomic binning programs</h4>
+        	<p>
+        	Here are some suggestions of recently published metagenomic binning programs and methods:
+                <ul>
+                <li><a href="https://github.com/BinPro/CONCOCT">CONCOCT</a>: Alneberg, Johannes, et al. "Binning metagenomic contigs by coverage and composition." <i>Nature methods</i> 11.11 (2014): 1144-1146.</li>
+                <li><a href="https://bitbucket.org/berkeleylab/metabat">MetaBAT</a>: Kang, Dongwan D., et al. "MetaBAT, an efficient tool for accurately reconstructing single genomes from complex microbial communities." <i>PeerJ</i> 3 (2015): e1165.</i>
+                <li><a href="http://ecogenomics.github.io/GroopM/">GroopM</a>: Imelfort, Michael, et al. "GroopM: an automated tool for the recovery of population genomes from related metagenomes." <i>PeerJ</i> 2 (2014): e603.</li>
+				<li><a href="https://sourceforge.net/projects/maxbin/">MaxBin 2.0</a>: Wu, Yu-Wei, Blake A. Simmons, and Steven W. Singer. "MaxBin 2.0: an automated binning algorithm to recover genomes from multiple metagenomic datasets." <i>Bioinformatics</i> (2015): btv638.</li>
+				<li><a href="http://claczny.github.io/VizBin/">VizBin</a>: Laczny, Cedric C., et al. "VizBin-an application for reference-independent visualization and human-augmented binning of metagenomic data." <i>Microbiome</i> 3.1 (2015): 1.</li>
+                </ul>
+            </p>           
+            
         </div>
     </div>
 </div>
