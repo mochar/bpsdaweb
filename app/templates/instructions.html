@@ -12,23 +12,25 @@
         <div data-spy="scroll" data-target="#home-navbar" style="position: relative">
             <h4 id="info">Info</h4>
             <p>
-                CoReBIN is a user-friendly web-based tool to compare the results of different binning methods and to aid manual refinement of the bins. The overall binning result of two different methods can be visually compared in a chord diagram. Individual bins can be inspected using GC%, coverage and tetranucleotide frequencies. Duis posuere, dolor quis tempor porttitor, augue sapien fermentum diam, sed sollicitudin augue neque at tortor.              
+                CoReBIN is a user-friendly web-based tool to compare the results of different binning methods and to aid manual refinement of the bins. The overall binning result of two different methods can be visually compared in a chord diagram. Individual bins can be inspected and refined using GC%, coverage and tetranucleotide frequencies.               
             </p>
             
         	<h4 id="data">Input data</h4>
         	<p>
-                <ul>
-                <li>Metagenomic assembly (fasta format)</li>
-                <li>Coverage (see format details below) <i>not required</i>
-                <li>One or more bin sets (see format details below)</li>
-                </ul>
+                <ol>
+                <li>Metagenomic assembly (fasta format)
+				<br/>
+				Coverage table (see format details below) <i>not required</i>             
+                </li>
+                <li>One or more binning results (see format details below)</li>
+                </ol>
             </p>
 
-            <h4 id="instructions">Usage</h4>
-            <p>First, upload your metagenomic assembly. It is advised to also upload a table with coverage information on your assembly. Next you can upload the result of your binning. To do so, you need a file in which the contig ID if followed by the bin number.
+            <h4 id="instructions">Getting started</h4>
+            <p>First, upload your metagenomic assembly in fasta format. It is advised to also upload a table with coverage information on your assembly. Next you can upload the result of your binning. To do so, you need a file in which the contig ID if followed by the bin number (e.g. contig </t> binID).
             </p>
             
-         	<h4 id="data">Metagenomic binning programs</h4>
+         	<h4 id="binning">Metagenomic binning</h4>
         	<p>
         	Here are some suggestions of recently published metagenomic binning programs and methods:
                 <ul>

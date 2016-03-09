@@ -63,6 +63,7 @@
 <div class="row">
     <!-- ko if: crumb() == CrumbEnum.CONTIGSETS -->
     <div class="col-xs-5">
+    	<b>Available data</b>
         <div class="list-group" data-bind="foreach: contigsets">
             <button type="button" class="list-group-item"
                     data-bind="visible: true, click: $root.selectedContigset">
@@ -71,6 +72,7 @@
         </div>
     </div>
     <div class="col-xs-7">
+    	<b>Upload new</b>
         <div class="panel panel-default">
         <div class="panel-body">
 
@@ -108,6 +110,7 @@
     <!-- /ko -->
     <!-- ko if: crumb() == CrumbEnum.BINSETS -->
     <div class="col-xs-5">
+    	<b>Available data</b>
         <div class="list-group" data-bind="foreach: binsets">
             <button type="button" class="list-group-item"
                     data-bind="borderColor: color,
@@ -118,6 +121,7 @@
         </div>
     </div>
     <div class="col-xs-7">
+    <b>Upload new</b>
         <div class="panel panel-default">
         <div class="panel-body">
 
