@@ -68,7 +68,11 @@
                 <ul class="list-group" data-bind="foreach: connectedBins">
                     <li class="list-group-item" data-bind="borderColor: color">
                         <span data-bind="text: name"></span>
-                        <span data-bind="text: percentage + '%'"></span>
+                        <span class="pull-right">
+                            <span class="label label-default"
+                                  title="Percentage similarity"
+                                  data-bind="text: percentage + '%'"></span>
+                        </span>
                     </li>
                 </ul>
             </div>
