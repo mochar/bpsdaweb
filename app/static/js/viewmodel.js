@@ -348,23 +348,17 @@ function ChordPanel(contigset) {
     self.bins1 = [];
     self.bins2 = [];
 
-    // Update bin set info with delay.
+    // Update binset info.
     ko.computed(function() {
         var bin = self.selectedBin();
         if (!bin) return;
 
+        self.selectedBinInfo(null);
         var contigset = self.contigset(),
             url = '/contigsets/' + contigset.id + '/binsets/';
         url += self.bins1.indexOf(bin) > -1 ? self.binset1().id : self.binset2().id;
         url += '/bins/' + bin.id;
         $.getJSON(url, self.selectedBinInfo);
-    });
-
-    // Empty binset info when a new bin is selected
-    ko.computed(function() {
-        var bin = self.selectedBin();
-        if (!bin) return;
-        self.selectedBinInfo(null);
     });
 
     self.connectedBins = ko.computed(function() {
@@ -392,6 +386,26 @@ function ChordPanel(contigset) {
             if (bins[i].id == binId) break;
         }
         return self.matrix[i];
+    };
+
+    self.selectNextBin = function() {
+        var bin = self.selectedBin();
+        if (!bin) return;
+
+        var bins = self.bins1.concat(self.bins2),
+            index = bins.indexOf(bin),
+            nextIndex = index + 1 === bins.length - 1 ? 0 : index + 1;
+        self.selectedBin(bins[nextIndex]);
+    };
+
+    self.selectPreviousBin = function() {
+        var bin = self.selectedBin();
+        if (!bin) return;
+
+        var bins = self.bins1.concat(self.bins2),
+            index = bins.indexOf(bin),
+            prevIndex = index === 0 ? bins.length - 1 : index - 1;
+        self.selectedBin(bins[prevIndex]);
     };
 
     self.updateChordPanel = function() {

@@ -65,6 +65,14 @@
                     <!-- /ko -->
                 </div>
 
+                <div class="btn-group btn-group-sm btn-group-justified"
+                     role="group" style="margin-bottom: 20px;">
+                    <a class="btn btn-default" href="#" role="button"
+                            data-bind="click: selectPreviousBin"> < </a>
+                    <a class="btn btn-default" href="#" role="button"
+                            data-bind="click: selectNextBin"> > </a>
+                </div>
+
                 <ul class="list-group" data-bind="foreach: connectedBins">
                     <li class="list-group-item" data-bind="borderColor: color">
                         <span data-bind="text: name"></span>
