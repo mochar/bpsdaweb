@@ -6,7 +6,7 @@ import werkzeug
 from flask import session, abort
 from flask.ext.restful import Resource, reqparse
 
-from app import db, utils, app
+from app import db, utils, app, q
 from app.models import Coverage, Contig, Contigset
 
 
@@ -32,6 +32,7 @@ def save_contigs(contigset, fasta_filename, calculate_fourmers, bulk_size=5000):
             app.logger.debug('At: ' + str(i))
             db.session.flush()
     db.session.commit()
+    os.remove(fasta_filename)
     contigs = {contig.name: contig.id for contig in contigset.contigs}
     return contigs
 
@@ -65,6 +66,12 @@ def save_coverages(contigs, coverage_filename):
         add_coverages(contig_name, _coverages)
 
     db.session.commit()
+    os.remove(coverage_filename)
+
+
+def save_coverages_job(contigs_job_id, coverage_filename):
+    contigs_job = q.fetch_job(contigs_job_id)
+    save_coverages(contigs_job.result, coverage_filename)
 
 
 class ContigsetListApi(Resource):
@@ -108,12 +115,10 @@ class ContigsetListApi(Resource):
                 args.coverage.save(coverage_file)
                 coverage_file.close()
 
-                contigs = save_contigs(contigset, fasta_file.name, args.fourmers)
-                save_coverages(contigs, coverage_file.name)
-                os.remove(coverage_file.name)
+                job = q.enqueue(save_contigs, args=(contigset, fasta_file.name, args.fourmers))
+                q.enqueue(save_coverages_job, depends_on=job, args=(job.id, coverage_file.name))
             else:
-                save_contigs(contigset, fasta_file.name, args.fourmers)
-            os.remove(fasta_file.name)
+                q.enqueue(save_contigs, args=(contigset, fasta_file.name, args.fourmers))
 
         return {'id': contigset.id, 'name': contigset.name, 'binsets': [],
                 'size': contigset.contigs.count(), 'samples': contigset.samples}

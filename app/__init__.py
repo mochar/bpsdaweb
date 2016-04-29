@@ -1,10 +1,14 @@
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_restful import Api
+from rq import Queue
+
+from worker import conn
 
 app = Flask(__name__)
 app.config.from_object('config')
 db = SQLAlchemy(app)
+q = Queue(connection=conn)
 
 from app.resources.contigset_list import ContigsetListApi
 from app.resources.contigset import ContigsetApi
