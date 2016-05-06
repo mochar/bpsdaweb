@@ -1,8 +1,8 @@
 import uuid
 
-from flask import session, render_template
+from flask import session, render_template, jsonify, request
 
-from app import app
+from app import app, q
 
 
 @app.before_request
@@ -17,3 +17,12 @@ def home():
         new_user = True
         session['uid'] = str(uuid.uuid4())
     return render_template('index.html', new_user=new_user)
+
+
+@app.route('/jobs')
+@app.route('/jobs/<job_id>')
+def job(job_id=None):
+    if job_id is None:
+        return jsonify({'jobs': q.job_ids})
+    job = q.fetch_job(job_id)
+    return jsonify({'status': job.get_status(), 'result': job.result})

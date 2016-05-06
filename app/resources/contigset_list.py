@@ -1,5 +1,6 @@
 import tempfile
 import os
+import uuid
 from itertools import product
 
 import werkzeug
@@ -69,9 +70,12 @@ def save_coverages(contigs, coverage_filename):
     os.remove(coverage_filename)
 
 
-def save_coverages_job(contigs_job_id, coverage_filename):
-    contigs_job = q.fetch_job(contigs_job_id)
-    save_coverages(contigs_job.result, coverage_filename)
+def save_contigset_job(contigset, fasta_filename, calculate_fourmers, 
+                       coverage_filename=None, bulk_size=5000):
+    contigs = save_contigs(contigset, fasta_filename, calculate_fourmers, bulk_size)
+    if coverage_filename is not None:
+        save_coverages(contigs, coverage_filename)
+    return contigset.id
 
 
 class ContigsetListApi(Resource):
@@ -105,7 +109,7 @@ class ContigsetListApi(Resource):
         contigset = Contigset(name=args.name, userid=session['uid'])
         db.session.add(contigset)
         db.session.commit()
-
+        
         if args.contigs:
             fasta_file = tempfile.NamedTemporaryFile(delete=False)
             args.contigs.save(fasta_file)
@@ -114,11 +118,11 @@ class ContigsetListApi(Resource):
                 coverage_file = tempfile.NamedTemporaryFile(delete=False)
                 args.coverage.save(coverage_file)
                 coverage_file.close()
+            # Send job
+            job_id = 'ctg-{}'.format(uuid.uuid4()) 
+            job_args = [contigset, fasta_file.name, args.fourmers]
+            if args.coverage:
+                job_args.append(coverage_file.name)
+            job = q.enqueue(save_contigset_job, args=job_args, job_id=job_id)
 
-                job = q.enqueue(save_contigs, args=(contigset, fasta_file.name, args.fourmers))
-                q.enqueue(save_coverages_job, depends_on=job, args=(job.id, coverage_file.name))
-            else:
-                q.enqueue(save_contigs, args=(contigset, fasta_file.name, args.fourmers))
-
-        return {'id': contigset.id, 'name': contigset.name, 'binsets': [],
-                'size': contigset.contigs.count(), 'samples': contigset.samples}
+        return {'jobId': job_id}

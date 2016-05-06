@@ -579,8 +579,36 @@ function ViewModel() {
     self.contigsetPage = new ContigsetPage(self.selectedContigset);
     self.binsetPage = new BinsetPage(self.selectedContigset, self.selectedBinset);
     self.chordPanel = new ChordPanel(self.selectedContigset);
-
+    
     self.debug = ko.observable(false);
+    
+    // Job handeling
+    self.jobs = ko.observableArray([]);
+    self.handleFinishedJob = function(job, result) {
+        console.log(result);
+        var jobType = job.split('-')[0];
+        switch (jobType) {
+            case 'ctg': // Saving an assembly
+                $.getJSON('/contigsets/' + result, function(data) {
+                    self.contigsets.push(new Contigset(data));
+                });
+                break;
+            default:
+                break;
+        }
+    };
+    setInterval(function() {
+        var jobs = self.jobs();
+        console.log(jobs);
+        jobs.forEach(function(job) {
+            $.getJSON('/jobs/' + job, function(data) {
+                if (data.status === 'finished') {
+                    self.handleFinishedJob(job, data.result);
+                    self.jobs.remove(job);
+                }
+            });
+        });
+    }, 3000);
 
     // On which breadcrumb (nav bar on the top right) we are.
     self.CrumbEnum = {
@@ -672,7 +700,7 @@ function ViewModel() {
             data: formData,
             async: false,
             success: function (data) {
-                self.contigsets.push(new Contigset(data));
+                self.jobs.push(data.jobId);
             },
             cache: false,
             contentType: false,
@@ -701,6 +729,10 @@ function ViewModel() {
     // Data
     $.getJSON('/contigsets', function(data) {
         self.contigsets($.map(data.contigsets, function(cs) { return new Contigset(cs); }));
+    });
+    
+    $.getJSON('/jobs', function(data) {
+        self.jobs(data.jobs);
     });
 }
 
