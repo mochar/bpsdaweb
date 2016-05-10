@@ -569,6 +569,13 @@ function Contigset(data) {
     });
 }
 
+function Job(data) {
+    var self = this;
+    self.id = data.id;
+    self.type = data.id.split('-')[0];
+    self.meta = data.meta;
+}
+
 function ViewModel() {
     var self = this;
     self.contigsets = ko.observableArray([]);
@@ -584,13 +591,18 @@ function ViewModel() {
     
     // Job handeling
     self.jobs = ko.observableArray([]);
-    self.handleFinishedJob = function(job, result) {
-        console.log(result);
-        var jobType = job.split('-')[0];
-        switch (jobType) {
+    self.getJobsOfType = function(type) {
+        return self.jobs().filter(function(job) { return job.type === type; });
+    }
+    self.handleFinishedJob = function(job) {
+        switch (job.type) {
             case 'ctg': // Saving an assembly
-                $.getJSON('/contigsets/' + result, function(data) {
-                    self.contigsets.push(new Contigset(data));
+                $.getJSON('/contigsets/' + job.meta.id, function(data) {
+                    self.contigsets.remove(function(cs) { return cs.id == data.id; });
+                    var contigset = new Contigset(data);
+                    self.contigsets.push(contigset);
+                    if (self.selectedContigset().id == data.id)
+                        self.selectedContigset(contigset);
                 });
                 break;
             default:
@@ -599,11 +611,11 @@ function ViewModel() {
     };
     setInterval(function() {
         var jobs = self.jobs();
-        console.log(jobs);
+        console.log(jobs.map(function(job) { return job.id; }));
         jobs.forEach(function(job) {
-            $.getJSON('/jobs/' + job, function(data) {
+            $.getJSON('/jobs/' + job.id, function(data) {
                 if (data.status === 'finished') {
-                    self.handleFinishedJob(job, data.result);
+                    self.handleFinishedJob(job);
                     self.jobs.remove(job);
                 }
             });
@@ -625,8 +637,10 @@ function ViewModel() {
         var contigset = self.selectedContigset();
         if (contigset) { // A contigset has been selected
             self.crumb(self.CrumbEnum.CONTIGSET);
-            self.contigSection.contigsetId(contigset.id); // Update contig table
-
+            // Force-update contig table
+            self.contigSection.contigsetId(contigset.id); 
+            self.contigSection.contigsetId.valueHasMutated();
+            
             $.getJSON('/contigsets/' + contigset.id + '/binsets', function(data) {
                 self.binsets(data.binsets.map(function(bs) { return new Binset(bs); }));
             });
@@ -700,7 +714,8 @@ function ViewModel() {
             data: formData,
             async: false,
             success: function (data) {
-                self.jobs.push(data.jobId);
+                self.contigsets.push(new Contigset(data.meta));
+                self.jobs.push(new Job(data));
             },
             cache: false,
             contentType: false,
@@ -732,7 +747,7 @@ function ViewModel() {
     });
     
     $.getJSON('/jobs', function(data) {
-        self.jobs(data.jobs);
+        self.jobs($.map(data.jobs, function(job) { return new Job(data); }));
     });
 }
 

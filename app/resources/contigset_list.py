@@ -121,8 +121,10 @@ class ContigsetListApi(Resource):
             # Send job
             job_id = 'ctg-{}'.format(uuid.uuid4()) 
             job_args = [contigset, fasta_file.name, args.fourmers]
+            job_meta = {'name': contigset.name, 'id': contigset.id}
             if args.coverage:
                 job_args.append(coverage_file.name)
-            job = q.enqueue(save_contigset_job, args=job_args, job_id=job_id)
+            job = q.enqueue(save_contigset_job, args=job_args, job_id=job_id,
+                            meta=job_meta, timeout=5*60)
 
-        return {'jobId': job_id}
+        return {'id': job_id, 'meta': job_meta}
